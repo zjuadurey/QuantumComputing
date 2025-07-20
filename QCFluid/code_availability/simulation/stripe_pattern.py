@@ -4,9 +4,11 @@ from math import pi
 # 构建量子电路
 def build_circuit_stripe_pattern(error_q_idx=6) -> simulator.Circuit:
     # 加载初态制备+时间演化到t=pi_over_2的qasm电路
-    with open(root.joinpath('raw_circuit/diverging_flow_t=pi_over_2.qasm'),
+    # diverging_flow_t=pi_over_2_test_4.qasm
+    with open(root.joinpath('raw_circuit/diverging_flow_t=pi_over_2_test_5.qasm'),
               'r') as f:
         qasm = f.read()
+    print("sssss")
     # 按照换行符分割
     qasm = qasm.split(';\n')
     # 用模拟器构建量子电路
