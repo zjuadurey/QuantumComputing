@@ -2,10 +2,10 @@ from . import *
 from math import pi
 
 # 构建量子电路
-def build_circuit_stripe_pattern(error_q_idx=6) -> simulator.Circuit:
+def build_circuit_stripe_pattern(n_bits=10, error_q_idx=6) -> simulator.Circuit:
     # 加载初态制备+时间演化到t=pi_over_2的qasm电路
     # diverging_flow_t=pi_over_2_test_4.qasm
-    with open(root.joinpath('raw_circuit/diverging_flow_t=pi_over_2_test_5.qasm'),
+    with open(root.joinpath('raw_circuit/diverging_flow_t=pi_over_2.qasm'),
               'r') as f:
         qasm = f.read()
     print("sssss")
@@ -44,15 +44,15 @@ def build_circuit_stripe_pattern(error_q_idx=6) -> simulator.Circuit:
     return circuit
 
 # 模拟并可视化
-def stripe_pattern_simulation(error_q_idx=6, save=False):
+def stripe_pattern_simulation(n_bits=10, error_q_idx=6, save=False):
     print("stripe_pattern_simulation", error_q_idx, save)
-    N = 2**5
+    N = int( 2 ** (n_bits / 2) )
     # 加载分组后的泡利串信息
     sampling_op_info = load_sampling_op_info()
     # 全局测量基集合
     sampling_op = sampling_op_info['sampling_op']
     # 构建量子电路
-    c0 = build_circuit_stripe_pattern(error_q_idx)
+    c0 = build_circuit_stripe_pattern(n_bits=10, error_q_idx=error_q_idx)
     # 计算量子态在测量基'ZZZZZZZZZZ'下的概率分布
     probs = {'ZZZZZZZZZZ': c0.state_vector().probs(list(range(10)))}
     # 遍历全局测量基
@@ -72,13 +72,13 @@ def stripe_pattern_simulation(error_q_idx=6, save=False):
         probs[_sampling_op] = _c.state_vector().probs(list(range(10)))
     # 采样结果转换为物理量
     rho0, current, expectation = process_sampling_result(
-        probs, collect_expectation=True)
+        probs, collect_expectation=True, n_bits=n_bits)
 
 
     # 存储数据到excel
     if save:
-        _x = np.arange(-np.pi, np.pi, 2 * np.pi / 2**5)
-        _y = np.arange(-np.pi, np.pi, 2 * np.pi / 2**5)
+        _x = np.arange(-np.pi, np.pi, 2 * np.pi / N)
+        _y = np.arange(-np.pi, np.pi, 2 * np.pi / N)
         _xs, _ys = np.meshgrid(_x, _y)
         with pd.ExcelWriter(
                 root.joinpath(
@@ -92,17 +92,17 @@ def stripe_pattern_simulation(error_q_idx=6, save=False):
                 'expectation': expectation
             }).to_excel(ew, sheet_name='expectation')
     # 可视化
-    x = np.linspace(0, 2**5 - 1, 2**5)
-    y = np.linspace(0, 2**5 - 1, 2**5)
-    xticks = np.linspace(0, 2**5 - 1, 5)
-    yticks = np.linspace(0, 2**5 - 1, 5)
+    x = np.linspace(0, N - 1, N)
+    y = np.linspace(0, N - 1, N)
+    xticks = np.linspace(0, N - 1, 5)
+    yticks = np.linspace(0, N - 1, 5)
     xticklabels = [r'-$\pi$', r'-$\pi/2$', 0, r'$\pi/2$', r'$\pi$']
     yticklabels = [r'-$\pi$', r'-$\pi/2$', 0, r'$\pi/2$', r'$\pi$']
     xs, ys = np.meshgrid(x, y)
 
     def set_ax(ax):
-        ax.set_xlim(0, 2**5 - 1)
-        ax.set_ylim(0, 2**5 - 1)
+        ax.set_xlim(0, N - 1)
+        ax.set_ylim(0, N - 1)
         ax.set_xticks(xticks)
         ax.set_xticklabels(xticklabels)
         ax.set_yticks(yticks)
