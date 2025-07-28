@@ -100,7 +100,13 @@ y = np.linspace(-pi, pi, N, endpoint=False)
 dx = 2*pi/N
 dy = 2*pi/N
 X, Y = np.meshgrid(x, y)
-R = sqrt(X**2 + Y**2)
+# 原代码 (涡核在中心)
+# R = sqrt(X**2 + Y**2)  # 默认以(0,0)为中心
+
+# 调整为 (x0,y0) 处的涡核
+x0 = 0  # 涡核中心x坐标
+y0 = 0 # 涡核中心y坐标
+R = sqrt((X - x0)**2 + (Y - y0)**2)  # 相对涡核中心的距离
 sigma = 3
 f = exp(-(R/sigma)**4)
 u = 2*(X + 1j*Y)*f / (1 + R**2)
