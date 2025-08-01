@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+
 # -*- coding: utf-8 -*-
 """
 Generate single-vortex dataset:
@@ -11,15 +11,20 @@ import json, hashlib, numpy as np
 from numpy import pi, sqrt, exp
 from tqdm import tqdm
 from solvers import (run_spec_step, run_quantum_step,
+                     run_rk4_step,              # ← 新增
                      compute_fluid_quantities)
+
 
 # ──────────────────────────────────────────────────────────────
 # 全局参数
 # ──────────────────────────────────────────────────────────────
 N            = 2 ** 5          # 32 × 32 网格
+# 时间步长
 DT           = 0.1
+# 时间步数
 NSTEPS       = 100
-NSAMPLES     = 10
+# 数据集大小
+NSAMPLES     = 100
 SIGMA_MIN    = 2 * pi / N      # 一个格宽
 
 # 输出目录：dataset_root/single_vortex（位于脚本同级）
@@ -107,16 +112,22 @@ def main():
         params = dict(x0=float(x0), y0=float(y0), sigma=float(sigma))
         psi1_0, psi2_0 = init_wavefunction(**params)
 
-        # classical spectral
+        # --- classical spectral ---
         dump("classical_spectral",
-             simulate(psi1_0, psi2_0, run_spec_step),
-             params)
+            simulate(psi1_0, psi2_0, run_spec_step),
+            params)
 
-        # quantum spectral（若启用）
+        # --- quantum spectral（若启用） ---
         if run_quantum_step is not None:
             dump("quantum_spectral",
-                 simulate(psi1_0, psi2_0, run_quantum_step),
-                 params)
+                simulate(psi1_0, psi2_0, run_quantum_step),
+                params)
+
+        # --- RK4 baseline ---
+        dump("rk4",
+            simulate(psi1_0, psi2_0, run_rk4_step),
+            params)
+
 
 if __name__ == "__main__":
     main()

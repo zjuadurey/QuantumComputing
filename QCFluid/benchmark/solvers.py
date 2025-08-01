@@ -98,3 +98,42 @@ def compute_fluid_quantities(psi1, psi2):
 
     return rho.astype(np.float32), (rho * ux).astype(np.float32), \
            (rho * uy).astype(np.float32), vort.astype(np.float32)
+
+# ------------------------------------------------------------
+# 4. RK4 baseline – with internal sub-steps for stability
+# ------------------------------------------------------------
+import numpy.fft as _fft
+
+__K2_CACHE = {}
+def _K2(N):
+    if N not in __K2_CACHE:
+        k = _fft.fftfreq(N) * N
+        KX, KY = np.meshgrid(k, k, indexing="xy")
+        __K2_CACHE[N] = KX**2 + KY**2
+    return __K2_CACHE[N]
+
+def _laplacian(ψ, K2):
+    return _fft.ifft2(-K2 * _fft.fft2(ψ))
+
+def run_rk4_step(psi1, psi2, dt):
+    """
+    Single outer step of duration `dt`, but internally split into `n_sub`
+    small RK4 steps so that |λ dt_sub| ≤ 2.5 for stability.
+    """
+    N   = psi1.shape[0]
+    K2  = _K2(N)
+    lam_max = 0.5 * K2.max()        # |λ_max| = ½ k_max²
+    dt_sub  = 2.5 / lam_max         # safety margin   (≈0.02 for N=32)
+    n_sub   = max(1, int(np.ceil(dt / dt_sub)))
+    dt_sub  = dt / n_sub            # exactly divides dt
+
+    def rk4_one(ψ):
+        for _ in range(n_sub):
+            k1 = -0.5j * _laplacian(ψ,               K2)
+            k2 = -0.5j * _laplacian(ψ + 0.5*dt_sub*k1, K2)
+            k3 = -0.5j * _laplacian(ψ + 0.5*dt_sub*k2, K2)
+            k4 = -0.5j * _laplacian(ψ +     dt_sub*k3, K2)
+            ψ  += dt_sub/6.0 * (k1 + 2*k2 + 2*k3 + k4)
+        return ψ
+
+    return rk4_one(psi1.copy()), rk4_one(psi2.copy())

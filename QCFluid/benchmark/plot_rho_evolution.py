@@ -1,5 +1,6 @@
-#!/usr/bin/env python
+
 # plot_rho_evolution.py
+# python plot_rho_evolution.py --method quantum_spectral --case case_ac867a7a
 # ────────────────────────────────────────────────────────────
 import json, random, argparse
 from pathlib import Path
@@ -7,7 +8,7 @@ from pathlib import Path
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import ticker
-from tqdm import tqdm   # 如不想装 tqdm，可删这一行及下文唯一用处
+from tqdm import tqdm
 
 # ---------------- CLI ----------------
 parser = argparse.ArgumentParser(
@@ -15,7 +16,7 @@ parser = argparse.ArgumentParser(
 parser.add_argument("--root", default="dataset_root",
                     help="dataset_root directory (default: ./dataset_root)")
 parser.add_argument("--method", default="classical_spectral",
-                    choices=["classical_spectral", "quantum_spectral"],
+                    choices=["classical_spectral", "quantum_spectral", "rk4"],
                     help="simulation method subfolder")
 parser.add_argument("--case", default=None,
                     help="case folder name (default: random case)")
