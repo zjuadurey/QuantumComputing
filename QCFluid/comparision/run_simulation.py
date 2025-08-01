@@ -1,7 +1,7 @@
 # === run_simulation.py ===
 import numpy as np
 from init_state import generate_initial_state
-from spectral_classic import evolve_spectral
+from QCFluid.comparision.classic import evolve_spectral
 from quantum_evolve import evolve_quantum
 from metrics import compute_fidelity, compute_rho
 from plot_utils import plot_density_diff
