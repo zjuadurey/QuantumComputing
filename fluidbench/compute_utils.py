@@ -20,3 +20,28 @@ def compute_fluid_quantities(psi1, psi2):
           +np.real(psi2)*np.imag(dpsi2_y) - np.imag(psi2)*np.real(dpsi2_y)) / rho
     vor = np.real(ifft2(1j*KX*fft2(uy) - 1j*KY*fft2(ux)))
     return rho, ux, uy, vor
+
+def compute_vorticity(ψ1, ψ2, dx=2*np.pi/32, eps=1e-8):
+    ρ = np.abs(ψ1)**2 + np.abs(ψ2)**2
+    ρ = np.maximum(ρ, eps)
+
+    def J_comp(ψ):
+        grad_ψx = (np.roll(ψ, -1, axis=0) - np.roll(ψ, 1, axis=0)) / (2 * dx)
+        grad_ψy = (np.roll(ψ, -1, axis=1) - np.roll(ψ, 1, axis=1)) / (2 * dx)
+        Jx = 0.5j * (ψ * np.conj(grad_ψx) - np.conj(ψ) * grad_ψx)
+        Jy = 0.5j * (ψ * np.conj(grad_ψy) - np.conj(ψ) * grad_ψy)
+        return Jx, Jy
+
+    Jx1, Jy1 = J_comp(ψ1)
+    Jx2, Jy2 = J_comp(ψ2)
+
+    Jx = Jx1 + Jx2
+    Jy = Jy1 + Jy2
+
+    ux = np.real(Jx / ρ)
+    uy = np.real(Jy / ρ)
+
+    dudy = (np.roll(ux, -1, axis=1) - np.roll(ux, 1, axis=1)) / (2 * dx)
+    dvdx = (np.roll(uy, -1, axis=0) - np.roll(uy, 1, axis=0)) / (2 * dx)
+
+    return dvdx - dudy
