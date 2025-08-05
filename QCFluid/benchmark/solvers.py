@@ -104,13 +104,7 @@ def compute_fluid_quantities(psi1, psi2):
 # ------------------------------------------------------------
 import numpy.fft as _fft
 
-__K2_CACHE = {}
-def _K2(N):
-    if N not in __K2_CACHE:
-        k = _fft.fftfreq(N) * N
-        KX, KY = np.meshgrid(k, k, indexing="xy")
-        __K2_CACHE[N] = KX**2 + KY**2
-    return __K2_CACHE[N]
+
 
 def _laplacian(ψ, K2):
     return _fft.ifft2(-K2 * _fft.fft2(ψ))
