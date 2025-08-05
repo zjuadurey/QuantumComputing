@@ -1,6 +1,6 @@
 
 # plot_rho_evolution.py
-# python plot_rho_evolution.py --method quantum_spectral --case case_ac867a7a
+# python plot_rho_evolution.py --method quantum_spectral --case case_36044494
 # ────────────────────────────────────────────────────────────
 import json, random, argparse
 from pathlib import Path

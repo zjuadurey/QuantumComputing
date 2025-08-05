@@ -19,12 +19,13 @@ from solvers import (run_spec_step, run_quantum_step,
 # 全局参数
 # ──────────────────────────────────────────────────────────────
 N            = 2 ** 5          # 32 × 32 网格
+TOTAL_QUBITS = 5 + 5 + 1            # 2^10 = 1024 个格点，加上1bit用于区分双分量波函数
 # 时间步长
 DT           = 0.1
 # 时间步数
-NSTEPS       = 100
+TIME_STEPS       = 10
 # 数据集大小
-NSAMPLES     = 100
+NSAMPLES     = 1
 SIGMA_MIN    = 2 * pi / N      # 一个格宽
 
 # 输出目录：dataset_root/single_vortex（位于脚本同级）
@@ -72,7 +73,7 @@ def stratified_centres(rng, nsamples):
 # 单方法完整时间序列
 # ──────────────────────────────────────────────────────────────
 def simulate(psi1_0, psi2_0, step_fn):
-    Nt = NSTEPS + 1
+    Nt = TIME_STEPS + 1
     psi1 = np.empty((Nt, N, N), np.complex128); psi1[0] = psi1_0
     psi2 = np.empty_like(psi1);                 psi2[0] = psi2_0
 
@@ -99,7 +100,7 @@ def dump(method, arrays, params):
     for name, arr in arrays.items():
         np.save(folder / f"{name}.npy", arr)
     with open(folder / "meta.json", "w") as fp:
-        json.dump({**params, "dt": DT, "nsteps": NSTEPS}, fp, indent=2)
+        json.dump({**params, "dt": DT, "nsteps": TIME_STEPS, "num_of_grid_in_each_direction": N, }, fp, indent=2)
 
 # ──────────────────────────────────────────────────────────────
 # 主循环

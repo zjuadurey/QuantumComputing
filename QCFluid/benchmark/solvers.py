@@ -14,7 +14,16 @@ def run_spec_step(psi1, psi2, dt):
         spec *= phase
         return np.fft.ifft2(spec)
 
-    return evolve(psi1), evolve(psi2)
+    psi1_new = evolve(psi1)
+    psi2_new = evolve(psi2)
+
+    # --- Normalize to make total density sum to 1 ---
+    rho = np.abs(psi1_new)**2 + np.abs(psi2_new)**2
+    norm = np.sqrt(rho.sum())
+    psi1_new /= norm
+    psi2_new /= norm
+
+    return psi1_new, psi2_new
 
 # ---------- 2. 量子谱一步演化（可关闭） ----------
 ENABLE_QSPEC = True
@@ -103,8 +112,10 @@ def compute_fluid_quantities(psi1, psi2):
 # 4. RK4 baseline – with internal sub-steps for stability
 # ------------------------------------------------------------
 import numpy.fft as _fft
-
-
+def _K2(N):
+    k = np.fft.fftfreq(N) * N
+    KX, KY = np.meshgrid(k, k, indexing="xy")
+    return (KX**2 + KY**2) / 2.0
 
 def _laplacian(ψ, K2):
     return _fft.ifft2(-K2 * _fft.fft2(ψ))
@@ -130,4 +141,13 @@ def run_rk4_step(psi1, psi2, dt):
             ψ  += dt_sub/6.0 * (k1 + 2*k2 + 2*k3 + k4)
         return ψ
 
-    return rk4_one(psi1.copy()), rk4_one(psi2.copy())
+    psi1_new = rk4_one(psi1.copy())
+    psi2_new = rk4_one(psi2.copy())
+
+    # --- Normalize to make total density sum to 1 ---
+    rho = np.abs(psi1_new)**2 + np.abs(psi2_new)**2
+    norm = np.sqrt(rho.sum())
+    psi1_new /= norm
+    psi2_new /= norm
+
+    return psi1_new, psi2_new

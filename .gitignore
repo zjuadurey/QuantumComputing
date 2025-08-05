@@ -8,3 +8,5 @@
 __pycache__/
 
 figs/
+
+dataset_root/
