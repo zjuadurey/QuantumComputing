@@ -90,16 +90,16 @@ def current_matrix(N, x, y, periodic=False):
 
 
 # 把算符分解为泡利串，并去掉系数小于一定阈值的项
-def dump_decomposed_current_matrix(threshold=1e-6):
+def dump_decomposed_current_matrix(threshold=1e-6, n_bits = 10):
     print(
         '[dump_decomposed_current_matrix]: Calculating... (This process may cost half an hour)'
     )
-    N = 2**5
+    N = 2 ** (n_bits / 2)
     jx_coeff = {}
     jy_coeff = {}
     for _x in tqdm.tqdm(range(N), desc='x'):
         for _y in tqdm.tqdm(range(N), desc='y'):
-            jx, jy = current_matrix(5, _x, _y)
+            jx, jy = current_matrix( (n_bits / 2), _x, _y)
             _jx_coeff = decompose_matrix.decompose(
                 jx)  # tr(j_x @ Pauli string)
             _jy_coeff = decompose_matrix.decompose(jy)
@@ -122,7 +122,7 @@ def load_decomposed_current_matrix():
 
 
 if not root.joinpath('temp/decomposed_current_matrix.pkl').exists():
-    dump_decomposed_current_matrix()
+    dump_decomposed_current_matrix(threshold=1e-6, N = 2 ** 5)
 DECOMPOSED_CURRENT_MATRIX = load_decomposed_current_matrix()
 
 # 泡利分组测量预处理部分
@@ -240,8 +240,8 @@ def ptrace(probs, remain_q_idxs):
         axis=-1)
 
 # 泡利分组测量
-def process_sampling_result(probs: dict, collect_expectation=False):
-    N = 2**5
+def process_sampling_result(probs: dict, collect_expectation=False, n_bits=10):
+    N = int( 2 ** (n_bits / 2) )
     decomposed_current_matrix, sampling_op_info = DECOMPOSED_CURRENT_MATRIX, SAMPLING_OP_INFO
     sampling_op_full_map = sampling_op_info['sampling_op_full_map']
     # 全 Z 测量是获取密度矩阵对角元

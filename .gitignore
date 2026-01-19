@@ -6,3 +6,7 @@
 
 # 字节码缓存文件
 __pycache__/
+
+figs/
+
+dataset_root/
