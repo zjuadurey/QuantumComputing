@@ -1,0 +1,32 @@
+Shadow Hamiltonian Simulation POC - Direct Fourier Evolution
+============================================================
+
+Method:
+  Shadow simulation uses direct Fourier-space evolution:
+    psi_k(t) = psi_k(0) * exp(-i k² t / 2)
+  This is the SAME Hamiltonian H = k²/2 as the baseline quantum circuit.
+  The shadow is "exact" for this free-particle case.
+
+Configuration:
+  Grid size: 16x16
+  Qubits: nx=4, ny=4
+  Fourier block: K=2, size=5x5
+  Feature dimension: 50
+  Time points: 10, dt=0.1
+
+Runtime:
+  Baseline (quantum circuit): 1.878 seconds
+  Shadow (direct FFT): 0.003214 seconds
+  Speedup: 584x
+
+Errors (shadow vs baseline):
+  Mean feature error: 8.272580e-16
+  Mean density error: 9.859009e-16
+  Mean energy error: 1.394701e-15
+  Max feature error: 1.658081e-15
+  Max density error: 1.721978e-15
+  Max energy error: 3.090109e-15
+
+Note:
+  Small errors are due to numerical precision differences between
+  quantum circuit simulation and direct FFT computation.
