@@ -15,6 +15,11 @@ Build a reproducible experiment pipeline for SHIFT-FLOW:
 - **NOT classical shadow tomography**: no randomized Pauli/Clifford
   measurements, no tomography estimator.
 
+Conceptual note (paper framing):
+- This is **not PCA/POD** (data-driven subspace learning). SHIFT-FLOW uses a
+  **shadow Hamiltonian / operator-closure** viewpoint where the low-dimensional
+  structure is induced by the Hamiltonian commutator / invariance properties.
+
 ## Source of Truth
 
 - Reference implementation: `test/shadow_test_v4.py`.
@@ -62,6 +67,7 @@ Note: `test/shadow_test_v4.py` was updated so Qiskit imports are **optional**
     - +1 spin qubit for the two components
   - Implements time evolution via a diagonal phase gate in the truncated basis.
   - Uses `qiskit.quantum_info.Statevector` (does not require `qiskit-aer`).
+  - Optional Aer path is supported for timing studies.
 
 - `tests/sanity_core.py`
   - Validates core vs v4 on `nx=6, K0=2.5, t=0.3, seed=0`.
@@ -95,6 +101,11 @@ Note: `test/shadow_test_v4.py` was updated so Qiskit imports are **optional**
   - Loops `(nx, K0, t, seed)` and writes `results/sweep.csv`.
   - Sweeps use FFT baseline (fast) and **Qiskit shadow evolution** for the
     truncated set (compressed mode register, q_shift qubits).
+  - Shadow backend options:
+    - `--shadow-backend statevector` (default; no `qiskit-aer`)
+    - `--shadow-backend aer` (records Aer times; requires `qiskit-aer`)
+  - Optional: record full-state Aer timing in a separate run via
+    `--record-full-aer-times`.
   - Comparisons are recorded for:
     - **shadow vs low-pass baseline** (sanity; should be ~ machine precision for V=0)
     - **shadow vs full baseline** (main truncation-to-full story)
@@ -120,6 +131,12 @@ CSV columns (high level):
 - task-only: `E_LP_base`, `E_LP_shadow`, `err_E_LP`
 - cost: `q_base,q_shift,measurement_proxy,postprocess_*`
 - runtimes: `rt_baseline_full_s, rt_baseline_lp_s, rt_shadow_s, rt_metrics_s, rt_total_s`
+
+Additional runtime columns (when using Qiskit/Aer options):
+- `shadow_backend`
+- `rt_shadow_evolve_s`, `rt_shadow_post_s`
+- `rt_shadow_aer_transpile_s`, `rt_shadow_aer_run_s`
+- `rt_full_aer_transpile_s`, `rt_full_aer_run_s` (only if `--record-full-aer-times`)
 
 ### Qiskit credibility spot-check (recommended for paper)
 
@@ -147,6 +164,11 @@ Additionally, Exp1 exploration:
 - `experiments/plot_exp1_var4_palettes_nature.py`
   - Generates 8 restrained, Nature-like palettes.
 
+Aer timing figure:
+- `experiments/plot_aer_runtime.py`
+  - Compares Aer evolution time for shadow vs full.
+  - Right panel uses a linear y-axis with an inset zoom.
+
 Generated figure directories are outputs only and can be ignored on another
 machine:
 
@@ -165,6 +187,24 @@ Run the full sweep:
 
 ```bash
 python3 experiments/run_sweep.py --overwrite
+```
+
+Run sweep with Aer timing for shadow evolution:
+
+```bash
+python3 experiments/run_sweep.py --overwrite --shadow-backend aer
+```
+
+Record full-state Aer timing (recommended separate run):
+
+```bash
+python3 experiments/run_sweep.py --overwrite --record-full-aer-times --shadow-backend statevector --K0-list 2.5 --out results/full_aer_times.csv
+```
+
+Plot Aer timing comparison:
+
+```bash
+python3 experiments/plot_aer_runtime.py --shadow results/sweep.csv --full results/full_aer_times.csv
 ```
 
 Generate Exp1 8 design variants:
@@ -202,3 +242,5 @@ python3 experiments/plot_exp4.py
 - Consider adding a **noise model** (gate/decoherence or shot noise) as an
   additional section if needed for narrative, without drifting into classical
   shadow tomography.
+- Consider plotting `low-pass vs full` explicitly alongside `shadow vs full` in
+  main figures, and add a ratio plot to show shadow is truncation-optimal.
