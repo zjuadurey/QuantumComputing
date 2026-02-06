@@ -5,8 +5,13 @@ Run SHIFT-FLOW sweeps and write a single CSV.
 Baseline (for sweeps): FFT-based free evolution (V=0) with unitary FFT
 conventions matching `test/shadow_test_v4.py`.
 
-SHIFT-FLOW: shadow / truncated-mode observable dynamics (coherence-based low-pass
-reconstruction), NOT classical shadow tomography.
+SHIFT-FLOW: shadow / truncated-mode observable dynamics.
+
+In this codebase, the shadow evolution is executed via a Qiskit simulation on a
+compressed mode register (q_shift qubits), NOT by a purely classical phase
+update.
+
+This is NOT classical shadow tomography.
 
 Example:
   python experiments/run_sweep.py --overwrite
@@ -29,7 +34,7 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from shiftflow import cases, core_v0, metrics  # noqa: E402
+from shiftflow import cases, core_v0, metrics, qiskit_shadow_v0  # noqa: E402
 
 
 DEFAULT_NX_LIST = [5, 6, 7]
@@ -113,7 +118,34 @@ def main(argv: list[str] | None = None) -> int:
 
     p.add_argument("--progress-every", type=int, default=25, help="print progress every N points")
 
+    p.add_argument(
+        "--shadow-backend",
+        choices=["statevector", "aer"],
+        default="statevector",
+        help="Qiskit backend for shadow evolution (aer requires qiskit-aer)",
+    )
+    p.add_argument("--shadow-aer-opt", type=int, default=0, help="Aer transpile optimization level (0-3)")
+
+    p.add_argument(
+        "--record-full-aer-times",
+        action="store_true",
+        help="also record Aer timing for full-state evolution (diag in full Fourier basis)",
+    )
+    p.add_argument("--full-aer-opt", type=int, default=0, help="Aer transpile optimization level for full evolution (0-3)")
+
     args = p.parse_args(argv)
+
+    if args.shadow_backend == "aer" or args.record_full_aer_times:
+        try:
+            import qiskit_aer  # noqa: F401
+        except Exception as e:
+            raise SystemExit("Aer timing requires qiskit-aer to be installed\n" + str(e))
+
+    aer_sim = None
+    if args.shadow_backend == "aer" or args.record_full_aer_times:
+        from qiskit_aer import AerSimulator
+
+        aer_sim = AerSimulator(method="statevector")
 
     nx_list = _parse_int_list(args.nx_list)
     seeds = _parse_int_list(args.seeds)
@@ -165,6 +197,13 @@ def main(argv: list[str] | None = None) -> int:
         "rt_baseline_full_s",
         "rt_baseline_lp_s",
         "rt_shadow_s",
+        "shadow_backend",
+        "rt_shadow_evolve_s",
+        "rt_shadow_post_s",
+        "rt_shadow_aer_transpile_s",
+        "rt_shadow_aer_run_s",
+        "rt_full_aer_transpile_s",
+        "rt_full_aer_run_s",
         "rt_metrics_s",
         "rt_total_s",
     ]
@@ -189,6 +228,12 @@ def main(argv: list[str] | None = None) -> int:
             dy = 2.0 * math.pi / N
             E = core_v0.energy_grid_free(N)
 
+            # Full (untruncated) Fourier-basis encoding for Aer timing
+            q_mode_full = 2 * int(nx)
+            energies_full = np.asarray(E.reshape(-1), dtype=float)
+            full_sv0_cache: dict[int, np.ndarray] = {}
+            full_aer_cache: dict[tuple[int, float], tuple[float, float]] = {}
+
             # Precompute full k-space phases for all t (shared across seeds/K0)
             phase_full_map: dict[float, np.ndarray] = {}
             for t in t_list:
@@ -200,6 +245,9 @@ def main(argv: list[str] | None = None) -> int:
 
                 # precompute mask indices for faster fills
                 mask_idx = np.nonzero(mask)
+
+                # Qiskit shadow encoding for this (nx, K0)
+                shadow_modes, shadow_energies = qiskit_shadow_v0.modes_from_mask(mask, E, order="energy")
 
                 for seed in seeds:
                     psi1_0, psi2_0, _stacked, meta = cases.vortex_case(
@@ -215,6 +263,15 @@ def main(argv: list[str] | None = None) -> int:
                     b1_0 = core_v0.unitary_fft2(psi1_0)
                     b2_0 = core_v0.unitary_fft2(psi2_0)
 
+                    # Prepare the full Fourier-basis initial statevector once per seed
+                    # (used only for Aer timing; independent of K0).
+                    if args.record_full_aer_times and int(seed) not in full_sv0_cache:
+                        full_sv0 = np.concatenate([b1_0.reshape(-1), b2_0.reshape(-1)]).astype(np.complex128, copy=False)
+                        full_scale = float(np.linalg.norm(full_sv0))
+                        if full_scale == 0.0:
+                            raise RuntimeError("full_sv0 has zero norm")
+                        full_sv0_cache[int(seed)] = full_sv0 / full_scale
+
                     # mask slices (used for low-pass baseline and shadow)
                     b1_0_mask = b1_0[mask_idx]
                     b2_0_mask = b2_0[mask_idx]
@@ -223,16 +280,22 @@ def main(argv: list[str] | None = None) -> int:
                     k0_1 = core_v0.choose_reference_mode(b1_0, mask, prefer=(0, 0), min_rel=1e-3)
                     k0_2 = core_v0.choose_reference_mode(b2_0, mask, prefer=(0, 0), min_rel=1e-3)
 
-                    # precompute coherence seeds for shadow (mask only)
-                    b1_k0 = b1_0[k0_1]
-                    b2_k0 = b2_0[k0_2]
-                    z1_0_mask = b1_0_mask * np.conj(b1_k0)
-                    z2_0_mask = b2_0_mask * np.conj(b2_k0)
-                    E0_1 = float(E[k0_1])
-                    E0_2 = float(E[k0_2])
-
                     # task-only baseline E_LP is time-invariant for free evolution
                     E_LP_base = float(np.sum(np.abs(b1_0_mask) ** 2 + np.abs(b2_0_mask) ** 2))
+
+                    # Qiskit shadow initial state on q_shift qubits (compressed mode index + spin)
+                    shadow_sv0, shadow_scale, shadow_q_mode = qiskit_shadow_v0.pack_truncated_statevector(
+                        b1_0,
+                        b2_0,
+                        shadow_modes,
+                        normalize=True,
+                    )
+
+                    # Optional sanity: q_shift proxy must match encoding qubits
+                    if int(cost.q_shift) != int(shadow_q_mode) + 1:
+                        raise RuntimeError(
+                            f"q_shift mismatch: cost.q_shift={cost.q_shift} vs shadow_q_total={int(shadow_q_mode)+1} (M={cost.M})"
+                        )
 
                     # reusable coefficient buffers (filled per t)
                     b1_full = np.empty((N, N), dtype=np.complex128)
@@ -248,6 +311,23 @@ def main(argv: list[str] | None = None) -> int:
 
                         t_f = float(t)
                         phase_full = phase_full_map[t_f]
+
+                        # -------- full evolution timing (Aer) --------
+                        rt_full_aer_transpile_s = float("nan")
+                        rt_full_aer_run_s = float("nan")
+                        if args.record_full_aer_times:
+                            key_full = (int(seed), t_f)
+                            if key_full not in full_aer_cache:
+                                _sv_t, rt_tr, rt_run = qiskit_shadow_v0.evolve_truncated_statevector_aer_v0(
+                                    full_sv0_cache[int(seed)],
+                                    energies_full,
+                                    t=t_f,
+                                    q_mode=q_mode_full,
+                                    optimization_level=int(args.full_aer_opt),
+                                    sim=aer_sim,
+                                )
+                                full_aer_cache[key_full] = (float(rt_tr), float(rt_run))
+                            rt_full_aer_transpile_s, rt_full_aer_run_s = full_aer_cache[key_full]
 
                         # -------- baseline full (FFT) --------
                         t0 = time.perf_counter()
@@ -270,26 +350,50 @@ def main(argv: list[str] | None = None) -> int:
 
                         # -------- shadow low-pass (coherences) --------
                         t0 = time.perf_counter()
+                        rt_shadow_aer_transpile_s = float("nan")
+                        rt_shadow_aer_run_s = float("nan")
 
-                        # component 1
-                        exp_iE0_1t = np.exp(1j * E0_1 * t_f)
-                        phase1_mask = phase_mask * exp_iE0_1t
-                        b1_k0_t = b1_k0 * np.conj(exp_iE0_1t)
-                        b1_shadow.fill(0.0)
-                        b1_shadow[mask_idx] = (z1_0_mask * phase1_mask) / np.conj(b1_k0_t)
-                        b1_shadow[k0_1] = b1_k0_t
+                        if args.shadow_backend == "statevector":
+                            shadow_backend = "qiskit_statevector"
+                            shadow_sv_t = qiskit_shadow_v0.evolve_truncated_statevector_qiskit_v0(
+                                shadow_sv0,
+                                shadow_energies,
+                                t=t_f,
+                                q_mode=shadow_q_mode,
+                            )
+                            rt_shadow_evolve_s = time.perf_counter() - t0
+                        else:
+                            shadow_backend = "qiskit_aer"
+                            shadow_sv_t, rt_shadow_aer_transpile_s, rt_shadow_aer_run_s = (
+                                qiskit_shadow_v0.evolve_truncated_statevector_aer_v0(
+                                    shadow_sv0,
+                                    shadow_energies,
+                                    t=t_f,
+                                    q_mode=shadow_q_mode,
+                                    optimization_level=int(args.shadow_aer_opt),
+                                    sim=aer_sim,
+                                )
+                            )
+                            rt_shadow_evolve_s = float(rt_shadow_aer_run_s)
 
-                        # component 2
-                        exp_iE0_2t = np.exp(1j * E0_2 * t_f)
-                        phase2_mask = phase_mask * exp_iE0_2t
-                        b2_k0_t = b2_k0 * np.conj(exp_iE0_2t)
-                        b2_shadow.fill(0.0)
-                        b2_shadow[mask_idx] = (z2_0_mask * phase2_mask) / np.conj(b2_k0_t)
-                        b2_shadow[k0_2] = b2_k0_t
-
+                        # classical postprocess to reconstruct low-pass fields
+                        t0 = time.perf_counter()
+                        qiskit_shadow_v0.unpack_truncated_statevector_into(
+                            b1_shadow,
+                            b2_shadow,
+                            shadow_sv_t,
+                            shadow_modes,
+                            q_mode=shadow_q_mode,
+                            scale=shadow_scale,
+                        )
                         psi1_shadow = core_v0.unitary_ifft2(b1_shadow)
                         psi2_shadow = core_v0.unitary_ifft2(b2_shadow)
-                        rt_shadow_s = time.perf_counter() - t0
+                        rt_shadow_post_s = time.perf_counter() - t0
+
+                        if shadow_backend == "qiskit_aer" and math.isfinite(float(rt_shadow_aer_transpile_s)):
+                            rt_shadow_s = float(rt_shadow_aer_transpile_s) + float(rt_shadow_aer_run_s) + float(rt_shadow_post_s)
+                        else:
+                            rt_shadow_s = float(rt_shadow_evolve_s) + float(rt_shadow_post_s)
 
                         # -------- metrics --------
                         t0 = time.perf_counter()
@@ -370,6 +474,13 @@ def main(argv: list[str] | None = None) -> int:
                             "rt_baseline_full_s": float(rt_baseline_full_s),
                             "rt_baseline_lp_s": float(rt_baseline_lp_s),
                             "rt_shadow_s": float(rt_shadow_s),
+                            "shadow_backend": str(shadow_backend),
+                            "rt_shadow_evolve_s": float(rt_shadow_evolve_s),
+                            "rt_shadow_post_s": float(rt_shadow_post_s),
+                            "rt_shadow_aer_transpile_s": float(rt_shadow_aer_transpile_s),
+                            "rt_shadow_aer_run_s": float(rt_shadow_aer_run_s),
+                            "rt_full_aer_transpile_s": float(rt_full_aer_transpile_s),
+                            "rt_full_aer_run_s": float(rt_full_aer_run_s),
                             "rt_metrics_s": float(rt_metrics_s),
                             "rt_total_s": float(rt_total_s),
                         }

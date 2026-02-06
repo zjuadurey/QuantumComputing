@@ -56,6 +56,13 @@ Note: `test/shadow_test_v4.py` was updated so Qiskit imports are **optional**
   - Qiskit statevector baseline kept as optional spot-check:
     - `evolve_statevector_v0(nx, ny, t, initial_state)`.
 
+- `shiftflow/qiskit_shadow_v0.py`
+  - Qiskit-based shadow evolution for V=0 on a **compressed** mode register:
+    - q_mode = `ceil(log2(M))` for the retained mode index
+    - +1 spin qubit for the two components
+  - Implements time evolution via a diagonal phase gate in the truncated basis.
+  - Uses `qiskit.quantum_info.Statevector` (does not require `qiskit-aer`).
+
 - `tests/sanity_core.py`
   - Validates core vs v4 on `nx=6, K0=2.5, t=0.3, seed=0`.
   - Main validation uses FFT (no Qiskit required).
@@ -86,7 +93,8 @@ Note: `test/shadow_test_v4.py` was updated so Qiskit imports are **optional**
 
 - `experiments/run_sweep.py`
   - Loops `(nx, K0, t, seed)` and writes `results/sweep.csv`.
-  - Sweeps use FFT baseline (fast) and coherence-shadow for the truncated set.
+  - Sweeps use FFT baseline (fast) and **Qiskit shadow evolution** for the
+    truncated set (compressed mode register, q_shift qubits).
   - Comparisons are recorded for:
     - **shadow vs low-pass baseline** (sanity; should be ~ machine precision for V=0)
     - **shadow vs full baseline** (main truncation-to-full story)

@@ -287,6 +287,31 @@ def shadow_evolve_components_lowpass_coherences(
     return psi1_shadow, psi2_shadow, k0_1, k0_2
 
 
+def shadow_evolve_components_lowpass_qiskit_v0(
+    psi1_0: np.ndarray,
+    psi2_0: np.ndarray,
+    mask: np.ndarray,
+    t: float,
+    E: np.ndarray | None = None,
+    order: str = "energy",
+):
+    """Qiskit shadow evolution for V=0 on a compressed mode register.
+
+    This is the "real" quantum implementation path used by experiments.
+    """
+    from shiftflow import qiskit_shadow_v0
+
+    psi1_t, psi2_t, b1_t, b2_t, _enc = qiskit_shadow_v0.shadow_evolve_components_qiskit_v0(
+        psi1_0,
+        psi2_0,
+        mask=mask,
+        t=t,
+        E=E,
+        order=order,
+    )
+    return psi1_t, psi2_t, b1_t, b2_t
+
+
 # ============================================================
 # 5) Diagnostics: density, current (momentum), vorticity
 # ============================================================
