@@ -34,7 +34,7 @@ from shiftflow import cases, core_v0, metrics  # noqa: E402
 
 DEFAULT_NX_LIST = [5, 6, 7]
 DEFAULT_SEEDS = [0, 1, 2, 3, 4]
-DEFAULT_K0_LIST = [2.5, 4.5, 6.5, 8.5]
+DEFAULT_K0_LIST = [2.5, 3.5, 4.5, 5.5, 6.5, 7.5, 8.5, 9.5]
 
 
 def _parse_int_list(s: str) -> list[int]:

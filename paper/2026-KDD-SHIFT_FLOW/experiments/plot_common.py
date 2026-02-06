@@ -108,22 +108,33 @@ def max_t(rows: list[dict[str, Any]]) -> float:
 def apply_mpl_style() -> None:
     import matplotlib.pyplot as plt
 
-    # reasonable defaults for papers
+    # Paper-style defaults (journal/conference friendly)
     try:
         plt.style.use("seaborn-v0_8-whitegrid")
     except Exception:
+        # matplotlib without seaborn styles
         pass
 
     plt.rcParams.update(
         {
             "figure.dpi": 120,
             "savefig.dpi": 300,
+            "savefig.bbox": "tight",
             "font.size": 10,
             "axes.titlesize": 11,
             "axes.labelsize": 10,
             "legend.fontsize": 9,
             "xtick.labelsize": 9,
             "ytick.labelsize": 9,
+            "lines.linewidth": 2.0,
+            "lines.markersize": 5,
+            "axes.linewidth": 0.8,
+            "grid.alpha": 0.28,
+            "grid.linewidth": 0.6,
+            "axes.spines.top": False,
+            "axes.spines.right": False,
+            "font.family": "DejaVu Serif",
+            "mathtext.fontset": "dejavuserif",
             "pdf.fonttype": 42,
             "ps.fonttype": 42,
         }
@@ -137,10 +148,19 @@ def ensure_figdir(figdir: str | Path) -> Path:
 
 
 def color_cycle(n: int) -> list[str]:
-    base = ["#1f77b4", "#ff7f0e", "#2ca02c", "#d62728", "#9467bd", "#8c564b"]
+    # Okabe-Ito colorblind-friendly palette (subset)
+    base = ["#0072B2", "#D55E00", "#009E73", "#E69F00", "#56B4E9", "#CC79A7"]
     if n <= len(base):
         return base[:n]
     out = []
     for i in range(n):
         out.append(base[i % len(base)])
     return out
+
+
+def alpha_band(color: str, alpha: float = 0.18) -> tuple[float, float, float, float]:
+    """Convert a hex color to RGBA with the given alpha."""
+    import matplotlib.colors as mcolors
+
+    r, g, b, _ = mcolors.to_rgba(color)
+    return (r, g, b, float(alpha))
