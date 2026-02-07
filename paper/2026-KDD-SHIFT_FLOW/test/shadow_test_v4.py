@@ -38,10 +38,11 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # ----------------------------
-# Qiskit imports (optional)
+# Qiskit imports (required)
 # ----------------------------
-# Keep Qiskit as an optional dependency so this file can be imported for
-# FFT/shadow utilities even when qiskit-aer is not installed.
+from qiskit import QuantumCircuit, transpile
+from qiskit_aer import AerSimulator
+from qiskit.circuit.library import QFT
 
 
 # ============================================================
@@ -51,11 +52,6 @@ import matplotlib.pyplot as plt
 
 def kinetic_operator(n: int, dt: float) -> QuantumCircuit:
     """Same kinetic operator as in circuit_2D.py."""
-    try:
-        from qiskit import QuantumCircuit
-    except Exception as e:
-        raise ImportError("qiskit is required for kinetic_operator()") from e
-
     qc = QuantumCircuit(n)
     qc.rz(-2 ** (n - 1) * dt, n - 1)
     for i in range(n):
@@ -79,13 +75,6 @@ def evolve_statevector_v0(nx: int, ny: int, t: float, initial_state: np.ndarray)
       initialize -> QFTx QFTy -> kinetic phase -> iQFTx iQFTy
     Returns the full final statevector (length 2^(nx+ny+1)).
     """
-    try:
-        from qiskit import QuantumCircuit, transpile
-        from qiskit_aer import AerSimulator
-        from qiskit.circuit.library import QFT
-    except Exception as e:
-        raise ImportError("qiskit and qiskit-aer are required for evolve_statevector_v0()") from e
-
     q_num = nx + ny + 1
     circ = QuantumCircuit(q_num)
 
@@ -399,9 +388,9 @@ def main():
     # -------------------------
     N = 2**6  # grid size
     nx = ny = 6  # qubits per spatial dim (since N=2^6)
-    t = 3.0 * math.pi  # evolution time
+    t = 0.30 * math.pi  # evolution time
     K0 = 6  # low-frequency cutoff
-    sigma = 2.0  # vortex width
+    sigma = 3.0  # vortex width
 
     # grid spacing for derivatives (periodic box length 2pi)
     dx = 2.0 * np.pi / N
@@ -436,40 +425,17 @@ def main():
     mom_full_lp = np.hypot(Jx_full_lp, Jy_full_lp)
 
     # -------------------------
-    # Shadow: Qiskit evolution on a compressed low-frequency mode register (V=0)
+    # Shadow: evolve only low-frequency coherences (from t=0 data)
     # -------------------------
     E = energy_grid_free(N)
     b1_0 = unitary_fft2(psi1_0)
     b2_0 = unitary_fft2(psi2_0)
 
-    # k0 is not required for the Qiskit shadow evolution below; we keep it only
-    # for reporting consistency with earlier versions.
     k0_1 = choose_reference_mode(b1_0, mask, prefer=(0, 0), min_rel=1e-3)
     k0_2 = choose_reference_mode(b2_0, mask, prefer=(0, 0), min_rel=1e-3)
 
-    from pathlib import Path
-    import sys
-
-    root = Path(__file__).resolve().parents[1]
-    if str(root) not in sys.path:
-        sys.path.insert(0, str(root))
-
-    from shiftflow import qiskit_shadow_v0 as qshadow
-
-    shadow_modes, shadow_energies = qshadow.modes_from_mask(mask, E, order="energy")
-    shadow_sv0, shadow_scale, shadow_q_mode = qshadow.pack_truncated_statevector(b1_0, b2_0, shadow_modes, normalize=True)
-    shadow_sv_t = qshadow.evolve_truncated_statevector_qiskit_v0(shadow_sv0, shadow_energies, t=float(t), q_mode=shadow_q_mode)
-
-    b1_shadow = np.zeros_like(b1_0)
-    b2_shadow = np.zeros_like(b2_0)
-    qshadow.unpack_truncated_statevector_into(
-        b1_shadow,
-        b2_shadow,
-        shadow_sv_t,
-        shadow_modes,
-        q_mode=shadow_q_mode,
-        scale=shadow_scale,
-    )
+    b1_shadow = shadow_evolve_lowpass_from_coherences(b0=b1_0, mask=mask, t=t, k0_idx=k0_1, E=E)
+    b2_shadow = shadow_evolve_lowpass_from_coherences(b0=b2_0, mask=mask, t=t, k0_idx=k0_2, E=E)
 
     psi1_shadow = unitary_ifft2(b1_shadow)
     psi2_shadow = unitary_ifft2(b2_shadow)
@@ -526,7 +492,7 @@ def main():
     fig.colorbar(im01, ax=axes[0, 1], fraction=0.046)
 
     im02 = axes[0, 2].pcolormesh(X, Y, rho_shadow, shading="auto")
-    axes[0, 2].set_title(r"Shadow (Qiskit) $\rho$")
+    axes[0, 2].set_title(r"Shadow (coherences) $\rho$")
     fig.colorbar(im02, ax=axes[0, 2], fraction=0.046)
 
     diff_rho = rho_shadow - rho_full_lp
@@ -556,7 +522,7 @@ def main():
     fig.colorbar(im11, ax=axes[1, 1], fraction=0.046)
 
     im12 = axes[1, 2].pcolormesh(X, Y, omg_shadow, shading="auto", vmin=vmin_omg, vmax=vmax_omg)
-    axes[1, 2].set_title(r"Shadow (Qiskit) $\omega$")
+    axes[1, 2].set_title(r"Shadow (coherences) $\omega$")
     fig.colorbar(im12, ax=axes[1, 2], fraction=0.046)
 
     diff_omg = omg_shadow - omg_full_lp
@@ -585,7 +551,6 @@ def main():
         Y,
         mom_full,
         shading="auto",
-        cmap="cividis",
         vmin=vmin_mom,
         vmax=vmax_mom,
     )
@@ -607,7 +572,6 @@ def main():
         Y,
         mom_full_lp,
         shading="auto",
-        cmap="cividis",
         vmin=vmin_mom,
         vmax=vmax_mom,
     )
@@ -629,7 +593,6 @@ def main():
         Y,
         mom_shadow,
         shading="auto",
-        cmap="cividis",
         vmin=vmin_mom,
         vmax=vmax_mom,
     )
@@ -643,7 +606,7 @@ def main():
         u_scale=mom_max,
         arrow_len=arrow_len,
     )
-    axes[2, 2].set_title(r"Shadow (Qiskit) $\mathbf{J}$")
+    axes[2, 2].set_title(r"Shadow (coherences) $\mathbf{J}$")
     fig.colorbar(im22, ax=axes[2, 2], fraction=0.046)
 
     mom_diff_max = float(np.max(mom_diff))
@@ -652,7 +615,6 @@ def main():
         Y,
         mom_diff,
         shading="auto",
-        cmap="cividis",
         vmin=0.0,
         vmax=mom_diff_max,
     )
