@@ -49,7 +49,7 @@ python experiments/run_sweep.py --overwrite   # writes data/sweep_v1.csv
 
 ## Known issues
 
-- Qiskit Aer 0.17 occasionally segfaults on Apple Silicon; if this happens, fall back to `qiskit.quantum_info` statevector simulation.
+- When the operator dictionary is not closed under commutation with the Hamiltonian (i.e., the invariance property does not hold exactly), leakage is unavoidable. ShadowFluid handles this by providing an a priori computable leakage bound; you can also expand the dictionary (larger K0 or deeper BFS closure) to reduce leakage, at the cost of increased dimension.
 - The sweep runner is single-threaded for reproducibility. Parallelizing across alpha values is straightforward but not implemented.
 
 ## License
