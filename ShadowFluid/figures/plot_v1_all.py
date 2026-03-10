@@ -198,8 +198,8 @@ def fig_error_vs_K0():
                bbox_to_anchor=(0.5, 1.02))
     fig.tight_layout(w_pad=1.0)
     fig.subplots_adjust(top=0.82)
-    fig.savefig(OUT / "v1_error_vs_K0.pdf")
-    print("Saved v1_error_vs_K0.pdf")
+    fig.savefig(OUT / "error_vs_K0.pdf")
+    print("Saved error_vs_K0.pdf")
     plt.close(fig)
 
 
@@ -246,8 +246,8 @@ def fig_three_curves():
                bbox_to_anchor=(0.5, 1.02))
     fig.tight_layout()
     fig.subplots_adjust(top=0.82)
-    fig.savefig(OUT / "v1_three_curves_alpha1_t0_5.pdf")
-    print("Saved v1_three_curves_alpha1_t0_5.pdf")
+    fig.savefig(OUT / "three_curves_alpha1_t0_5.pdf")
+    print("Saved three_curves_alpha1_t0_5.pdf")
     plt.close(fig)
 
 
@@ -284,8 +284,8 @@ def fig_error_vs_time():
                bbox_to_anchor=(0.5, 1.06))
     fig.tight_layout(w_pad=1.0)
     fig.subplots_adjust(top=0.78)
-    fig.savefig(OUT / "v1_error_vs_time.pdf")
-    print("Saved v1_error_vs_time.pdf")
+    fig.savefig(OUT / "error_vs_time.pdf")
+    print("Saved error_vs_time.pdf")
     plt.close(fig)
 
 
@@ -356,8 +356,8 @@ def fig_error_vs_alpha():
 
     fig.tight_layout(w_pad=0.8)
     fig.subplots_adjust(top=0.80)
-    fig.savefig(OUT / "v1_error_vs_alpha.pdf")
-    print("Saved v1_error_vs_alpha.pdf")
+    fig.savefig(OUT / "error_vs_alpha.pdf")
+    print("Saved error_vs_alpha.pdf")
     plt.close(fig)
 
 
@@ -370,7 +370,7 @@ def fig_tier2_multi():
     t2 = load_tier2()
 
     if len(t2) == 0:
-        print("SKIP v1_tier2_multi.pdf — no Tier-2 data in CSV")
+        print("SKIP tier2_multi.pdf — no Tier-2 data in CSV")
         return
 
     sel_J = [2, 4, 6, 8, 10]
@@ -422,8 +422,8 @@ def fig_tier2_multi():
                bbox_to_anchor=(0.5, 1.02))
     fig.tight_layout(w_pad=1.0)
     fig.subplots_adjust(top=0.82)
-    fig.savefig(OUT / "v1_tier2_multi.pdf")
-    print("Saved v1_tier2_multi.pdf")
+    fig.savefig(OUT / "tier2_multi.pdf")
+    print("Saved tier2_multi.pdf")
     plt.close(fig)
 
 

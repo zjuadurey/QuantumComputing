@@ -146,8 +146,8 @@ def main():
             cb.ax.tick_params(labelsize=7)
 
     fig.tight_layout(w_pad=0.5)
-    fig.savefig(OUT / "v0_sanity_density.pdf")
-    print("Saved v0_sanity_density.pdf")
+    fig.savefig(OUT / "sanity_density.pdf")
+    print("Saved sanity_density.pdf")
     plt.close(fig)
 
 

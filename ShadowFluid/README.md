@@ -1,58 +1,56 @@
 # ShadowFluid
 
-**ShadowFluid: Operator-First Quantum Simulation of Fluid
-Dynamics via Shadow Hamiltonians**
+Code for *"ShadowFluid: Operator-First Quantum Simulation of Fluid Dynamics via Shadow Hamiltonians"* (KDD 2026 AI4Science).
 
-> Companion code for the KDD 2026 AI4Science submission.
+Most quantum fluid simulations evolve the full wavefunction and then measure everything at the end -- but in practice, you often only care about a few low-frequency density modes or energy statistics. ShadowFluid flips the order: pick the observables you need first, build a small "coherence dictionary" of rank-one operators in Fourier space, and evolve just that dictionary under a truncated shadow Hamiltonian. The truncation error is controlled by a commutator leakage residual that you can compute *before* running anything, and it grows linearly in time (not exponentially) because unitary conjugation preserves the Frobenius norm.
 
----
+## Setup
 
-## Quick Start
+Tested with **Python 3.9** and Qiskit 2.0.1 (see `requirements.txt` for full pinned versions). Other versions may work but are not tested.
 
 ```bash
+conda create -n shadowfluid python=3.9 -y
+conda activate shadowfluid
 pip install -r requirements.txt
 ```
 
-## Reproduce Figures
+## Reproduce figures
 
-All figures can be reproduced from the pre-computed data in `data/`:
-
-```bash
-python figures/plot_v0_sanity.py      # → figures/v0_sanity_density.pdf
-python figures/plot_v1_all.py         # → figures/v1_*.pdf  (4 figures)
-```
-
-## Run Experiments from Scratch
-
-To regenerate the data (takes ~30 min on a single CPU core):
+Pre-computed sweep data is in `data/`, so you can plot directly:
 
 ```bash
-python experiments/run_sweep.py --overwrite
+python figures/plot_v0_sanity.py      # -> figures/sanity_density.pdf
+python figures/plot_v1_all.py         # -> figures/*.pdf  (5 figures)
 ```
 
-This writes `data/sweep_v1.csv`, which is also shipped pre-computed.
+To regenerate from scratch (~30 min, single CPU):
 
-## Code Structure
+```bash
+python experiments/run_sweep.py --overwrite   # writes data/sweep_v1.csv
+```
 
-| Module | Description | Paper Section |
-|---|---|---|
-| `shiftflow/core_v0.py` | V=0 free evolution, Fourier tools, shadow coherence method | Sec 3 |
-| `shiftflow/core_v1.py` | V≠0 Galerkin-truncated evolution, leakage bounds | Sec 4 |
-| `shiftflow/metrics.py` | Error metrics and cost proxies | Sec 5 |
-| `shiftflow/cases.py` | Initial condition generator (vortex ICs) | Sec 5 |
-| `shiftflow/qiskit_shadow_v0.py` | Qiskit circuit for V=0 shadow evolution | Sec 3 |
-| `shiftflow/qiskit_shadow_v1.py` | Qiskit circuit for V≠0 shadow evolution | Sec 4 |
-| `experiments/run_sweep.py` | Main experiment sweep runner | Sec 5 |
+## Code layout
 
-## Figure-to-Paper Mapping
+- `shiftflow/core_v0.py` -- V=0 (diagonal Hamiltonian): free Fourier evolution and shadow coherence method. Dictionary closes exactly here, so shadow evolution matches the full low-pass baseline to machine precision. (Sec 3)
+- `shiftflow/core_v1.py` -- V!=0 (off-diagonal coupling): Galerkin-truncated shadow dynamics with multi-reference dictionary and BFS closure on the coupling graph. Includes the leakage bound computation. (Sec 4)
+- `shiftflow/metrics.py` -- error metrics: density error, Frobenius-norm delta-Z, low-pass energy error, a priori leakage. (Sec 5)
+- `shiftflow/cases.py` -- initial conditions (Gaussian vortex, deterministic seed)
+- `shiftflow/qiskit_shadow_v0.py` -- Qiskit circuit for V=0 shadow evolution
+- `shiftflow/qiskit_shadow_v1.py` -- Qiskit circuit for V!=0 shadow evolution
+- `experiments/run_sweep.py` -- parameter sweep over alpha, K0, t, nx
 
-| Output PDF | Paper Figure | Research Question |
-|---|---|---|
-| `figures/v0_sanity_density.pdf` | Fig 3 | RQ1: V=0 sanity check |
-| `figures/v1_error_vs_K0.pdf` | Fig 4 | RQ2: Error vs truncation |
-| `figures/v1_three_curves.pdf` | Fig 5 | RQ3: Bound vs actual error |
-| `figures/v1_error_vs_time.pdf` | Fig 6 | RQ4: Temporal stability |
-| `figures/v1_error_vs_alpha.pdf` | Fig 7 | RQ5: Coupling strength |
+## Figures -> paper
+
+- `sanity_density.pdf` -> Fig 3: V=0 sanity check (shadow vs low-pass at machine precision)
+- `error_vs_K0.pdf` -> Fig 4: error vs frequency cutoff K0 under varying coupling alpha
+- `three_curves.pdf` -> Fig 5: error hierarchy (a priori bound >= ||delta-Z|| >= density error >= task error)
+- `error_vs_time.pdf` -> Fig 6: temporal stability (linear growth, no exponential blowup)
+- `error_vs_alpha.pdf` -> Fig 7: coupling strength sweep (leakage scales linearly, density error stays flat)
+
+## Known issues
+
+- Qiskit Aer 0.17 occasionally segfaults on Apple Silicon; if this happens, fall back to `qiskit.quantum_info` statevector simulation.
+- The sweep runner is single-threaded for reproducibility. Parallelizing across alpha values is straightforward but not implemented.
 
 ## License
 
