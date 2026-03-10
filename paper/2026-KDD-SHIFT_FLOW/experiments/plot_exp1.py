@@ -1,8 +1,9 @@
 """experiments/plot_exp1.py
 
-Exp1: Accuracy vs M/K0.
+Exp 1 — Shadow accuracy vs full simulation, sweeping K0 / M.
+Paper-ready figure: smooth fill-between bands, pastel palette.
 
-Plots mean +- std across seeds at a chosen evaluation time.
+Dependencies: numpy, matplotlib.  Optional: scipy (for PCHIP smooth).
 """
 
 from __future__ import annotations
@@ -10,6 +11,7 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
+import numpy as np
 import matplotlib
 
 matplotlib.use("Agg")
@@ -22,9 +24,11 @@ def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--in", dest="inp", default="results/sweep.csv")
     ap.add_argument("--figdir", default="figs")
-    ap.add_argument("--t", type=float, default=None, help="evaluation time (default: max t in file)")
+    ap.add_argument("--t", type=float, default=None,
+                    help="evaluation time (default: max t in file)")
     args = ap.parse_args()
 
+    # ── data ────────────────────────────────────────────────
     rows = pc.load_sweep_csv(args.inp)
     if not rows:
         raise SystemExit(f"No rows found in {args.inp}")
@@ -34,62 +38,87 @@ def main() -> int:
     if not rows_t:
         raise SystemExit(f"No rows at t={t_eval} in {args.inp}")
 
-    pc.apply_mpl_style()
-    figdir = pc.ensure_figdir(args.figdir)
-
     nx_vals = pc.unique_sorted(rows_t, "nx")
     K0_vals = pc.unique_sorted(rows_t, "K0")
 
-    # map K0 -> (M) using the first seen row
-    K0_to_M = {}
+    K0_to_M: dict[float, int] = {}
     for r in rows_t:
         k0 = r.get("K0")
-        if k0 is None:
-            continue
-        if k0 not in K0_to_M:
+        if k0 is not None and k0 not in K0_to_M:
             K0_to_M[k0] = int(r.get("M"))
 
-    colors = pc.color_cycle(len(nx_vals))
-    fig, axes = plt.subplots(1, 2, figsize=(10.0, 3.6), constrained_layout=True)
+    # ── style ───────────────────────────────────────────────
+    pc.apply_paper_rcparams()
+    figdir = pc.ensure_figdir(args.figdir)
+    colors = pc.PALETTE_PASTEL[: len(nx_vals)]
 
-    for ax, key, title in [
-        (axes[0], "err_rho_vs_full", r"Density error vs full  $\varepsilon_\rho$"),
-        (axes[1], "err_momentum_vs_full", r"Momentum error vs full  $\varepsilon_{\mathbf{J}}$"),
-    ]:
+    fig, axes = plt.subplots(1, 2, figsize=(7.0, 2.8), constrained_layout=True)
+
+    panels = [
+        (axes[0], "err_rho_vs_full",
+         r"Density error  $\varepsilon_\rho$"),
+        (axes[1], "err_momentum_vs_full",
+         r"Momentum error  $\varepsilon_{\mathbf{J}}$"),
+    ]
+
+    for ax, key, title in panels:
         for c, nx in zip(colors, nx_vals):
-            xs = []
-            ys = []
-            yerr = []
+            xs, ys, yerr = [], [], []
             for K0 in K0_vals:
-                rs = [r for r in rows_t if r.get("nx") == nx and r.get("K0") == K0]
-                mu, sd, _n = pc.mean_std([r.get(key) for r in rs])
+                rs = [r for r in rows_t
+                      if r.get("nx") == nx and r.get("K0") == K0]
+                mu, sd, _ = pc.mean_std([r.get(key) for r in rs])
                 xs.append(float(K0))
                 ys.append(mu)
                 yerr.append(sd)
-            ax.errorbar(xs, ys, yerr=yerr, marker="o", lw=1.6, ms=4, capsize=2, color=c, label=f"nx={nx}")
+
+            xs = np.asarray(xs)
+            ys = np.asarray(ys)
+            yerr = np.asarray(yerr)
+
+            # smooth band + line
+            xf, yf, lo, hi = pc.smooth_errorband(
+                xs, ys, yerr, log_scale=True,
+            )
+            ax.fill_between(xf, lo, hi, color=c, alpha=0.30, linewidth=0)
+            ax.plot(xf, yf, color=c, lw=1.5, label=f"$n_x = {nx}$")
+            # markers at actual data points
+            ax.scatter(
+                xs, ys, color=c, s=16, zorder=5,
+                edgecolors="white", linewidths=0.4,
+            )
 
         ax.set_yscale("log")
-        ax.set_xlabel("K0 (low-frequency radius)")
-        ax.set_title(title)
-        ax.grid(True, which="both", alpha=0.35)
+        ax.set_title(title, pad=6)
 
-        # annotate M in tick labels
+        # x-ticks: K0 value + M
         ticks = [float(k) for k in K0_vals]
         labels = []
         for k in K0_vals:
-            m = K0_to_M.get(k, None)
-            if m is None:
-                labels.append(f"{k:g}")
-            else:
-                labels.append(f"{k:g}\n(M={m})")
+            m = K0_to_M.get(k)
+            labels.append(f"{k:g}\nM={m}" if m is not None else f"{k:g}")
         ax.set_xticks(ticks)
         ax.set_xticklabels(labels)
+        ax.set_xlabel(r"$K_0$")
 
-    axes[0].legend(loc="best", frameon=True)
-    fig.suptitle(f"Exp1: Shadow accuracy vs full (t={t_eval:g})")
-    out = figdir / "exp1_accuracy_vs_K0_M.pdf"
-    fig.savefig(out)
-    print(f"Wrote: {out}")
+        pc.set_paper_style(ax)
+
+    axes[0].set_ylabel("Relative error")
+    axes[0].legend(frameon=False, loc="upper right", handlelength=1.5)
+
+    # panel labels
+    for ax, lbl in zip(axes, ["(a)", "(b)"]):
+        ax.text(
+            -0.08, 1.06, lbl, transform=ax.transAxes,
+            fontsize=10, fontweight="bold", va="top",
+        )
+
+    # ── save ────────────────────────────────────────────────
+    stem = "exp1_accuracy_vs_K0_M"
+    for fmt in ("pdf", "png"):
+        out = figdir / f"{stem}.{fmt}"
+        fig.savefig(out, dpi=(300 if fmt == "png" else None))
+        print(f"Wrote: {out}")
     return 0
 
 
