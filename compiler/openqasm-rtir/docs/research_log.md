@@ -54,3 +54,52 @@
 5. **toy pulse 语义** — 把 gate 展开为 play(frame, waveform, duration)，引入 frame/port 资源
 
 ---
+
+## 2026-03-13 — Baseline 设计：三层框架
+
+### 问题
+
+v0.1 最初的 baseline 思路是"拿 Qiskit/pytket 跑，展示它们静默通过而我能报错"。
+这对 SE/ICSE 风格 bug-finding 叙事够用，但对 PLDI/POPL/FM 不够。
+审稿人会追问：(1) 和已有形式化工作比新在哪 (2) 你怎么知道你报的是对的。
+
+### 决策：三层 baseline
+
+**L1 工程 baseline — Qiskit / pytket**
+- 作用：衡量现实工具链对 timing/resource/feedback 违例的暴露能力
+- 不是为了证明"比它们强"，而是回答"用户今天交给主流工具会怎样"
+- Qiskit 有 ASAP/ALAP scheduling pass + dynamic circuit 支持
+- pytket 有 conditional gate 支持 + 编译时保留 conditional data
+- 它们做调度但不做独立的形式化时序/因果验证
+
+**L2 形式化 baseline — Giallar / VOQC**
+- 作用：restricted-scope 的形式化对照
+- 说明"已有验证到哪里为止"（门级等价、pass 正确性），"我把验证边界推到哪里"（timing/resource/feedback）
+- 不是 end-to-end 竞品，而是能力维度对比
+
+**L3 Oracle baseline — Z3/SMT 可执行语义**
+- 作用：correctness ground truth
+- 对小规模程序用 SMT 穷举/约束求解得到"真值"
+- 用于评估 checker 的 soundness / precision / false positive / false negative
+- 这是审稿人最关心的：你怎么知道你报的对
+
+### 四类评测 case
+
+| 类型 | 含义 |
+|------|------|
+| 时序违例 | delay/duration/alignment 造成先后关系错误 |
+| 资源违例 | port/frame/waveform 使用冲突 |
+| 反馈违例 | 测量结果尚不可用就触发条件控制 |
+| lowering 违例 | lowering 引入重排导致可观察行为变化 |
+
+### 实现启示
+
+Z3 oracle 在项目中有双重角色：
+- 作为 v0.2 的核心功能（约束化检查）
+- 同时作为 baseline L3 的 oracle
+
+这意味着 v0.2 的 Z3 工作不只是"升级 checker"，而是同时在构建评测基础设施。
+应优先实现。
+
+claude --resume 496c62c5-a3c4-4636-9bfa-16f3f803d406
+---

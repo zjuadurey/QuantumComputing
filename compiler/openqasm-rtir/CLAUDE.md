@@ -54,6 +54,14 @@ openqasm-rtir/
 3. **Scheduling**: greedy sequential — start = max(qubit_ready, resource_ready, classical_ready)
 4. **qiskit quirk**: bit conditions must be `if (c[0])` not `if (c[0] == 1)` — regex supports both
 
+## Baseline strategy (three layers)
+
+- **L1 Engineering**: Qiskit (ASAP/ALAP scheduling + dynamic circuits) / pytket (conditional gates) — do they detect timing/resource/feedback violations?
+- **L2 Formal**: Giallar / VOQC — restricted-scope comparison showing where their verification stops and ours begins
+- **L3 Oracle**: Z3/SMT exhaustive check on small programs — ground truth for evaluating checker soundness/precision
+- Four test case categories: timing violations, resource violations, feedback violations, lowering violations
+- Z3 oracle serves dual role: v0.2 core feature AND baseline L3 infrastructure
+
 ## Known v0.2 directions (not yet implemented)
 
 1. AST-driven lowering via qiskit QuantumCircuit instructions
