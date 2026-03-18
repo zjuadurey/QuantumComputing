@@ -101,5 +101,82 @@ Z3 oracle 在项目中有双重角色：
 这意味着 v0.2 的 Z3 工作不只是"升级 checker"，而是同时在构建评测基础设施。
 应优先实现。
 
-claude --resume 496c62c5-a3c4-4636-9bfa-16f3f803d406
+---
+
+## 2026-03-19 — 方向决策：gate warmup + pulse core
+
+### 背景
+
+经过多轮讨论（含与 ChatGPT 交叉验证），确定论文策略和技术路线。
+
+### 关键决策
+
+**1. 论文策略：gate 层 warmup + pulse 层核心贡献**
+- Gate-level（v0.1 已有）只做方法论演示（≤3页），展示 no_conflict + causality
+- Pulse-level 是核心贡献：对 OpenPulse 语义的形式化定义 + 验证框架
+- 不做"只 gate"也不做"gate+pulse 完整统一框架"，取中间路线
+
+**2. 锚定 OpenQASM/OpenPulse 规范层，不锚定厂商 API**
+- IBM 已弃用 qiskit.pulse（SDK v1.3 起弃用，v2.x 移除）
+- 但 OpenQASM 规范仍保留 OpenPulse grammar
+- 研究对象是语言/IR 语义，不是某个 SDK
+
+**3. Pulse 核心对象（最小子集）**
+
+```
+PulseStmt ::= Play(frame, waveform, duration)
+            | Acquire(frame, duration, creg)
+            | ShiftPhase(frame, angle)
+            | Delay(duration, frame)
+```
+
+资源模型：port + frame（frame 绑定 port，携带 time/freq/phase）
+
+暂不做：SetFreq、defcal、Barrier（留给后续扩展）
+
+**4. 三条 pulse-level 可验证性质**
+
+| 性质 | 定义 |
+|------|------|
+| Port exclusivity | 同一 port 上 play/acquire 区间不重叠 |
+| Feedback causality | acquire 完成后 classical result 才可用于条件动作 |
+| Frame consistency | phase = initial + Σ(explicit_shifts) + 2π × freq × Σ(Δt) |
+
+**5. 明确不做的事**
+- Waveform-to-unitary correspondence（量子控制理论问题）
+- 强版本 timing equivalence / timed bisimulation
+- 复杂 defcal 绑定语义
+- 大而全 pulse toolchain
+
+### Baseline 框架（修正版）
+
+| 位置 | 内容 |
+|------|------|
+| Related work | VOQC / Giallar / CertiQ capability table（不进 evaluation） |
+| Evaluation | benchmark × independent oracle × checker × Qiskit/pytket |
+
+关键修正：
+- L2（Giallar/VOQC）从 evaluation 移回 related work——它们是能力维度对比，不是实验 baseline
+- Oracle 必须独立于 checker（不能 checker 用 Z3、oracle 也用 Z3）
+- 可行的 oracle 策略：小规模穷举枚举 + 手工证明
+- timing_intent_preservation 需先收窄定义才能进 evaluation；弱版本（delay duration 保持）太 trivial，需要至少做到"时序间距约束被尊重"
+
+### 方法论执行顺序
+
+```
+1. 抽象语法定义（gate subset + pulse subset）
+2. 三条性质的数学表述
+3. Reference semantics（独立 oracle）
+4. Checker 实现
+5. Benchmark 构造 + oracle 标注
+6. Qiskit/pytket 工程对照
+```
+
+核心原则："定义是第一产物，checker 只是定义的一个实现"
+
+### 前置条件
+
+需要确认能否在不依赖 defcal 的前提下，把 port/frame/play/acquire/shift_phase 的语义讲清楚。
+已整理 OpenPulse 语义摘要：`docs/openpulse_semantics_summary.md`
+
 ---

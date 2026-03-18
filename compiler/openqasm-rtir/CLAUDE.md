@@ -11,9 +11,21 @@ See `PROJECT_INTENT.md` for full research motivation.
 
 - Core question: how to formally define, reliably lower, and verify correctness of quantum programs with timing, pulse, and measurement-feedback semantics
 - Structural gap: existing verified quantum compilation (VOQC/SQIR/CertiQ) covers gate-level equivalence but NOT timing/resource/feedback semantics
-- Target venues: POPL / PLDI / ICSE (CCF-A)
+- Target venues: POPL / PLDI / ICSE / ASPLOS (CCF-A)
 - Three contributions: (1) formal semantics, (2) verifiable compilation chain, (3) regression + safety property verification
-- Phased roadmap: Phase 1 quick prototype → Phase 2 Z3 automated verification → Phase 3 Coq or SMT/contract formalization
+
+## Paper strategy (decided 2026-03-19)
+
+- **Gate-level = methodology warmup** (≤3 pages): no_conflict + causality on toy gate IR
+- **Pulse-level = core contribution**: formal definitions + reference semantics + checker for OpenPulse core
+- Anchored to OpenQASM/OpenPulse **spec**, not vendor APIs (IBM deprecated qiskit.pulse)
+- Pulse core subset: `{Play, Acquire, ShiftPhase, Delay}` × `{port, frame}`
+- Three pulse-level properties: port exclusivity, feedback causality, frame consistency
+- NOT doing: waveform-to-unitary, defcal binding, strong timed bisimulation
+- Execution order: formal definitions → reference semantics (independent oracle) → checker → benchmark → engineering comparison
+- Oracle must be independent from checker (no shared Z3 encoding)
+- Giallar/VOQC go in related work capability table, NOT in evaluation
+- See `docs/openpulse_semantics_summary.md` for OpenPulse spec reference
 
 ## Current status: v0.1 MVP (2026-03-13)
 
@@ -54,20 +66,20 @@ openqasm-rtir/
 3. **Scheduling**: greedy sequential — start = max(qubit_ready, resource_ready, classical_ready)
 4. **qiskit quirk**: bit conditions must be `if (c[0])` not `if (c[0] == 1)` — regex supports both
 
-## Baseline strategy (three layers)
+## Baseline & evaluation
 
-- **L1 Engineering**: Qiskit (ASAP/ALAP scheduling + dynamic circuits) / pytket (conditional gates) — do they detect timing/resource/feedback violations?
-- **L2 Formal**: Giallar / VOQC — restricted-scope comparison showing where their verification stops and ours begins
-- **L3 Oracle**: Z3/SMT exhaustive check on small programs — ground truth for evaluating checker soundness/precision
-- Four test case categories: timing violations, resource violations, feedback violations, lowering violations
-- Z3 oracle serves dual role: v0.2 core feature AND baseline L3 infrastructure
+- **Evaluation**: benchmark × independent oracle × checker × Qiskit/pytket engineering comparison
+- **Related work** (NOT evaluation): VOQC / Giallar / CertiQ capability table
+- **Oracle independence**: oracle must use a different path from checker (e.g., exhaustive enumeration for tiny programs)
+- Three evaluation categories: resource violations, feedback violations, timing violations
 
-## Known v0.2 directions (not yet implemented)
+## Next steps (v0.2)
 
-1. AST-driven lowering via qiskit QuantumCircuit instructions
-2. Z3 constraint-based formal checking
-3. Multi-qubit gates (cx) + barrier support
-4. More explicit feedback latency modeling
+1. **Formal definitions**: abstract syntax for gate subset + pulse subset, three pulse-level properties
+2. **Pulse-IR**: PulseEvent dataclass (play/acquire/shift_phase/delay on port+frame)
+3. **Reference semantics**: independent oracle for small programs
+4. **Pulse-level checker**: port exclusivity, feedback causality, frame consistency
+5. Gate-level Z3 upgrade deferred — pulse core is higher priority
 
 ## Research log
 
