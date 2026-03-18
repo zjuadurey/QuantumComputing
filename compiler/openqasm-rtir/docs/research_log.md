@@ -180,3 +180,30 @@ PulseStmt ::= Play(frame, waveform, duration)
 已整理 OpenPulse 语义摘要：`docs/openpulse_semantics_summary.md`
 
 ---
+
+## 2026-03-19 — 项目本质定义
+
+### 一句话定义
+
+> 把一种已经被规范提出、但还没有被精确定义和可靠检查的程序对象，
+> 变成一个可以被理解、被验证、被自动检查的研究对象。
+
+### 展开
+
+OpenPulse 规范说了"frame 有频率、有相位、play 会推进时间"，但它没有给出：
+
+- **精确的状态转移规则**：执行一条 play 之后，state 的每个分量怎么变
+- **可判定的正确性性质**：什么叫"这个 schedule 是对的"
+- **独立于实现的参考语义**：不依赖任何编译器，纯粹从定义出发的"标准答案"
+
+本项目补上这三样东西。
+
+论文贡献不是"做了一个工具"，而是**把一个非形式化的规范对象变成了一个可验证的形式化对象**。工具只是定义的副产品。
+
+### 形式化定义文档
+
+已产出第一版：`docs/formal_definitions_v0.md`
+
+内容：pulse core 抽象语法、Config/State 定义、四条 step 规则、三条可验证性质（port exclusivity, feedback causality, frame consistency）。
+
+---
