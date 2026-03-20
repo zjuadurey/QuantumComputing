@@ -2,6 +2,67 @@
 
 ---
 
+## 2026-03-21 — v0.2 Pulse-level 原型实现
+
+### 背景
+
+ASE 2026 投稿截止 03-26，需在 5 天内完成 pulse-level 原型 + 论文。
+PLanQC 2026 已有相关工作（Wu et al., "A Pulse-Level DSL for Real-Time Quantum Control with Hardware Compilation and Emulation"），
+做 DSL + compilation + emulation，但不做形式化验证——我们的工作填补这个 gap。
+
+分工：Claude 编码，ChatGPT 审查与方向把控。
+
+### 完成的工作
+
+**pulse_ir/ir.py** — 数据类型，严格对应 formal_definitions_v0.md §1.2：
+- `Waveform(name, duration)` — 不透明波形信封
+- `PulseStmt` 联合类型：`Play | Acquire | ShiftPhase | Delay | IfBit`
+- `Config` — 静态硬件描述（frames, ports, port_of, init_freq, init_phase）
+- `FrameState` — 可变执行状态（time, phase, cbit, cbit_ready, occupancy）
+
+**pulse_ir/ref_semantics.py** — 参考语义（独立 oracle）：
+- `step(state, stmt, config)` — 单步执行，返回新状态（不可变）
+- `run(program, config)` — 顺序执行完整程序
+- IfBit 在 oracle 中无条件执行 body（保守 trace）
+
+**pulse_checks/** — 三个独立检查器（不复用 ref_semantics 代码路径）：
+- `port_exclusivity.py` — 检查 occupancy 区间无重叠
+- `feedback_causality.py` — 独立跟踪 frame_time 和 cbit_ready，检查 IfBit 时序
+- `frame_consistency.py` — 从 AST 独立计算 expected phase，与 state 对比
+
+**pulse_examples/** — 6 个示例（3 正例 + 3 反例）：
+- `correct_single_play.py` — 单 frame 单 play
+- `correct_measure_feedback.py` — acquire + delay + IfBit（因果正确）
+- `correct_multi_frame.py` — 双 frame 不同 port + ShiftPhase
+- `violation_port_conflict.py` — 双 frame 共享 port，play 重叠
+- `violation_causality.py` — IfBit 在 acquire 完成前触发
+- `violation_phase.py` — 模拟编译器 bug 导致 phase 偏移
+
+**tests/test_pulse.py** — 13 个测试全部通过：
+- 4 个 step 单元测试（play/acquire/shift_phase/delay）
+- 3 个正例集成测试（三项检查全 PASS）
+- 3 个反例集成测试（各对应检查 FAIL）
+- 3 个边界测试（空程序、多次 shift 累加、IfBit oracle 行为）
+
+### 设计决策
+
+1. **Oracle vs Checker 分离**：ref_semantics.py 是 oracle，三个 checker 独立实现时序/相位计算，不 import ref_semantics
+2. **IfBit oracle 行为**：oracle 无条件执行 body，产生保守 trace；checker 独立检查因果约束
+3. **Phase corruption 测试策略**：violation_phase 通过 post-hoc 篡改 oracle 输出模拟编译器 bug，而非构造"错误的 ref_semantics"
+4. **Config 用 frozen dataclass**：初始化后不可变，assert 校验所有 frame 映射完整
+
+### 项目状态
+
+| Item | Status |
+|------|--------|
+| v0.1 gate-level MVP | ✅ (10 tests) |
+| v0.2 pulse-level prototype | ✅ (13 tests) |
+| 全部测试 | ✅ 23/23 passing |
+| 形式化定义 | ✅ formal_definitions_v0.md |
+| 论文 | ❌ 未开始 |
+
+---
+
 ## 2026-03-13 — v0.1 MVP: 最小闭环打通
 
 ### 目标

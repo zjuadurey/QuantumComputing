@@ -56,7 +56,7 @@ See `PROJECT_INTENT.md` for full research motivation.
 | Formal definitions (docs/formal_definitions_v0.md) | ✅ Done — abstract syntax, Config/State, 4 step rules, 3 properties |
 | OpenPulse spec summary (docs/openpulse_semantics_summary.md) | ✅ Done |
 | Research log (docs/research_log.md) | ✅ Done — records all decisions from 2026-03-13 to 2026-03-19 |
-| **Pulse-level code** | ❌ **NOT YET WRITTEN — this is the immediate next task** |
+| v0.2 pulse-level prototype | ✅ Done — ir.py + ref_semantics.py + 3 checkers + 6 examples + 13 tests |
 
 ## Immediate next task: implement pulse-level prototype
 
