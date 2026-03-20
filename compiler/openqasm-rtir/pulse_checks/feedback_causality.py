@@ -6,15 +6,22 @@ Property (formal_definitions_v0.md §2.2):
 
 where t_use is the frame time when body would execute.
 
-This checker walks the program AST and checks timing against the state.
-It does NOT call ref_semantics — it independently tracks frame times.
+Two modes:
+  1. Source-level: independently tracks frame times from the program AST.
+  2. Compiled (schedule-level): checks the lowered PulseEvent schedule directly.
+     Events tagged with conditional_on are compared against cbit_ready derived
+     from acquire events in the schedule. This enables end-to-end verification:
+     source program → lowering → schedule → checker.
+
+Neither mode imports ref_semantics.
 """
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from pulse_ir.ir import (
     Config,
-    FrameState,
     Play,
     Acquire,
     ShiftPhase,
@@ -22,6 +29,9 @@ from pulse_ir.ir import (
     IfBit,
     PulseStmt,
 )
+
+if TYPE_CHECKING:
+    from pulse_lowering.schedule import PulseEvent
 
 
 def _body_frame(stmt: PulseStmt) -> str | None:
@@ -43,19 +53,38 @@ def _body_frame(stmt: PulseStmt) -> str | None:
 def check_feedback_causality(
     program: list[PulseStmt],
     config: Config,
+    compiled_events: list[PulseEvent] | None = None,
 ) -> tuple[bool, list[str]]:
     """Check that every IfBit uses a cbit whose acquire has already completed.
 
-    Independently tracks frame times (does NOT reuse ref_semantics.run).
+    If compiled_events is None (source-level mode):
+        Independently tracks frame times from the program AST.
+    If compiled_events is provided (compiled mode):
+        Checks the schedule directly: for each event with conditional_on set,
+        verifies event.start >= cbit_ready derived from acquire events.
+
     Returns (ok, errors).
     """
     errors: list[str] = []
 
-    # Independent time tracking — mirrors the time component of step rules
-    frame_time: dict[str, int] = {f: 0 for f in config.frames}
-    cbit_ready: dict[str, int] = {}
+    if compiled_events is not None:
+        _check_compiled_events(compiled_events, errors)
+    else:
+        frame_time: dict[str, int] = {f: 0 for f in config.frames}
+        cbit_ready: dict[str, int] = {}
+        _check_source(program, frame_time, cbit_ready, errors)
 
-    def walk(stmt: PulseStmt) -> None:
+    return (len(errors) == 0, errors)
+
+
+def _check_source(
+    program: list[PulseStmt],
+    frame_time: dict[str, int],
+    cbit_ready: dict[str, int],
+    errors: list[str],
+) -> None:
+    """Source-level check: independently track timing from program AST."""
+    for stmt in program:
         match stmt:
             case Play(frame, waveform):
                 frame_time[frame] += waveform.duration
@@ -86,9 +115,38 @@ def check_feedback_causality(
                             f"but cbit not ready until t={t_ready}"
                         )
                 # Advance time as if body executes (conservative)
-                walk(body)
+                _check_source([body], frame_time, cbit_ready, errors)
 
-    for stmt in program:
-        walk(stmt)
 
-    return (len(errors) == 0, errors)
+def _check_compiled_events(
+    events: list[PulseEvent],
+    errors: list[str],
+) -> None:
+    """Compiled mode: check feedback causality directly on the schedule.
+
+    1. Scan acquire events to build cbit_ready map.
+    2. For each event with non-empty conditional_on, check start >= cbit_ready
+       for ALL cbits in the dependency set (handles nested IfBit).
+    """
+    # Build cbit_ready from acquire events
+    cbit_ready: dict[str, int] = {}
+    for ev in events:
+        if ev.kind == "acquire" and ev.cbit is not None:
+            cbit_ready[ev.cbit] = ev.end
+
+    # Check conditional events
+    for ev in events:
+        if ev.conditional_on:
+            for cbit in ev.conditional_on:
+                t_ready = cbit_ready.get(cbit)
+                if t_ready is None:
+                    errors.append(
+                        f"Event {ev.event_id} ({ev.kind} on {ev.frame}): "
+                        f"conditional on {cbit} but cbit was never acquired"
+                    )
+                elif ev.start < t_ready:
+                    errors.append(
+                        f"Event {ev.event_id} ({ev.kind} on {ev.frame}): "
+                        f"starts at t={ev.start} but {cbit} not ready "
+                        f"until t={t_ready}"
+                    )

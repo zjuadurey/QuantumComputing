@@ -2,6 +2,83 @@
 
 ---
 
+## 2026-03-21 — v0.3 Pulse lowering + correspondence verification
+
+### 背景
+
+v0.2 的 checker 只检查 oracle 自己的输出，FrameConsist 对 oracle 平凡成立（Codex 审查发现）。
+需要一个独立编译路径，让 checker 真正验证"编译器输出是否保持源程序语义"。
+
+### 完成的工作
+
+**pulse_lowering/schedule.py** — PulseEvent 数据结构：
+- 显式 start/end/port/frame/phase_before/phase_after
+- `conditional_on: frozenset[str]` — 记录所有祖先 IfBit 的 cbit 依赖（支持嵌套）
+
+**pulse_lowering/lower_to_schedule.py** — 正确 lowering：
+- PulseStmt → list[PulseEvent]，顺序调度，独立跟踪 time/phase
+- 不 import ref_semantics
+- `active_cbits` 累积集合：进入 IfBit 时 union，退出时恢复，嵌套正确传播
+
+**pulse_lowering/reconstruct.py** — schedule → FrameState 桥接：
+- 从 PulseEvent list 重建 FrameState，供 checker 使用
+- 独立于 oracle 和 lowering 逻辑
+
+**pulse_lowering/buggy_variants.py** — 4 个有 bug 的 lowering：
+- `lower_buggy_drop_phase`: 丢掉 ShiftPhase → FrameConsist 抓到
+- `lower_buggy_extra_delay`: 插入多余 delay → FrameConsist 抓到 (time drift)
+- `lower_buggy_reorder_ports`: 所有事件压到 t=0 → PortExcl 抓到
+- `lower_buggy_early_feedback`: 重排 (Delay, IfBit) → FeedbackCausal 抓到
+
+**pulse_checks/feedback_causality.py** — compiled mode 重设计：
+- 接收 `compiled_events: list[PulseEvent]`（不再是 FrameState）
+- 从 acquire events 构建 cbit_ready
+- 对每个 conditional event 逐一检查 conditional_on 中所有 cbit
+
+**tests/test_lowering_pulse.py** — 13 个端到端测试：
+- 3 个正确 lowering 测试（all checks PASS + oracle 一致性）
+- 4 个 buggy lowering 测试（target FAILS + ALL non-targets PASS）
+- 4 个 schedule 结构测试（event count, explicit times, phase snapshots, conditional tagging）
+- 2 个嵌套 IfBit 测试（正确累积 + 外层 cbit 未 ready 被抓到）
+
+### 设计决策
+
+1. Lowering 独立于 ref_semantics（两条独立编译路径）
+2. reconstruct_state 从 event list 读数据，不知道 lowering 内部逻辑
+3. Buggy variants 通过修改输入程序实现（重排/删除/插入），而非篡改 state
+4. `lower_buggy_early_feedback` 用重排（不删 Delay），保证只破坏 causality 不破坏 FrameConsist（bug specificity）
+5. `conditional_on` 用 `frozenset[str]` 而非 `str | None`，正确处理嵌套 IfBit
+6. Compiled mode FeedbackCausal 在 schedule 级别逐 event 检查，不依赖 final FrameState time
+
+### Codex 审查历史
+
+- **R1**: FeedbackCausal 未走 lowering 链路 + specificity 未测试 → 添加 compiled mode + non-target 断言
+- **R2**: early_feedback 删 Delay 同时破坏 FrameConsist + compiled mode 用 final time 不精确 → 改为重排 + 改用 events
+- **R3**: nested IfBit 丢失外层条件 → frozenset 累积 + 2 个嵌套测试
+
+### 项目状态
+
+| Item | Status |
+|------|--------|
+| v0.1 gate-level MVP | ✅ (10 tests) |
+| v0.2 pulse-level prototype | ✅ (14 tests) |
+| v0.3 pulse lowering + correspondence | ✅ (13 tests) |
+| 全部测试 | ✅ 37/37 passing |
+| 论文 | ❌ 未开始 |
+
+### 当前完整流水线
+
+```
+Source program (PulseStmt)
+    ├──→ ref_semantics.run()        → oracle FrameState (ground truth)
+    └──→ lower_to_schedule()        → PulseEvent list (with conditional_on)
+            └──→ reconstruct_state() → compiled FrameState
+                    └──→ checkers 对比 source 语义
+                         (FeedbackCausal 直接检查 events)
+```
+
+---
+
 ## 2026-03-21 — v0.2 Pulse-level 原型实现
 
 ### 背景
