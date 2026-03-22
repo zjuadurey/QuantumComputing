@@ -15,7 +15,7 @@ v0.4 实现了 **FullContract**：对一个受 OpenPulse 启发的最小 pulse-c
 | phase 等待 | 不存在 | stall 期间 phase 继续演化 |
 | 源程序检查 | 无 | WF precheck 拒绝 ill-formed 程序 |
 | 统一入口 | 无 | `verify_lowering()` 返回 `VerificationReport` |
-| 测试 | 27 pulse tests | 36 pulse tests + 10 gate = 46 total |
+| 测试 | 27 pulse tests | 38 pulse tests + 10 gate = 48 total |
 | buggy variants | 4 | 5（+IgnoreSharedPort） |
 
 ## 文件结构
@@ -45,14 +45,14 @@ pulse_examples/
 └── ...（其余不变）
 
 tests/
-├── test_pulse.py            ← 22 tests（含 WF、shared port、verify_lowering）
+├── test_pulse.py            ← 24 tests（含 WF、shared port、verify_lowering）
 └── test_lowering_pulse.py   ← 14 tests（含 IgnoreSharedPort）
 ```
 
 ## 怎么跑
 
 ```bash
-# 跑全部测试（46 tests）
+# 跑全部测试（48 tests）
 conda run -n qiskit_qasm_py312 --no-capture-output pytest -q tests/
 
 # 只跑 pulse-level 测试
@@ -109,7 +109,7 @@ end = start + dur(w)
 ```
 ∀ IfBit(c, body) in P:
   1. c 已被 Acquire 定义
-  2. t_use = 当前 frame_time[f_body]（encounter 时刻）
+  2. t_use = body 的真实开始时刻（Play/Acquire 取 max(frame_time, port_time)）
   3. t_use ≥ cbit_ready[c]
   4. 嵌套 IfBit: 所有祖先依赖也必须满足
 ```

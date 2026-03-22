@@ -148,12 +148,10 @@ PortExcl(σ) ≡ ∀p ∈ ports,
 
 **What it catches**: Two frames sharing a port that attempt overlapping play/acquire.
 
-**Important**: PortExcl is NOT an invariant of the reference semantics.
-Because each frame maintains an independent local clock, a program operating on
-two frames sharing a port (e.g., `Play(f1,w); Play(f2,w)` where `port_of(f1) = port_of(f2)`)
-produces overlapping intervals on that port even under sequential execution.
-PortExcl is a safety property to CHECK, not one guaranteed by construction.
-It detects conflicts in both source programs and compiled schedules.
+**v0.4 note**: Under the current port-aware semantics, `Play/Acquire` start at
+`max(time[f], port_time[p])`, so the oracle serializes shared-port access by
+construction. For well-formed source programs, PortExcl therefore holds on the
+oracle state and remains a non-trivial check on compiled schedules.
 
 ---
 
@@ -177,15 +175,17 @@ FeedbackCausal(σ, P) ≡ ∀ IfBit(c, body) in P:
 
 where `f_body` is the frame that `body` operates on.
 
-**Important**: t_use is the frame time AT THE POINT where IfBit is encountered
-(before the body executes), not the final state time. The source-level checker
-independently tracks frame times by walking the AST.
+**Important**: t_use is the REAL start time of the guarded body event at the
+point where IfBit is encountered (before the body executes), not the final state
+time. For Play/Acquire this means the source-level checker must account for
+port-aware delay via `max(time[f], port_time[p])`; for Delay/ShiftPhase it is
+just the current frame time.
 
 At the schedule level, this is checked per-event: each event tagged with
 `conditional_on ⊇ {c1, ..., ck}` must satisfy `start ≥ cbit_ready(ci)` for all ci.
 
-Like PortExcl, FeedbackCausal is NOT guaranteed by the reference semantics.
-A program that places IfBit before its corresponding Acquire will violate causality.
+The current implementation treats early feedback as a source-level well-formedness
+violation and also checks it independently on lowered schedules.
 
 **What it catches**: A conditional gate that fires before its triggering measurement
 has completed — i.e., using a result that doesn't exist yet.
@@ -239,12 +239,13 @@ the checker running on the lowered output.
 
 | Property | Type | Oracle guarantees? | Non-trivial when |
 |----------|------|--------------------|------------------|
-| Port exclusivity | Safety check | No | Multiple frames share a port, or reordering occurs |
-| Feedback causality | Causality check | No | Conditional depends on measurement result |
+| Port exclusivity | Safety/correspondence check | Yes, for well-formed source programs | Lowering reorders or ignores port serialization |
+| Feedback causality | Causality / WF check | Source-side yes after WF; compiled schedule checked separately | Conditional depends on measurement result |
 | Frame consistency | Correspondence | Yes (by construction) | Lowering reorders or transforms operations |
 
 **Property classification**:
-- PortExcl and FeedbackCausal are safety properties that can be violated by source programs.
+- PortExcl is guaranteed by the current port-aware oracle on well-formed source programs, but still useful as a compiled-schedule contract.
+- FeedbackCausal is enforced as source-level well-formedness and rechecked on lowered schedules.
 - FrameConsist is a correspondence property guaranteed by the oracle, only non-trivial for compiled output.
 
 ---

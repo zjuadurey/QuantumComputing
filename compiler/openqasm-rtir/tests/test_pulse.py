@@ -28,6 +28,24 @@ def _simple_config_1frame() -> Config:
     )
 
 
+def _shared_port_feedback_config() -> Config:
+    return Config(
+        frames=frozenset(["d0", "d1", "m0"]),
+        ports=frozenset(["p_drive", "p_meas"]),
+        port_of={"d0": "p_drive", "d1": "p_drive", "m0": "p_meas"},
+        init_freq={"d0": 5.0e-3, "d1": 5.1e-3, "m0": 7.0e-3},
+        init_phase={"d0": 0.0, "d1": 0.0, "m0": 0.0},
+    )
+
+
+def _shared_port_feedback_program() -> list:
+    return [
+        Play("d1", Waveform("busy", 1500)),
+        Acquire("m0", duration=1000, cbit="c0"),
+        IfBit("c0", Play("d0", Waveform("x", 160))),
+    ]
+
+
 # ===========================================================================
 # 1. Reference semantics unit tests
 # ===========================================================================
@@ -171,6 +189,15 @@ class TestWellFormedness:
         ok, errors = check_wellformedness(program, config)
         assert ok, errors
 
+    def test_port_stall_can_make_ifbit_well_formed(self):
+        """WF must consider the real port-aware body start at IfBit encounter."""
+        cfg = _shared_port_feedback_config()
+        prog = _shared_port_feedback_program()
+        ok, errors = check_wellformedness(prog, cfg)
+        assert ok, errors
+        ok_fc, errors_fc = check_feedback_causality(prog, cfg)
+        assert ok_fc, errors_fc
+
 
 # ===========================================================================
 # 4. Violation examples — specific checks FAIL
@@ -283,4 +310,14 @@ class TestVerifyLowering:
         from pulse_lowering.verify import verify_lowering
         report = verify_lowering(program, config)
         assert report.well_formed
+        assert report.overall_ok
+
+    def test_shared_port_feedback_pipeline(self):
+        """A port stall can make a conditional event legal end-to-end."""
+        from pulse_lowering.verify import verify_lowering
+        cfg = _shared_port_feedback_config()
+        prog = _shared_port_feedback_program()
+        report = verify_lowering(prog, cfg)
+        assert report.well_formed
+        assert report.feedback_causal
         assert report.overall_ok

@@ -25,6 +25,7 @@ Key semantic changes:
 - `pulse_ir/ir.py` — FrameState adds `port_time: dict[str, int]`
 - `pulse_ir/ref_semantics.py` — port-aware step rules with stall phase evolution
 - `pulse_checks/wellformedness.py` — **NEW**: WF(P,C) source precheck
+- `pulse_checks/feedback_causality.py` — source mode now uses port-aware body start; compiled mode unchanged
 - `pulse_checks/frame_consistency.py` — port-aware source-vs-compiled correspondence
 - `pulse_lowering/lower_to_schedule.py` — port-aware lowering
 - `pulse_lowering/reconstruct.py` — reconstructs port_time from events
@@ -33,7 +34,7 @@ Key semantic changes:
 - `pulse_examples/correct_shared_port.py` — **NEW**: shared-port correct example
 - `pulse_examples/violation_port_conflict.py` — repurposed as lowering bug demo
 - `pulse_examples/violation_causality.py` — repurposed as ill-formed (WF rejects)
-- `tests/test_pulse.py` — 22 tests (new: WF, shared port, verify_lowering)
+- `tests/test_pulse.py` — 24 tests (new: WF, shared-port feedback stall, verify_lowering)
 - `tests/test_lowering_pulse.py` — 14 tests (new: ignore_shared_port)
 - `docs/v04_guide.md` — **NEW**: usage documentation
 
@@ -41,7 +42,6 @@ Key semantic changes:
 
 - Gate-level code — unchanged (10 tests still passing)
 - `pulse_checks/port_exclusivity.py` — logic unchanged
-- `pulse_checks/feedback_causality.py` — unchanged from v0.3
 - `pulse_lowering/schedule.py` — PulseEvent dataclass unchanged
 - Paper sections — not updated in this PR
 - Partial validators / ablations — future work
@@ -50,6 +50,7 @@ Key semantic changes:
 
 - `pulse_ir/ref_semantics.py` — verify port-aware step: `start = max(time[f], port_time[p])`, phase includes stall
 - `pulse_checks/wellformedness.py` — verify: (1) cbit defined before use, (2) t_use >= cbit_ready, (3) nested deps all checked, (4) port-aware time tracking, (5) does NOT import ref_semantics
+- `pulse_checks/feedback_causality.py` — verify source mode uses the same port-aware body-start notion as WF/compiled semantics
 - `pulse_checks/frame_consistency.py` — verify `_compute_expected` is port-aware (matches oracle logic but independent code)
 - `pulse_lowering/lower_to_schedule.py` — verify port-aware lowering matches oracle semantics
 - `pulse_lowering/verify.py` — verify pipeline order: WF → oracle → lower → reconstruct → 3 checks
@@ -61,7 +62,7 @@ Key semantic changes:
 - `verify_lowering(ill_formed_prog, cfg)` returns `well_formed=False`, stops early
 - `verify_lowering(prog, cfg, lower=lower_buggy_ignore_shared_port)` returns `port_exclusive=False`
 - Shared-port program: oracle serializes → `PortExcl` passes; buggy lowering overlaps → `PortExcl` fails
-- All 46 tests pass (10 gate + 22 pulse + 14 lowering)
+- All 48 tests pass (10 gate + 24 pulse + 14 lowering)
 
 ## 7. Non-Negotiable Acceptance Criteria
 
@@ -97,14 +98,14 @@ All v0.3 invariants still hold, plus:
 
 - Step unit tests: 5 (existing 4 + shared_port_serialization)
 - Correct examples: 4 (existing 3 + shared_port)
-- WF precheck: 4 (correct passes, causality rejected, undefined cbit rejected, shared port passes)
+- WF precheck: 5 (correct passes, causality rejected, undefined cbit rejected, shared port passes, port stall can make IfBit legal)
 - Violation examples: 3 (causality WF, phase corruption, time drift)
 - Edge cases: 3 (unchanged)
-- verify_lowering: 3 (correct pipeline, illformed rejected, shared port)
+- verify_lowering: 4 (correct pipeline, illformed rejected, shared port, shared-port feedback)
 - Lowering correct: 3 (unchanged)
 - Lowering buggy: 5 (existing 4 + ignore_shared_port)
 - Schedule structure: 6 (unchanged)
-- Total: 36 pulse + 10 gate = 46
+- Total: 38 pulse + 10 gate = 48
 
 ## 11. Reviewer Focus
 
@@ -120,6 +121,6 @@ All v0.3 invariants still hold, plus:
 - [ ] WF rejects ill-formed programs, passes well-formed ones
 - [ ] verify_lowering() returns correct VerificationReport
 - [ ] 5 buggy variants each caught by their targeted checker(s)
-- [ ] 46 tests all passing
+- [ ] 48 tests all passing
 - [ ] No ref_semantics imports in checkers or lowering
 - [ ] docs/v04_guide.md present and accurate

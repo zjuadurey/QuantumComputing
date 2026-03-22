@@ -132,7 +132,8 @@ stall = start - σ.time[f]
 ```
 WF(P, C) ≡ for each IfBit(c, body) encountered during sequential walk:
               1. c must have been defined by a prior Acquire (∃ Acquire(_, _, c) before this point)
-              2. t_use = current time[f_body] at point of encounter (before body executes)
+              2. t_use = REAL start time of the guarded body event at point of encounter
+                 (Play/Acquire use max(time[f_body], port_time[p_body]); Delay/ShiftPhase use time[f_body])
               3. t_use ≥ cbit_ready[c]
               4. for nested IfBit: ALL ancestor dependencies must also be satisfied
                  (if IfBit(c0, IfBit(c1, body)), then t_use ≥ cbit_ready[c0] AND t_use ≥ cbit_ready[c1])
@@ -148,7 +149,7 @@ Source-level guarantees (on FrameState):
 - FrameConsist: oracle time/phase obey source semantics by construction (this is the trivial direction; the non-trivial check is compiled-vs-source) (phase = init + shifts + 2π×freq×time)
 
 Source-level well-formedness guarantee:
-- WF ensures t_use ≥ cbit_ready at every IfBit encounter point
+- WF ensures the real body start time satisfies t_use ≥ cbit_ready at every IfBit encounter point
 
 Schedule-level guarantee (separate verification on lowered schedule):
 - FeedbackCausal_sched: must be independently verified on the lowered schedule's events

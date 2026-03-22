@@ -8,6 +8,7 @@ where t_use is the frame time when body would execute.
 
 Two modes:
   1. Source-level: independently tracks frame times from the program AST.
+     v0.4 note: body start is port-aware for Play/Acquire.
   2. Compiled (schedule-level): checks the lowered PulseEvent schedule directly.
      Events tagged with conditional_on are compared against cbit_ready derived
      from acquire events in the schedule. This enables end-to-end verification:
@@ -50,6 +51,29 @@ def _body_frame(stmt: PulseStmt) -> str | None:
     return None
 
 
+def _body_start(
+    stmt: PulseStmt,
+    frame_time: dict[str, int],
+    port_time: dict[str, int],
+    config: Config,
+) -> int | None:
+    """Compute the real start time of a guarded body event at encounter."""
+    match stmt:
+        case Play(frame, _):
+            p = config.port_of[frame]
+            return max(frame_time[frame], port_time[p])
+        case Acquire(frame, _, _):
+            p = config.port_of[frame]
+            return max(frame_time[frame], port_time[p])
+        case ShiftPhase(frame, _):
+            return frame_time[frame]
+        case Delay(_, frame):
+            return frame_time[frame]
+        case IfBit(_, body):
+            return _body_start(body, frame_time, port_time, config)
+    return None
+
+
 def check_feedback_causality(
     program: list[PulseStmt],
     config: Config,
@@ -71,8 +95,9 @@ def check_feedback_causality(
         _check_compiled_events(compiled_events, errors)
     else:
         frame_time: dict[str, int] = {f: 0 for f in config.frames}
+        port_time: dict[str, int] = {p: 0 for p in config.ports}
         cbit_ready: dict[str, int] = {}
-        _check_source(program, frame_time, cbit_ready, errors)
+        _check_source(program, frame_time, port_time, cbit_ready, config, errors)
 
     return (len(errors) == 0, errors)
 
@@ -80,19 +105,28 @@ def check_feedback_causality(
 def _check_source(
     program: list[PulseStmt],
     frame_time: dict[str, int],
+    port_time: dict[str, int],
     cbit_ready: dict[str, int],
+    config: Config,
     errors: list[str],
 ) -> None:
     """Source-level check: independently track timing from program AST."""
     for stmt in program:
         match stmt:
             case Play(frame, waveform):
-                frame_time[frame] += waveform.duration
+                p = config.port_of[frame]
+                start = max(frame_time[frame], port_time[p])
+                end = start + waveform.duration
+                frame_time[frame] = end
+                port_time[p] = end
 
             case Acquire(frame, duration, cbit):
-                t = frame_time[frame]
-                frame_time[frame] = t + duration
-                cbit_ready[cbit] = t + duration
+                p = config.port_of[frame]
+                start = max(frame_time[frame], port_time[p])
+                end = start + duration
+                frame_time[frame] = end
+                port_time[p] = end
+                cbit_ready[cbit] = end
 
             case ShiftPhase():
                 pass  # zero duration
@@ -102,8 +136,8 @@ def _check_source(
 
             case IfBit(cbit, body):
                 f_body = _body_frame(body)
-                if f_body is not None:
-                    t_use = frame_time[f_body]
+                t_use = _body_start(body, frame_time, port_time, config)
+                if f_body is not None and t_use is not None:
                     t_ready = cbit_ready.get(cbit)
                     if t_ready is None:
                         errors.append(
@@ -115,7 +149,7 @@ def _check_source(
                             f"but cbit not ready until t={t_ready}"
                         )
                 # Advance time as if body executes (conservative)
-                _check_source([body], frame_time, cbit_ready, errors)
+                _check_source([body], frame_time, port_time, cbit_ready, config, errors)
 
 
 def _check_compiled_events(
