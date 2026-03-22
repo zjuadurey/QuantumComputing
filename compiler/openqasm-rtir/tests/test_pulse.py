@@ -1,6 +1,6 @@
 """Tests for pulse-level IR, reference semantics, and checkers.
 
-Covers all 6 examples (3 correct, 3 violations) and additional unit tests.
+v0.4: port-aware semantics, WF precheck, shared-port examples.
 """
 
 import math
@@ -11,6 +11,7 @@ from pulse_ir.ref_semantics import step, run
 from pulse_checks.port_exclusivity import check_port_exclusivity
 from pulse_checks.feedback_causality import check_feedback_causality
 from pulse_checks.frame_consistency import check_frame_consistency
+from pulse_checks.wellformedness import check_wellformedness
 
 TWO_PI = 2.0 * math.pi
 
@@ -39,6 +40,7 @@ class TestStep:
         assert s1.time["d0"] == 160
         assert s1.phase["d0"] == pytest.approx(TWO_PI * 5.0e-3 * 160)
         assert s1.occupancy["p0"] == [(0, 160)]
+        assert s1.port_time["p0"] == 160
 
     def test_acquire_sets_cbit_ready(self):
         cfg = Config(
@@ -53,6 +55,7 @@ class TestStep:
         assert s1.time["m0"] == 1000
         assert s1.cbit_ready["c0"] == 1000
         assert s1.occupancy["p_meas"] == [(0, 1000)]
+        assert s1.port_time["p_meas"] == 1000
 
     def test_shift_phase_zero_duration(self):
         cfg = _simple_config_1frame()
@@ -68,6 +71,28 @@ class TestStep:
         assert s1.time["d0"] == 500
         assert s1.phase["d0"] == pytest.approx(TWO_PI * 5.0e-3 * 500)
         assert s1.occupancy["p0"] == []  # delay is silence
+
+    def test_shared_port_serialization(self):
+        """v0.4: Two frames sharing a port → second waits for first."""
+        cfg = Config(
+            frames=frozenset(["d0", "d1"]),
+            ports=frozenset(["p0"]),
+            port_of={"d0": "p0", "d1": "p0"},
+            init_freq={"d0": 5.0e-3, "d1": 5.1e-3},
+            init_phase={"d0": 0.0, "d1": 0.0},
+        )
+        s0 = FrameState.initial(cfg)
+        s1 = step(s0, Play("d0", Waveform("g160", 160)), cfg)
+        s2 = step(s1, Play("d1", Waveform("g200", 200)), cfg)
+        # d0 at [0, 160), d1 waits → starts at 160, ends at 360
+        assert s2.time["d0"] == 160
+        assert s2.time["d1"] == 360  # 0 → wait to 160 → play 200
+        assert s2.port_time["p0"] == 360
+        # Phase of d1: stall (160-0=160) + play (200) = 360 total advance
+        assert s2.phase["d1"] == pytest.approx(TWO_PI * 5.1e-3 * 360)
+        # No port overlap
+        ok, _ = check_port_exclusivity(s2)
+        assert ok
 
 
 # ===========================================================================
@@ -105,22 +130,57 @@ class TestCorrectExamples:
         assert ok_fc
         assert ok_fr
 
+    def test_shared_port(self):
+        """v0.4: shared port program is CORRECT — port_time serializes."""
+        from pulse_examples.correct_shared_port import config, program
+        state = run(program, config)
+        ok_pe, _ = check_port_exclusivity(state)
+        ok_fr, _ = check_frame_consistency(state, program, config)
+        assert ok_pe
+        assert ok_fr
+
 
 # ===========================================================================
-# 3. Violation examples — specific checks FAIL
+# 3. WF precheck tests
+# ===========================================================================
+
+class TestWellFormedness:
+    def test_correct_program_passes_wf(self):
+        from pulse_examples.correct_measure_feedback import config, program
+        ok, errors = check_wellformedness(program, config)
+        assert ok, errors
+
+    def test_causality_violation_rejected(self):
+        """IfBit before cbit ready → WF rejects."""
+        from pulse_examples.violation_causality import config, program
+        ok, errors = check_wellformedness(program, config)
+        assert not ok
+        assert any("not ready" in e for e in errors)
+
+    def test_undefined_cbit_rejected(self):
+        """IfBit on cbit that was never acquired → WF rejects."""
+        cfg = _simple_config_1frame()
+        prog = [IfBit("c_nonexistent", Play("d0", Waveform("x", 160)))]
+        ok, errors = check_wellformedness(prog, cfg)
+        assert not ok
+        assert any("never acquired" in e for e in errors)
+
+    def test_shared_port_wf_passes(self):
+        """Shared port program is well-formed (no IfBit issues)."""
+        from pulse_examples.correct_shared_port import config, program
+        ok, errors = check_wellformedness(program, config)
+        assert ok, errors
+
+
+# ===========================================================================
+# 4. Violation examples — specific checks FAIL
 # ===========================================================================
 
 class TestViolationExamples:
-    def test_port_conflict(self):
-        from pulse_examples.violation_port_conflict import config, program
-        state = run(program, config)
-        ok, errors = check_port_exclusivity(state)
-        assert not ok
-        assert any("overlap" in e for e in errors)
-
-    def test_causality_violation(self):
+    def test_causality_violation_wf(self):
+        """v0.4: causality violation is caught by WF precheck."""
         from pulse_examples.violation_causality import config, program
-        ok, errors = check_feedback_causality(program, config)
+        ok, errors = check_wellformedness(program, config)
         assert not ok
         assert any("not ready" in e for e in errors)
 
@@ -134,20 +194,14 @@ class TestViolationExamples:
         assert any("expected phase" in e for e in errors)
 
     def test_time_drift_self_consistent(self):
-        """Codex-reported bug: a compiled state with extra time but self-consistent
-        phase should FAIL correspondence check, not pass silently.
-
-        Source program is empty → expected time=0, phase=0.
-        Fake compiled state has time=100, phase=2π·freq·100 (self-consistent
-        but diverged from source).
-        """
+        """A compiled state with extra time but self-consistent phase
+        should FAIL correspondence check."""
         cfg = _simple_config_1frame()
         freq = cfg.init_freq["d0"]
-        # Fabricate a "compiled" state that is internally consistent
-        # but does NOT match the empty source program
         fake_state = FrameState(
             time={"d0": 100},
             phase={"d0": TWO_PI * freq * 100},
+            port_time={"p0": 100},
             cbit={},
             cbit_ready={},
             occupancy={"p0": []},
@@ -158,7 +212,7 @@ class TestViolationExamples:
 
 
 # ===========================================================================
-# 4. Edge cases
+# 5. Edge cases
 # ===========================================================================
 
 class TestEdgeCases:
@@ -198,6 +252,35 @@ class TestEdgeCases:
             IfBit("c0", Play("d0", Waveform("x", 160))),
         ]
         state = run(program, cfg)
-        # IfBit body should have been executed
         assert state.time["d0"] == 1160
         assert len(state.occupancy["p0"]) == 1
+
+
+# ===========================================================================
+# 6. verify_lowering integration test
+# ===========================================================================
+
+class TestVerifyLowering:
+    def test_correct_lowering_full_pipeline(self):
+        from pulse_examples.correct_measure_feedback import config, program
+        from pulse_lowering.verify import verify_lowering
+        report = verify_lowering(program, config)
+        assert report.well_formed
+        assert report.port_exclusive
+        assert report.feedback_causal
+        assert report.frame_consistent
+        assert report.overall_ok
+
+    def test_illformed_rejected_by_pipeline(self):
+        from pulse_examples.violation_causality import config, program
+        from pulse_lowering.verify import verify_lowering
+        report = verify_lowering(program, config)
+        assert not report.well_formed
+        assert not report.overall_ok
+
+    def test_shared_port_correct_pipeline(self):
+        from pulse_examples.correct_shared_port import config, program
+        from pulse_lowering.verify import verify_lowering
+        report = verify_lowering(program, config)
+        assert report.well_formed
+        assert report.overall_ok

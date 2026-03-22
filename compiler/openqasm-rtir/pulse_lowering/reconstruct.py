@@ -20,7 +20,7 @@ def reconstruct_state(
 ) -> FrameState:
     """Build a FrameState from a list of PulseEvents.
 
-    Extracts final time, phase, occupancy, and cbit_ready from events.
+    Extracts final time, phase, port_time, occupancy, and cbit_ready from events.
     """
     state = FrameState.initial(config)
 
@@ -32,9 +32,11 @@ def reconstruct_state(
                 state.time[f] = ev.end
             state.phase[f] = ev.phase_after
 
-        # Port occupancy: only for play and acquire (non-None port, nonzero duration)
+        # Port occupancy and port_time: only for play and acquire
         if ev.port is not None and ev.duration > 0:
             state.occupancy[ev.port].append((ev.start, ev.end))
+            if ev.end > state.port_time.get(ev.port, 0):
+                state.port_time[ev.port] = ev.end
 
         # cbit readiness: from acquire events
         if ev.kind == "acquire" and ev.cbit is not None:

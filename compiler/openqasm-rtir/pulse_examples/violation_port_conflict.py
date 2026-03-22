@@ -1,8 +1,9 @@
-"""Violation example: two frames share a port with overlapping play.
+"""Shared port example for lowering bug demonstration.
 
-Frame d0 and d1 BOTH map to port p0.
-d0 plays [0, 160), d1 plays [0, 200) — overlap on p0.
-Expected: port_exclusivity FAILS.
+v0.4: With port-aware semantics, this program is CORRECT — the oracle
+serializes shared-port access. This example is used with
+lower_buggy_ignore_shared_port() to demonstrate that PortExcl catches
+lowering bugs that ignore port serialization.
 """
 
 from pulse_ir.ir import Config, Waveform, Play
@@ -18,5 +19,6 @@ config = Config(
 program = [
     Play("d0", Waveform("gaussian_160", duration=160)),
     Play("d1", Waveform("drag_200", duration=200)),
-    # d0 occupies p0 at [0,160), d1 occupies p0 at [0,200) — CONFLICT
+    # Correct lowering: d0=[0,160), d1=[160,360) — serialized by port_time
+    # Buggy lowering (ignore_shared_port): d0=[0,160), d1=[0,200) — OVERLAP
 ]

@@ -148,9 +148,12 @@ PortExcl(σ) ≡ ∀p ∈ ports,
 
 **What it catches**: Two frames sharing a port that attempt overlapping play/acquire.
 
-**Note**: In a sequential single-frame program, this is trivially satisfied.
-It becomes non-trivial with multiple frames on the same port (e.g., multiplexed readout)
-or when a compiler/lowering reorders operations.
+**Important**: PortExcl is NOT an invariant of the reference semantics.
+Because each frame maintains an independent local clock, a program operating on
+two frames sharing a port (e.g., `Play(f1,w); Play(f2,w)` where `port_of(f1) = port_of(f2)`)
+produces overlapping intervals on that port even under sequential execution.
+PortExcl is a safety property to CHECK, not one guaranteed by construction.
+It detects conflicts in both source programs and compiled schedules.
 
 ---
 
@@ -173,6 +176,16 @@ FeedbackCausal(σ, P) ≡ ∀ IfBit(c, body) in P:
 ```
 
 where `f_body` is the frame that `body` operates on.
+
+**Important**: t_use is the frame time AT THE POINT where IfBit is encountered
+(before the body executes), not the final state time. The source-level checker
+independently tracks frame times by walking the AST.
+
+At the schedule level, this is checked per-event: each event tagged with
+`conditional_on ⊇ {c1, ..., ck}` must satisfy `start ≥ cbit_ready(ci)` for all ci.
+
+Like PortExcl, FeedbackCausal is NOT guaranteed by the reference semantics.
+A program that places IfBit before its corresponding Acquire will violate causality.
 
 **What it catches**: A conditional gate that fires before its triggering measurement
 has completed — i.e., using a result that doesn't exist yet.
@@ -224,11 +237,15 @@ the checker running on the lowered output.
 
 ## Summary: what each property tests
 
-| Property | Type | Checked on | Non-trivial when |
-|----------|------|------------|------------------|
-| Port exclusivity | Standalone predicate on state | Output schedule | Multiple frames share a port, or reordering occurs |
-| Feedback causality | Predicate on state + program | Output schedule | Conditional depends on measurement result |
-| Frame consistency | Correspondence (source vs output) | Source + lowered output | Lowering reorders or transforms operations |
+| Property | Type | Oracle guarantees? | Non-trivial when |
+|----------|------|--------------------|------------------|
+| Port exclusivity | Safety check | No | Multiple frames share a port, or reordering occurs |
+| Feedback causality | Causality check | No | Conditional depends on measurement result |
+| Frame consistency | Correspondence | Yes (by construction) | Lowering reorders or transforms operations |
+
+**Property classification**:
+- PortExcl and FeedbackCausal are safety properties that can be violated by source programs.
+- FrameConsist is a correspondence property guaranteed by the oracle, only non-trivial for compiled output.
 
 ---
 

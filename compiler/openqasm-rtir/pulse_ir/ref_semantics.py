@@ -1,6 +1,11 @@
 """Reference semantics (oracle) for pulse-level programs.
 
-Implements the step rules from formal_definitions_v0.md §1.2.
+Implements the v0.4 step rules with port-aware timing:
+- Play/Acquire: start = max(time[f], port_time[p]), phase evolves during stall
+- ShiftPhase: zero duration, no port change
+- Delay: advances frame time, no port change
+- IfBit: always-taken, no auto-wait for cbit_ready
+
 This is the independent oracle — checkers must NOT reuse this code path.
 """
 
@@ -31,38 +36,45 @@ def step(state: FrameState, stmt: PulseStmt, config: Config) -> FrameState:
 
     match stmt:
         case Play(frame, waveform):
-            t = s.time[frame]
             d = waveform.duration
             p = config.port_of[frame]
-            s.time[frame] = t + d
-            s.phase[frame] += TWO_PI * config.init_freq[frame] * d
-            s.occupancy[p].append((t, t + d))
+            freq = config.init_freq[frame]
+            # Port-aware: wait for port to be free
+            start = max(s.time[frame], s.port_time[p])
+            end = start + d
+            # Phase evolves for entire advance (stall + operation)
+            total_advance = end - s.time[frame]
+            s.phase[frame] += TWO_PI * freq * total_advance
+            s.time[frame] = end
+            s.port_time[p] = end
+            s.occupancy[p].append((start, end))
 
         case Acquire(frame, duration, cbit):
-            t = s.time[frame]
             p = config.port_of[frame]
-            s.time[frame] = t + duration
-            s.phase[frame] += TWO_PI * config.init_freq[frame] * duration
-            s.occupancy[p].append((t, t + duration))
-            # Value is non-deterministic at hardware level; we leave it as None
+            freq = config.init_freq[frame]
+            start = max(s.time[frame], s.port_time[p])
+            end = start + duration
+            total_advance = end - s.time[frame]
+            s.phase[frame] += TWO_PI * freq * total_advance
+            s.time[frame] = end
+            s.port_time[p] = end
+            s.occupancy[p].append((start, end))
             s.cbit[cbit] = None
-            s.cbit_ready[cbit] = t + duration
+            s.cbit_ready[cbit] = end
 
         case ShiftPhase(frame, angle):
             # Zero duration, no time advance, no port activity
             s.phase[frame] += angle
 
         case Delay(duration, frame):
+            freq = config.init_freq[frame]
             s.time[frame] += duration
-            s.phase[frame] += TWO_PI * config.init_freq[frame] * duration
+            s.phase[frame] += TWO_PI * freq * duration
             # No port occupancy — delay is silence
 
         case IfBit(cbit, body):
-            # Feedback: execute body only if cbit is set
-            # For oracle: we execute body unconditionally to track timing,
-            # but record the dependency for causality checking.
-            # In a real system, execution depends on cbit value.
-            # Here we always execute to produce a conservative trace.
+            # Always-taken: execute body unconditionally for conservative trace.
+            # Does NOT auto-wait for cbit_ready.
             s = step(s, body, config)
 
         case _:

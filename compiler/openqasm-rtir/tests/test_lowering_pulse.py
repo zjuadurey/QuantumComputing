@@ -19,6 +19,7 @@ from pulse_lowering.buggy_variants import (
     lower_buggy_extra_delay,
     lower_buggy_reorder_ports,
     lower_buggy_early_feedback,
+    lower_buggy_ignore_shared_port,
 )
 from pulse_checks.port_exclusivity import check_port_exclusivity
 from pulse_checks.feedback_causality import check_feedback_causality
@@ -170,8 +171,8 @@ class TestBuggyLowering:
 
     def test_reorder_caught_by_port_excl(self):
         """Compiler flattens to t=0 → PortExcl FAILS.
-        Non-target: FrameConsist PASSES (per-frame time/phase correct with
-        one operation each), FeedbackCausal PASSES (no IfBit in program).
+        v0.4: FrameConsist also FAILS because port-aware expected time differs.
+        FeedbackCausal PASSES (no IfBit in program).
         """
         cfg = _config_shared_port()
         prog = _program_shared_port()
@@ -181,9 +182,9 @@ class TestBuggyLowering:
         ok_pe, errors_pe = check_port_exclusivity(state)
         assert not ok_pe
         assert any("overlap" in e for e in errors_pe)
-        # Non-target: FrameConsist PASSES
+        # FrameConsist also FAILS (compiled time ≠ port-aware expected time)
         ok_fr, _ = check_frame_consistency(state, prog, cfg)
-        assert ok_fr
+        assert not ok_fr
         # Non-target: FeedbackCausal PASSES (no IfBit → no conditional events)
         ok_fc, _ = check_feedback_causality(prog, cfg, compiled_events=events)
         assert ok_fc
@@ -215,6 +216,25 @@ class TestBuggyLowering:
         # Non-target: FrameConsist PASSES (same total time/phase per frame)
         ok_fr, _ = check_frame_consistency(state, prog, cfg)
         assert ok_fr
+
+    def test_ignore_shared_port_caught(self):
+        """v0.4: Compiler ignores port_time → PortExcl FAILS, FrameConsist FAILS.
+        FeedbackCausal PASSES (no IfBit).
+        """
+        cfg = _config_shared_port()
+        prog = _program_shared_port()
+        events = lower_buggy_ignore_shared_port(prog, cfg)
+        state = reconstruct_state(events, cfg)
+        # PortExcl FAILS (overlap on shared port)
+        ok_pe, errors_pe = check_port_exclusivity(state)
+        assert not ok_pe
+        assert any("overlap" in e for e in errors_pe)
+        # FrameConsist FAILS (compiled time ≠ port-aware expected time)
+        ok_fr, _ = check_frame_consistency(state, prog, cfg)
+        assert not ok_fr
+        # FeedbackCausal PASSES (no IfBit)
+        ok_fc, _ = check_feedback_causality(prog, cfg, compiled_events=events)
+        assert ok_fc
 
 
 # ===========================================================================

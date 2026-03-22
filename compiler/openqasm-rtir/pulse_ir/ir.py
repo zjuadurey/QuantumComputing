@@ -1,9 +1,9 @@
 """Pulse-level IR data types.
 
-Follows formal_definitions_v0.md §1.2 exactly:
+Follows v04_fullcontract_spec.md:
 - PulseStmt ::= Play | Acquire | ShiftPhase | Delay | IfBit
 - Config    = static hardware description (frames, ports, mappings)
-- FrameState = mutable execution state (time, phase, cbit, occupancy)
+- FrameState = mutable execution state (time, phase, port_time, cbit, occupancy)
 - Waveform  = named envelope with duration
 """
 
@@ -91,8 +91,9 @@ class Config:
 
 @dataclass
 class FrameState:
-    time: dict[str, int]                        # frame → local clock (dt)
+    time: dict[str, int]                        # frame → real elapsed time including port waits (dt)
     phase: dict[str, float]                     # frame → accumulated phase (rad)
+    port_time: dict[str, int]                   # port → latest time port becomes free (dt)
     cbit: dict[str, int | None]                 # cbit → value (None = not yet available)
     cbit_ready: dict[str, int]                  # cbit → earliest usable time
     occupancy: dict[str, list[tuple[int, int]]] # port → list of (start, end) intervals
@@ -103,6 +104,7 @@ class FrameState:
         return FrameState(
             time={f: 0 for f in config.frames},
             phase={f: config.init_phase[f] for f in config.frames},
+            port_time={p: 0 for p in config.ports},
             cbit={},
             cbit_ready={},
             occupancy={p: [] for p in config.ports},

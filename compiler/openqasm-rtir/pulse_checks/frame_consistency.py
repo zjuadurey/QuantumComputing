@@ -1,17 +1,16 @@
 """Frame Consistency checker — correspondence property.
 
-Property (formal_definitions_v0.md §2.3, lines 209-218):
-    FrameConsist_compiled(P, P') ≡ ∀f ∈ frames:
-        phase_ref(f, P) = phase_compiled(f, P')
+v0.4: Port-aware source-vs-compiled correspondence.
 
-This is a CORRESPONDENCE check: the checker independently computes the
-expected time and phase from the SOURCE PROGRAM, then compares against
-the provided state (which may come from a compiler/lowering).
+The checker independently computes expected (time, phase) from the SOURCE
+PROGRAM using port-aware timing (max(frame_time, port_time)), then compares
+against the provided compiled state.
 
-It does NOT trust the state's own elapsed time — it computes elapsed time
-independently from the program AST. This ensures that a compiled output
-which inserts extra delays (changing time) but keeps phase self-consistent
-will still be caught.
+It does NOT trust the compiled state's own time — it computes time
+independently. This ensures that a compiled output with extra delays
+or missing stalls will be caught.
+
+Does NOT import ref_semantics.
 """
 
 from __future__ import annotations
@@ -27,7 +26,6 @@ from pulse_ir.ir import (
     Delay,
     IfBit,
     PulseStmt,
-    Waveform,
 )
 
 TWO_PI = 2.0 * math.pi
@@ -40,23 +38,35 @@ def _compute_expected(
 ) -> dict[str, tuple[int, float]]:
     """Independently compute expected (time, phase) per frame from program AST.
 
-    Walks the program and applies the same time/phase rules as the formal
-    definitions, but without sharing code with ref_semantics.
+    v0.4: Uses port-aware timing (max(frame_time, port_time)).
     Returns {frame: (expected_time, expected_phase)}.
     """
     time: dict[str, int] = {f: 0 for f in config.frames}
     phase: dict[str, float] = {f: config.init_phase[f] for f in config.frames}
+    port_time: dict[str, int] = {p: 0 for p in config.ports}
 
     def walk(stmt: PulseStmt) -> None:
         match stmt:
             case Play(frame, waveform):
                 d = waveform.duration
-                time[frame] += d
-                phase[frame] += TWO_PI * config.init_freq[frame] * d
+                p = config.port_of[frame]
+                freq = config.init_freq[frame]
+                start = max(time[frame], port_time[p])
+                end = start + d
+                total_advance = end - time[frame]
+                phase[frame] += TWO_PI * freq * total_advance
+                time[frame] = end
+                port_time[p] = end
 
             case Acquire(frame, duration, _):
-                time[frame] += duration
-                phase[frame] += TWO_PI * config.init_freq[frame] * duration
+                p = config.port_of[frame]
+                freq = config.init_freq[frame]
+                start = max(time[frame], port_time[p])
+                end = start + duration
+                total_advance = end - time[frame]
+                phase[frame] += TWO_PI * freq * total_advance
+                time[frame] = end
+                port_time[p] = end
 
             case ShiftPhase(frame, angle):
                 phase[frame] += angle
@@ -82,9 +92,8 @@ def check_frame_consistency(
     """Check that each frame's time and phase match the source program semantics.
 
     This is a correspondence check: independently computes expected time and
-    phase from the program AST, then compares against the provided state.
-    Catches both phase drift AND time drift (e.g., extra delays inserted by
-    a compiler that keep phase self-consistent but diverge from source).
+    phase from the program AST (with port-aware timing), then compares against
+    the provided state.
 
     Does NOT call ref_semantics — independently computes from the AST.
     Returns (ok, errors).

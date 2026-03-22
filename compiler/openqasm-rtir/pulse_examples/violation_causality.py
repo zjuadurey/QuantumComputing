@@ -1,8 +1,8 @@
-"""Violation example: conditional play before acquire finishes.
+"""Violation example: ill-formed program — IfBit before cbit is ready.
 
-Acquire on m0 takes 1000 dt, but IfBit fires on d0 at t=0
-(no delay to wait for result).
-Expected: feedback_causality FAILS.
+v0.4: This is an ILL-FORMED program. The IfBit on d0 fires at t=0 but
+cbit c0 is not ready until t=1000 (after Acquire on m0).
+Expected: WF precheck REJECTS this program.
 """
 
 from pulse_ir.ir import Config, Waveform, Play, Acquire, IfBit
@@ -19,5 +19,5 @@ program = [
     Acquire("m0", duration=1000, cbit="c0"),
     # NO delay on d0 — d0.time is still 0
     IfBit("c0", Play("d0", Waveform("x_pulse", duration=160))),
-    # t_use=0 < cbit_ready=1000 — VIOLATION
+    # t_use=0 < cbit_ready=1000 — ILL-FORMED, rejected by WF precheck
 ]

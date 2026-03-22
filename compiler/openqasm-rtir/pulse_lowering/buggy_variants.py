@@ -9,6 +9,8 @@ These do NOT import ref_semantics.
 
 from __future__ import annotations
 
+import math
+
 from pulse_ir.ir import (
     Config,
     Play,
@@ -20,6 +22,8 @@ from pulse_ir.ir import (
 )
 from pulse_lowering.schedule import PulseEvent
 from pulse_lowering.lower_to_schedule import lower_to_schedule
+
+TWO_PI = 2.0 * math.pi
 
 
 def lower_buggy_drop_phase(
@@ -57,12 +61,7 @@ def lower_buggy_reorder_ports(
 
     Simulates a compiler that flattens everything to t=0.
     Caught by: PortExcl (overlapping intervals on shared ports).
-    Not caught by: FrameConsist (per-frame time/phase correct when each frame
-    has only one operation).
     """
-    import math
-    TWO_PI = 2.0 * math.pi
-
     events: list[PulseEvent] = []
     eid = 0
 
@@ -113,7 +112,6 @@ def lower_buggy_reorder_ports(
                 eid += 1
 
             case IfBit(_, body):
-                # Just lower body at t=0 too
                 sub = lower_buggy_reorder_ports([body], config)
                 for ev in sub:
                     events.append(PulseEvent(
@@ -135,16 +133,111 @@ def lower_buggy_early_feedback(
     """Bug: moves IfBit before the preceding Delay (reorder).
 
     Simulates a compiler that reorders operations for "optimization"
-    without respecting measurement-feedback dependency. The IfBit body
-    executes before cbit is ready, but total time/phase per frame is
-    unchanged (same set of operations, just reordered).
+    without respecting measurement-feedback dependency.
 
     Caught by: FeedbackCausal (conditional event starts before cbit_ready).
-    Not caught by: PortExcl (ports unchanged), FrameConsist (same total time/phase).
+    Not caught by: PortExcl, FrameConsist (same total time/phase).
     """
-    # Reorder: swap adjacent (Delay, IfBit) pairs
     reordered: list[PulseStmt] = list(program)
     for i in range(len(reordered) - 1):
         if isinstance(reordered[i], Delay) and isinstance(reordered[i + 1], IfBit):
             reordered[i], reordered[i + 1] = reordered[i + 1], reordered[i]
     return lower_to_schedule(reordered, config)
+
+
+def lower_buggy_ignore_shared_port(
+    program: list[PulseStmt],
+    config: Config,
+) -> list[PulseEvent]:
+    """Bug: ignores port_time — uses only frame-local time for scheduling.
+
+    Simulates a compiler that doesn't model shared-port serialization.
+    Two frames sharing a port will produce overlapping events.
+
+    Caught by: PortExcl (overlapping intervals on shared port).
+    Also caught by: FrameConsist (wrong time due to missing stall).
+    """
+    time: dict[str, int] = {f: 0 for f in config.frames}
+    phase: dict[str, float] = {f: config.init_phase[f] for f in config.frames}
+
+    events: list[PulseEvent] = []
+    next_id = 0
+    active_cbits: frozenset[str] = frozenset()
+
+    def emit(stmt: PulseStmt) -> None:
+        nonlocal next_id, active_cbits
+
+        match stmt:
+            case Play(frame, waveform):
+                d = waveform.duration
+                p = config.port_of[frame]
+                freq = config.init_freq[frame]
+                # BUG: uses only frame time, ignores port_time
+                start = time[frame]
+                end = start + d
+                ph_before = phase[frame]
+                phase[frame] += TWO_PI * freq * d
+                time[frame] = end
+                events.append(PulseEvent(
+                    event_id=next_id, kind="play", frame=frame, port=p,
+                    start=start, end=end,
+                    phase_before=ph_before, phase_after=phase[frame],
+                    payload=waveform.name,
+                    conditional_on=active_cbits,
+                ))
+                next_id += 1
+
+            case Acquire(frame, duration, cbit):
+                p = config.port_of[frame]
+                freq = config.init_freq[frame]
+                start = time[frame]
+                end = start + duration
+                ph_before = phase[frame]
+                phase[frame] += TWO_PI * freq * duration
+                time[frame] = end
+                events.append(PulseEvent(
+                    event_id=next_id, kind="acquire", frame=frame, port=p,
+                    start=start, end=end,
+                    phase_before=ph_before, phase_after=phase[frame],
+                    cbit=cbit,
+                    conditional_on=active_cbits,
+                ))
+                next_id += 1
+
+            case ShiftPhase(frame, angle):
+                ph_before = phase[frame]
+                phase[frame] += angle
+                events.append(PulseEvent(
+                    event_id=next_id, kind="shift_phase", frame=frame,
+                    port=None,
+                    start=time[frame], end=time[frame],
+                    phase_before=ph_before, phase_after=phase[frame],
+                    payload=f"{angle:.6f}",
+                    conditional_on=active_cbits,
+                ))
+                next_id += 1
+
+            case Delay(duration, frame):
+                freq = config.init_freq[frame]
+                t = time[frame]
+                ph_before = phase[frame]
+                time[frame] = t + duration
+                phase[frame] += TWO_PI * freq * duration
+                events.append(PulseEvent(
+                    event_id=next_id, kind="delay", frame=frame,
+                    port=None, start=t, end=t + duration,
+                    phase_before=ph_before, phase_after=phase[frame],
+                    conditional_on=active_cbits,
+                ))
+                next_id += 1
+
+            case IfBit(cbit, body):
+                prev_cbits = active_cbits
+                active_cbits = active_cbits | {cbit}
+                emit(body)
+                active_cbits = prev_cbits
+
+    for stmt in program:
+        emit(stmt)
+
+    return events
