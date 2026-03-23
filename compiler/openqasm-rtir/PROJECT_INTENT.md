@@ -1,5 +1,17 @@
 # PROJECT_INTENT.md
 
+This document records the project's high-level research motivation and
+longer-term direction. It is intentionally broader than the current
+implementation, so it may lag behind the latest frozen design.
+For current semantics and execution details, prefer
+`docs/v04_fullcontract_spec.md` and `docs/v04_guide.md`.
+
+Minimal context-recovery order across machines:
+1. `docs/v04_fullcontract_spec.md`
+2. `docs/v04_guide.md`
+3. `docs/research_log.md`
+4. This file
+
 ## 项目名称
 
 **openqasm-rtir**

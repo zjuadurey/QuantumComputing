@@ -1,7 +1,15 @@
 # v0.4 FullContract Specification
 
-This document freezes the design of v0.4 before implementation.
-It serves as the single source of truth for code, Codex review, and paper.
+This document is the current design source of truth for v0.4.
+When code, paper text, older notes, or chat history disagree, this file
+takes precedence for the semantics, API, terminology, and acceptance
+criteria of FullContract.
+
+Minimal context-recovery order across machines:
+1. Read this file first.
+2. Then read `docs/v04_guide.md` for the runnable implementation surface.
+3. Read `docs/research_log.md` only if you need historical decisions.
+4. Read `PROJECT_INTENT.md` only if you need the broader research motivation.
 
 ---
 

@@ -1,5 +1,17 @@
 # v0.4 Guide — 代码做了什么、怎么用
 
+This is the current implementation and usage guide for v0.4.
+Read this file first if you want to run the code, understand the current
+module layout, or resume implementation work on another machine.
+If this guide disagrees with older logs, prefer the v0.4 spec for design
+intent and this guide for the current runnable surface.
+
+Minimal context-recovery order across machines:
+1. Read `docs/v04_fullcontract_spec.md` first.
+2. Then read this file.
+3. Read `docs/research_log.md` only for historical evolution.
+4. Read `PROJECT_INTENT.md` only for broader long-term motivation.
+
 ## 一句话总结
 
 v0.4 实现了 **FullContract**：对一个受 OpenPulse 启发的最小 pulse-control core calculus，

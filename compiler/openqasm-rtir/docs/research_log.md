@@ -1,5 +1,17 @@
 # openqasm-rtir 研究日志
 
+This file is a historical log of how the project evolved.
+It is useful for reconstructing decisions and version history, but it is
+not the authoritative current spec. For the current frozen design, read
+`docs/v04_fullcontract_spec.md`; for current usage and module layout, read
+`docs/v04_guide.md`.
+
+Minimal context-recovery order across machines:
+1. `docs/v04_fullcontract_spec.md`
+2. `docs/v04_guide.md`
+3. This file
+4. `PROJECT_INTENT.md`
+
 ---
 
 ## 2026-03-21 — v0.3 Pulse lowering + correspondence verification
