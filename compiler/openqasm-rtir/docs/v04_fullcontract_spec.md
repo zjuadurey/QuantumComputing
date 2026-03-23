@@ -222,7 +222,8 @@ pulse_lowering/verify.py           ← verify_lowering() unified entry + Verific
 pulse_ir/ir.py                     ← FrameState adds port_time
 pulse_ir/ref_semantics.py          ← step rules: start = max(time[f], port_time[p])
 pulse_lowering/lower_to_schedule.py ← same port_time logic
-pulse_checks/feedback_causality.py  ← split into check_source_wellformedness + check_schedule_causality
+pulse_checks/wellformedness.py      ← source-side `check_wellformedness(P, C)`
+pulse_checks/feedback_causality.py  ← schedule-side `check_schedule_causality(events)`
 pulse_checks/port_exclusivity.py    ← unchanged (logic same, but oracle now guarantees it for WF programs)
 pulse_checks/frame_consistency.py   ← unchanged (formula same, time[f] semantics updated)
 pulse_examples/                     ← update violation_port_conflict → lowering bug, add shared-port correct example

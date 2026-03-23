@@ -28,7 +28,7 @@ pulse_ir/
 pulse_checks/
 ├── wellformedness.py        ← [NEW] WF(P,C) source precheck
 ├── port_exclusivity.py      ← 无变化
-├── feedback_causality.py    ← source mode + compiled mode（已有）
+├── feedback_causality.py    ← schedule-level `check_schedule_causality(events)`
 └── frame_consistency.py     ← port-aware source-vs-compiled correspondence
 
 pulse_lowering/
@@ -75,6 +75,8 @@ print(f'Overall: {report.overall_ok}')
 
 ```python
 from pulse_lowering.verify import verify_lowering, VerificationReport
+from pulse_checks.wellformedness import check_wellformedness
+from pulse_checks.feedback_causality import check_schedule_causality
 
 report: VerificationReport = verify_lowering(program, config)
 # report.well_formed       — 源程序合法性
@@ -92,6 +94,16 @@ from pulse_lowering.buggy_variants import lower_buggy_ignore_shared_port
 report = verify_lowering(program, config, lower=lower_buggy_ignore_shared_port)
 assert not report.overall_ok
 ```
+
+## API migration（v0.3 → v0.4）
+
+- source-side feedback legality 不再通过 `check_feedback_causality(program, config)` 检查
+- source-side legality 现在统一走 `check_wellformedness(program, config)`
+- schedule-side feedback 正确性现在统一走 `check_schedule_causality(events)`
+
+也就是说，v0.4 明确拆成两层：
+- `wellformedness.py` 负责源程序合法性
+- `feedback_causality.py` 只负责 lowered schedule 的 event-level causality
 
 ## 语义核心（v0.4 改动）
 

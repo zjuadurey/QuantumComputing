@@ -58,8 +58,9 @@ See `PROJECT_INTENT.md` for full research motivation.
 | Research log (docs/research_log.md) | ✅ Done — records all decisions from 2026-03-13 to 2026-03-19 |
 | v0.2 pulse-level prototype | ✅ Done — ir.py + ref_semantics.py + 3 checkers + 6 examples + 14 tests |
 | v0.3 pulse lowering + correspondence | ✅ Done — lower_to_schedule + reconstruct + 4 buggy variants + 13 tests (3 rounds Codex review) |
+| v0.4 FullContract alignment | ✅ Done — port-aware timing + wellformedness + verify_lowering + schedule-level feedback checker, 48 tests passing |
 
-## Immediate next task: implement pulse-level prototype
+## Historical v0.2 implementation plan (completed; kept for context)
 
 Based on the formal definitions in `docs/formal_definitions_v0.md`, implement the following:
 
@@ -74,7 +75,8 @@ pulse_ir/
 pulse_checks/
 ├── __init__.py
 ├── port_exclusivity.py      ← PortExcl: no overlapping intervals on same port
-├── feedback_causality.py    ← FeedbackCausal: t_use ≥ cbit_ready(c)
+├── feedback_causality.py    ← v0.4: FeedbackCausal_sched on lowered events only
+├── wellformedness.py        ← v0.4: source-side legality precheck
 └── frame_consistency.py     ← FrameConsist: phase = init + Σshifts + 2π·freq·elapsed
 
 pulse_examples/

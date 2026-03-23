@@ -22,7 +22,7 @@ from pulse_lowering.lower_to_schedule import lower_to_schedule
 from pulse_lowering.reconstruct import reconstruct_state
 from pulse_checks.wellformedness import check_wellformedness
 from pulse_checks.port_exclusivity import check_port_exclusivity
-from pulse_checks.feedback_causality import check_feedback_causality
+from pulse_checks.feedback_causality import check_schedule_causality
 from pulse_checks.frame_consistency import check_frame_consistency
 
 
@@ -73,9 +73,7 @@ def verify_lowering(
 
     # Step 5: Check properties on compiled output
     port_ok, port_errors = check_port_exclusivity(compiled_state)
-    causal_ok, causal_errors = check_feedback_causality(
-        program, config, compiled_events=events,
-    )
+    causal_ok, causal_errors = check_schedule_causality(events)
     fc_ok, fc_errors = check_frame_consistency(
         compiled_state, program, config,
     )

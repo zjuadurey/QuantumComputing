@@ -8,8 +8,9 @@ import pytest
 
 from pulse_ir.ir import Config, FrameState, Waveform, Play, Acquire, ShiftPhase, Delay, IfBit
 from pulse_ir.ref_semantics import step, run
+from pulse_lowering.lower_to_schedule import lower_to_schedule
 from pulse_checks.port_exclusivity import check_port_exclusivity
-from pulse_checks.feedback_causality import check_feedback_causality
+from pulse_checks.feedback_causality import check_schedule_causality
 from pulse_checks.frame_consistency import check_frame_consistency
 from pulse_checks.wellformedness import check_wellformedness
 
@@ -122,30 +123,30 @@ class TestCorrectExamples:
         from pulse_examples.correct_single_play import config, program
         state = run(program, config)
         ok_pe, _ = check_port_exclusivity(state)
-        ok_fc, _ = check_feedback_causality(program, config)
+        ok_wf, _ = check_wellformedness(program, config)
         ok_fr, _ = check_frame_consistency(state, program, config)
         assert ok_pe
-        assert ok_fc
+        assert ok_wf
         assert ok_fr
 
     def test_measure_feedback(self):
         from pulse_examples.correct_measure_feedback import config, program
         state = run(program, config)
         ok_pe, _ = check_port_exclusivity(state)
-        ok_fc, _ = check_feedback_causality(program, config)
+        ok_wf, _ = check_wellformedness(program, config)
         ok_fr, _ = check_frame_consistency(state, program, config)
         assert ok_pe
-        assert ok_fc
+        assert ok_wf
         assert ok_fr
 
     def test_multi_frame(self):
         from pulse_examples.correct_multi_frame import config, program
         state = run(program, config)
         ok_pe, _ = check_port_exclusivity(state)
-        ok_fc, _ = check_feedback_causality(program, config)
+        ok_wf, _ = check_wellformedness(program, config)
         ok_fr, _ = check_frame_consistency(state, program, config)
         assert ok_pe
-        assert ok_fc
+        assert ok_wf
         assert ok_fr
 
     def test_shared_port(self):
@@ -195,7 +196,8 @@ class TestWellFormedness:
         prog = _shared_port_feedback_program()
         ok, errors = check_wellformedness(prog, cfg)
         assert ok, errors
-        ok_fc, errors_fc = check_feedback_causality(prog, cfg)
+        events = lower_to_schedule(prog, cfg)
+        ok_fc, errors_fc = check_schedule_causality(events)
         assert ok_fc, errors_fc
 
 

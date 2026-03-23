@@ -22,7 +22,7 @@ from pulse_lowering.buggy_variants import (
     lower_buggy_ignore_shared_port,
 )
 from pulse_checks.port_exclusivity import check_port_exclusivity
-from pulse_checks.feedback_causality import check_feedback_causality
+from pulse_checks.feedback_causality import check_schedule_causality
 from pulse_checks.frame_consistency import check_frame_consistency
 
 
@@ -98,7 +98,7 @@ class TestCorrectLowering:
         events = lower_to_schedule(prog, cfg)
         state = reconstruct_state(events, cfg)
         ok_pe, _ = check_port_exclusivity(state)
-        ok_fc, _ = check_feedback_causality(prog, cfg, compiled_events=events)
+        ok_fc, _ = check_schedule_causality(events)
         ok_fr, _ = check_frame_consistency(state, prog, cfg)
         assert ok_pe
         assert ok_fc
@@ -147,7 +147,7 @@ class TestBuggyLowering:
         ok_pe, _ = check_port_exclusivity(state)
         assert ok_pe
         # Non-target: FeedbackCausal PASSES (no IfBit → no conditional events)
-        ok_fc, _ = check_feedback_causality(prog, cfg, compiled_events=events)
+        ok_fc, _ = check_schedule_causality(events)
         assert ok_fc
 
     def test_extra_delay_caught_by_frame_consist(self):
@@ -166,7 +166,7 @@ class TestBuggyLowering:
         ok_pe, _ = check_port_exclusivity(state)
         assert ok_pe
         # Non-target: FeedbackCausal PASSES (no IfBit → no conditional events)
-        ok_fc, _ = check_feedback_causality(prog, cfg, compiled_events=events)
+        ok_fc, _ = check_schedule_causality(events)
         assert ok_fc
 
     def test_reorder_caught_by_port_excl(self):
@@ -186,7 +186,7 @@ class TestBuggyLowering:
         ok_fr, _ = check_frame_consistency(state, prog, cfg)
         assert not ok_fr
         # Non-target: FeedbackCausal PASSES (no IfBit → no conditional events)
-        ok_fc, _ = check_feedback_causality(prog, cfg, compiled_events=events)
+        ok_fc, _ = check_schedule_causality(events)
         assert ok_fc
 
     def test_early_feedback_caught_by_causality(self):
@@ -205,9 +205,7 @@ class TestBuggyLowering:
         events = lower_buggy_early_feedback(prog, cfg)
         state = reconstruct_state(events, cfg)
         # Target: FeedbackCausal FAILS (compiled mode on events)
-        ok_fc, errors = check_feedback_causality(
-            prog, cfg, compiled_events=events,
-        )
+        ok_fc, errors = check_schedule_causality(events)
         assert not ok_fc
         assert any("not ready" in e for e in errors)
         # Non-target: PortExcl PASSES (d0 and m0 on separate ports)
@@ -233,7 +231,7 @@ class TestBuggyLowering:
         ok_fr, _ = check_frame_consistency(state, prog, cfg)
         assert not ok_fr
         # FeedbackCausal PASSES (no IfBit)
-        ok_fc, _ = check_feedback_causality(prog, cfg, compiled_events=events)
+        ok_fc, _ = check_schedule_causality(events)
         assert ok_fc
 
 
@@ -304,7 +302,7 @@ class TestScheduleStructure:
         assert len(conditional) == 1
         assert conditional[0].conditional_on == frozenset({"c0", "c1"})
         # Compiled-mode check should pass (d0 time=1000, both cbits ready at 1000)
-        ok, _ = check_feedback_causality(prog, cfg, compiled_events=events)
+        ok, _ = check_schedule_causality(events)
         assert ok
 
     def test_nested_ifbit_catches_outer_cbit_not_ready(self):
@@ -325,6 +323,6 @@ class TestScheduleStructure:
         ]
         events = lower_to_schedule(prog, cfg)
         # Compiled mode should catch: Play at t=0, but c0 not ready until 2000
-        ok, errors = check_feedback_causality(prog, cfg, compiled_events=events)
+        ok, errors = check_schedule_causality(events)
         assert not ok
         assert any("c0" in e and "not ready" in e for e in errors)
