@@ -93,6 +93,58 @@ ASE 2026 官方 Research Track 明确把 `Formal methods and model checking`、`
 一句话结论：
 能投，scope 是对的；但要把它包装成“自动化验证 DSL lowering 的软件工程贡献”，并补强实证，否则 reviewer 很容易觉得 contribution 窄、evaluation 轻。
 
+## v0.5 证据结构建议
+
+如果进入 v0.5，我建议把证据结构明确写成三层：
+
+1. **Formal evidence**
+   - core calculus
+   - source semantics
+   - lowering contract
+   - independent checkers
+
+2. **Internal empirical evidence**
+   - seeded fault families
+   - end-to-end tests
+   - checker discrimination
+
+3. **External corroboration**
+   - `Qiskit Dynamics` 作为 pulse-level supporting evidence
+   - 后续可补 backend/resource/timing-facing 对照
+
+这里最关键的 framing 是：
+
+- 你们自己的 pulse-level lowering / contract / checker pipeline 是 **core idea**
+- `FullContract` 是 **主验证器**
+- `Qiskit Dynamics` 是 **主要外部实验平台**
+
+也就是说，要明确区分两个维度：
+
+1. **谁定义什么叫正确**
+2. **谁最能作为实验上的外部见证**
+
+对本文来说：
+
+- 在“定义 correctness”这个维度上，主角是 `FullContract`
+- 在“提供主要外部实验说服力”这个维度上，主角可以是 `Qiskit Dynamics`
+
+所以 `Qiskit Dynamics` 可以是主实验里的 centerpiece，
+但仍然不能被写成主验证器或语义定义者。
+
+更具体地说，推荐在论文里写成：
+
+> FullContract remains the primary verifier of lowering correctness.
+> Our pulse-level lowering contract and checker pipeline constitute the core idea.
+> We use Qiskit Dynamics as the primary external experimental witness,
+> providing independent, community-recognized evidence that selected
+> contract-detected faults also induce observable deviations.
+
+同时建议在 scope / threats 里补一句：
+
+> Qiskit Dynamics is used for corroboration, not as the semantic oracle.
+
+这会比“我们用 Qiskit Dynamics 验证我们的方法是对的”稳得多。
+
 来源：
 - ASE 2026 Research Track CFP: https://conf.researchr.org/track/ase-2026/ase-2026-research-track
 - ASE 2025 papers/program: https://conf.researchr.org/track/ase-2025/ase-2025-papers

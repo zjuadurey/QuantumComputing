@@ -14,6 +14,93 @@ Minimal context-recovery order across machines:
 
 ---
 
+## 2026-03-25 — v0.5 External supporting evidence + robustness fixes
+
+### 背景
+
+v0.4 已经形成了一个完整的 lowering-correctness pipeline，但仍然存在两个问题：
+
+1. 证据结构偏“自证循环”：语义、checker、fault family 都由我们自己给出；
+2. 代码里确实存在一个 reconstruction 层面的 order-sensitivity 缺陷，`early_feedback`
+   这个 fault family 也过于依赖特定 fixture 结构。
+
+因此 v0.5 的目标不是替换 FullContract，而是：
+
+- 保持 FullContract 作为主验证器；
+- 增加一个外部、社区认可的 supporting-evidence 锚点；
+- 同时修掉暴露出来的实现薄弱点。
+
+### 完成的工作
+
+**pulse_lowering/reconstruct.py** — 修复 phase 重建顺序敏感 bug：
+- v0.4 中 `phase[f]` 取决于 event list 最后一个元素，而不是时间上最后执行的事件
+- v0.5 改成按 `(end, start, event_id)` 选取每个 frame 的最终 phase
+- 这样 reconstruction 不再依赖输入 schedule 的列表顺序
+
+**pulse_lowering/buggy_variants.py** — 强化 `lower_buggy_early_feedback`：
+- v0.4 只会交换一个相邻的 `(Delay, IfBit)` 对
+- v0.5 改成把 `IfBit` 提前越过整个紧邻的 `Delay` block
+- 仍然保持“只破坏 causality，不破坏总 time/phase”这个 fault family 设计目标
+
+**pulse_external/qiskit_dynamics.py** — [NEW] 第三方 supporting-evidence 层：
+- `simulate_single_frame_schedule(...)`
+- `simulate_schedule(...)`
+- `compare_single_frame_lowerings(...)`
+- `compare_schedule_lowerings(...)`
+- 用 `Qiskit Dynamics` 将 selected `PulseEvent` schedules 投影到一个有效单量子比特 witness
+- 当前已覆盖：
+  - `drop_phase`（phase-sensitive）
+  - `ignore_shared_port`（shared-port overlap）
+  - `reorder_ports`（flattened schedule）
+  - `early_feedback`（timing-sensitive with static drift）
+
+**tests/test_v05_external_corroboration.py** — [NEW] v0.5 测试：
+- reconstruction order-insensitivity regression
+- stronger `early_feedback` regression
+- Qiskit Dynamics identity sanity check
+- Qiskit Dynamics witnesses for:
+  - `drop_phase`
+  - `ignore_shared_port`
+  - `reorder_ports`
+  - `early_feedback`
+
+### 设计决策
+
+1. 第三方组件的角色是 `corroboration`，不是 `oracle`
+2. 先选最自然的 single-frame phase case 做第一条 Qiskit Dynamics witness，再扩到 shared-port 和 timing-sensitive witness
+3. `ignore_shared_port` / `reorder_ports` 不强行做 backend API 绑定，而是先在外部 pulse simulator 里展示“同一 lowering bug 会产生独立可见偏差”
+4. `early_feedback` 通过对受影响 frame 引入静态漂移来构造 timing-sensitive 外部见证，而不是试图让 Qiskit Dynamics 承担 classical control semantics
+
+### 项目状态
+
+| Item | Status |
+|------|--------|
+| v0.4 FullContract | ✅ |
+| reconstruction order bug | ✅ fixed |
+| stronger early_feedback fault | ✅ |
+| external supporting evidence layer | ✅ initial Qiskit Dynamics integration |
+| v0.5 tests | ✅ |
+
+### 新的证据结构
+
+```
+Primary evidence:
+  source semantics + lowering contract + independent checkers
+
+Secondary evidence:
+  Qiskit Dynamics supporting witness on selected fault families
+```
+
+### 结论
+
+v0.5 之后，这个项目的叙事不再是纯粹的“内部自证”：
+
+- FullContract 仍然定义 lowering correctness；
+- Qiskit Dynamics 提供独立、社区认可的外部观察窗口；
+- 对四类核心 fault（drop_phase / ignore_shared_port / reorder_ports / early_feedback），可以同时给出 contract-level detection 和 external observable deviation。
+
+---
+
 ## 2026-03-21 — v0.3 Pulse lowering + correspondence verification
 
 ### 背景

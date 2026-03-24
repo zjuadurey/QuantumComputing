@@ -16,6 +16,7 @@ Does NOT import ref_semantics.
 from __future__ import annotations
 
 import math
+from dataclasses import dataclass, field
 
 from pulse_ir.ir import (
     Config,
@@ -30,6 +31,26 @@ from pulse_ir.ir import (
 
 TWO_PI = 2.0 * math.pi
 PHASE_TOL = 1e-9  # floating-point tolerance
+
+
+@dataclass(frozen=True)
+class FrameMismatch:
+    frame: str
+    expected_time: int
+    actual_time: int
+    time_diff: int
+    expected_phase: float
+    actual_phase: float
+    phase_diff: float
+
+
+@dataclass(frozen=True)
+class FrameConsistencyDiagnostics:
+    mismatches: list[FrameMismatch] = field(default_factory=list)
+    max_abs_time_diff: int = 0
+    max_abs_phase_diff: float = 0.0
+    num_time_mismatches: int = 0
+    num_phase_mismatches: int = 0
 
 
 def _compute_expected(
@@ -98,24 +119,74 @@ def check_frame_consistency(
     Does NOT call ref_semantics — independently computes from the AST.
     Returns (ok, errors).
     """
-    errors: list[str] = []
+    diagnostics = diagnose_frame_consistency(state, program, config)
+    errors = format_frame_consistency_errors(diagnostics)
+    return (len(errors) == 0, errors)
+
+
+def diagnose_frame_consistency(
+    state: FrameState,
+    program: list[PulseStmt],
+    config: Config,
+) -> FrameConsistencyDiagnostics:
+    """Return structured source-vs-compiled correspondence diagnostics."""
     expected = _compute_expected(program, config)
+    mismatches: list[FrameMismatch] = []
+    max_abs_time_diff = 0
+    max_abs_phase_diff = 0.0
+    num_time_mismatches = 0
+    num_phase_mismatches = 0
 
     for f in config.frames:
         exp_time, exp_phase = expected[f]
         act_time = state.time[f]
         act_phase = state.phase[f]
+        time_diff = act_time - exp_time
+        phase_diff = act_phase - exp_phase
 
-        if act_time != exp_time:
+        if time_diff != 0 or abs(phase_diff) > PHASE_TOL:
+            mismatches.append(FrameMismatch(
+                frame=f,
+                expected_time=exp_time,
+                actual_time=act_time,
+                time_diff=time_diff,
+                expected_phase=exp_phase,
+                actual_phase=act_phase,
+                phase_diff=phase_diff,
+            ))
+
+        if time_diff != 0:
+            num_time_mismatches += 1
+            max_abs_time_diff = max(max_abs_time_diff, abs(time_diff))
+
+        if abs(phase_diff) > PHASE_TOL:
+            num_phase_mismatches += 1
+            max_abs_phase_diff = max(max_abs_phase_diff, abs(phase_diff))
+
+    return FrameConsistencyDiagnostics(
+        mismatches=mismatches,
+        max_abs_time_diff=max_abs_time_diff,
+        max_abs_phase_diff=max_abs_phase_diff,
+        num_time_mismatches=num_time_mismatches,
+        num_phase_mismatches=num_phase_mismatches,
+    )
+
+
+def format_frame_consistency_errors(
+    diagnostics: FrameConsistencyDiagnostics,
+) -> list[str]:
+    """Render human-readable messages from structured diagnostics."""
+    errors: list[str] = []
+    for mismatch in diagnostics.mismatches:
+        if mismatch.time_diff != 0:
             errors.append(
-                f"frame {f}: expected time {exp_time} "
-                f"but got {act_time} (diff={act_time - exp_time})"
+                f"frame {mismatch.frame}: expected time {mismatch.expected_time} "
+                f"but got {mismatch.actual_time} (diff={mismatch.time_diff})"
             )
-
-        if abs(act_phase - exp_phase) > PHASE_TOL:
+        if abs(mismatch.phase_diff) > PHASE_TOL:
             errors.append(
-                f"frame {f}: expected phase {exp_phase:.6f} "
-                f"but got {act_phase:.6f} (diff={act_phase - exp_phase:.2e})"
+                f"frame {mismatch.frame}: expected phase {mismatch.expected_phase:.6f} "
+                f"but got {mismatch.actual_phase:.6f} "
+                f"(diff={mismatch.phase_diff:.2e})"
             )
-
-    return (len(errors) == 0, errors)
+    return errors

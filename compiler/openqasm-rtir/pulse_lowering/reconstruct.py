@@ -24,13 +24,23 @@ def reconstruct_state(
     """
     state = FrameState.initial(config)
 
+    latest_phase_key: dict[str, tuple[int, int, int]] = {
+        f: (-1, -1, -1) for f in config.frames
+    }
+
     for ev in events:
         f = ev.frame
         if f in config.frames:
-            # Take the latest time and phase seen for each frame
+            # Take the latest time seen for each frame.
             if ev.end > state.time.get(f, 0):
                 state.time[f] = ev.end
-            state.phase[f] = ev.phase_after
+
+            # Reconstruct the final phase from the event with the latest
+            # execution position, not simply the last list element.
+            phase_key = (ev.end, ev.start, ev.event_id)
+            if phase_key >= latest_phase_key[f]:
+                latest_phase_key[f] = phase_key
+                state.phase[f] = ev.phase_after
 
         # Port occupancy and port_time: only for play and acquire
         if ev.port is not None and ev.duration > 0:

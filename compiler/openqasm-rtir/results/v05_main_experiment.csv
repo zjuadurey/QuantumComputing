@@ -1,0 +1,6 @@
+fault_family,wf,port_excl,feedback_causal,frame_consist,diagnostic_summary,max_overlap_dt,total_overlap_dt,max_earliness_dt,total_earliness_dt,max_abs_time_diff,max_abs_phase_diff,witness_type,fidelity
+correct_lowering,Pass,Pass,Pass,Pass,none,0,0,0,0,0,0.0,phase-sensitive single-frame,1.0
+drop_phase,Pass,Pass,Pass,Fail,phase drift = pi/2,0,0,0,0,0,1.5707963267948966,phase-sensitive single-frame,0.9934066326360717
+ignore_shared_port,Pass,Fail,Pass,Fail,max overlap = 160 dt; time drift = 160 dt,160,160,0,0,160,0.0,shared-port schedule witness,0.07125001032438635
+reorder_ports,Pass,Fail,Pass,Fail,max overlap = 160 dt; time drift = 160 dt,160,160,0,0,160,1.5707963267948966,shared-port schedule witness,0.5737385136375842
+early_feedback,Pass,Pass,Fail,Pass,earliness = 840 dt,0,0,840,840,0,0.0,timing-sensitive witness with drift,0.8447582955316951

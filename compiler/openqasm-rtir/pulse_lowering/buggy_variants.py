@@ -26,6 +26,25 @@ from pulse_lowering.lower_to_schedule import lower_to_schedule
 TWO_PI = 2.0 * math.pi
 
 
+def _hoist_ifbits_before_delay_blocks(
+    program: list[PulseStmt],
+) -> list[PulseStmt]:
+    """Move each IfBit left across the maximal immediately preceding delay block.
+
+    This keeps the program shape close to the original while making the seeded
+    bug less fixture-specific than a single adjacent swap.
+    """
+    reordered = list(program)
+    for i in range(1, len(reordered)):
+        if not isinstance(reordered[i], IfBit):
+            continue
+        j = i
+        while j > 0 and isinstance(reordered[j - 1], Delay):
+            reordered[j - 1], reordered[j] = reordered[j], reordered[j - 1]
+            j -= 1
+    return reordered
+
+
 def lower_buggy_drop_phase(
     program: list[PulseStmt],
     config: Config,
@@ -130,7 +149,7 @@ def lower_buggy_early_feedback(
     program: list[PulseStmt],
     config: Config,
 ) -> list[PulseEvent]:
-    """Bug: moves IfBit before the preceding Delay (reorder).
+    """Bug: moves IfBit before the immediately preceding delay block.
 
     Simulates a compiler that reorders operations for "optimization"
     without respecting measurement-feedback dependency.
@@ -138,10 +157,7 @@ def lower_buggy_early_feedback(
     Caught by: FeedbackCausal (conditional event starts before cbit_ready).
     Not caught by: PortExcl, FrameConsist (same total time/phase).
     """
-    reordered: list[PulseStmt] = list(program)
-    for i in range(len(reordered) - 1):
-        if isinstance(reordered[i], Delay) and isinstance(reordered[i + 1], IfBit):
-            reordered[i], reordered[i + 1] = reordered[i + 1], reordered[i]
+    reordered = _hoist_ifbits_before_delay_blocks(program)
     return lower_to_schedule(reordered, config)
 
 

@@ -141,3 +141,45 @@ IBM 官方博客明确说：
 可以这样讲：
 
 “Qiskit 中一个语法合法、甚至电路级别看似合理的程序，并不自动保证其满足具体后端的低层执行约束；官方引入 ISA-circuit 要求本身就说明了这种 source-level legality 与 hardware-facing executability 之间的 gap 真实存在。我们的工作正是把这部分 gap 形式化为一个可检查的 lowering contract。”
+
+## v0.5 的落地决定：Qiskit Dynamics 的角色
+
+基于后续讨论，`Qiskit Dynamics` 在本项目里的角色已经收敛得比较明确：
+
+- 它不是主验证器
+- 它不定义我们的 source semantics
+- 它不替代 FullContract
+
+它在 v0.5 里承担的是：
+
+- 一个社区认可的、外部独立的 supporting-evidence 组件
+- 用来回答 reviewer/读者的自然问题：
+  “如果你们说 lowering 有问题，外部可信系统能不能也观察到差异？”
+
+所以 v0.5 的逻辑是：
+
+1. 我们自己的 pulse-level lowering / contract / checkers 是 **core idea**
+2. `FullContract` 是 **主验证器**，负责定义“什么叫 lowering correctness”
+3. `Qiskit Dynamics` 是 **主要外部实验平台**，负责提供社区认可的独立证据
+
+当前最适合接 Qiskit Dynamics 的 fault family 是：
+
+- `drop_phase`
+
+因为它最自然地对应到 phase-sensitive 的 pulse 控制差异，
+而不会把项目过早拖入更大、更难控的 backend/resource/integration 泥潭。
+
+这里要特别区分两个“主”：
+
+- **主验证器**：谁来判定你们研究问题里的“对/错”
+- **主实验平台**：谁来提供最有说服力的外部实验观测
+
+对本项目来说，这两个角色不是同一个东西：
+
+- `FullContract` 是主验证器
+- `Qiskit Dynamics` 是主实验平台
+
+这并不矛盾。更准确地说：
+
+- 在**理论/方法**层面，你们自己的 contract 拥有定义权
+- 在**实验/证据**层面，`Qiskit Dynamics` 站在前台，作为社区认可的独立见证组件

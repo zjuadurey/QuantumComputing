@@ -21,9 +21,21 @@ from pulse_lowering.schedule import PulseEvent
 from pulse_lowering.lower_to_schedule import lower_to_schedule
 from pulse_lowering.reconstruct import reconstruct_state
 from pulse_checks.wellformedness import check_wellformedness
-from pulse_checks.port_exclusivity import check_port_exclusivity
-from pulse_checks.feedback_causality import check_schedule_causality
-from pulse_checks.frame_consistency import check_frame_consistency
+from pulse_checks.port_exclusivity import (
+    PortExclusivityDiagnostics,
+    check_port_exclusivity,
+    diagnose_port_exclusivity,
+)
+from pulse_checks.feedback_causality import (
+    FeedbackCausalityDiagnostics,
+    check_schedule_causality,
+    diagnose_schedule_causality,
+)
+from pulse_checks.frame_consistency import (
+    FrameConsistencyDiagnostics,
+    check_frame_consistency,
+    diagnose_frame_consistency,
+)
 
 
 @dataclass
@@ -38,6 +50,9 @@ class VerificationReport:
     compiled_state: FrameState | None = None
     events: list[PulseEvent] = field(default_factory=list)
     errors: list[str] = field(default_factory=list)
+    port_diagnostics: PortExclusivityDiagnostics | None = None
+    feedback_diagnostics: FeedbackCausalityDiagnostics | None = None
+    frame_diagnostics: FrameConsistencyDiagnostics | None = None
 
 
 def verify_lowering(
@@ -74,9 +89,10 @@ def verify_lowering(
     # Step 5: Check properties on compiled output
     port_ok, port_errors = check_port_exclusivity(compiled_state)
     causal_ok, causal_errors = check_schedule_causality(events)
-    fc_ok, fc_errors = check_frame_consistency(
-        compiled_state, program, config,
-    )
+    fc_ok, fc_errors = check_frame_consistency(compiled_state, program, config)
+    port_diagnostics = diagnose_port_exclusivity(compiled_state)
+    feedback_diagnostics = diagnose_schedule_causality(events)
+    frame_diagnostics = diagnose_frame_consistency(compiled_state, program, config)
 
     all_errors = port_errors + causal_errors + fc_errors
     overall = port_ok and causal_ok and fc_ok
@@ -91,4 +107,7 @@ def verify_lowering(
         compiled_state=compiled_state,
         events=events,
         errors=all_errors,
+        port_diagnostics=port_diagnostics,
+        feedback_diagnostics=feedback_diagnostics,
+        frame_diagnostics=frame_diagnostics,
     )
