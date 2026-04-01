@@ -1,6 +1,10 @@
 # 忽略所有 .pkl 文件
 *.pkl
 
+# Codex 运行时文件/目录
+.codex
+.codex/
+
 # 忽略所有子目录中的 .pkl 文件
 **/*.pkl
 
