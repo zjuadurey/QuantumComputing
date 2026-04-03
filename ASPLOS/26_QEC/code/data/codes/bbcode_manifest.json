@@ -1,0 +1,214 @@
+{
+  "codes": [
+    {
+      "code_name": "bb_n72_k12",
+      "code_type": "BBCode",
+      "source": "qldpc.codes.BBCode parameters aligned with qldpc test examples",
+      "orders": [
+        6,
+        6
+      ],
+      "poly_a": "x**3 + y**2 + y",
+      "poly_b": "x**2 + x + y**3",
+      "n": 72,
+      "k": 12,
+      "d": 6,
+      "distance_note": "Distance 6 recorded from qldpc quantum_test.py comment for the [[72, 12, 6]] BB code example.",
+      "matrix_x_shape": [
+        36,
+        72
+      ],
+      "matrix_z_shape": [
+        36,
+        72
+      ],
+      "logical_x_shape": [
+        12,
+        72
+      ],
+      "logical_z_shape": [
+        12,
+        72
+      ],
+      "max_check_weight": 6,
+      "css_orthogonal": true,
+      "artifact_file": "bbcode_n72_k12.npz",
+      "metadata_file": "bbcode_n72_k12.json"
+    },
+    {
+      "code_name": "bb_n96_k10",
+      "code_type": "BBCode",
+      "source": "qldpc.codes.BBCode parameters aligned with qldpc test examples",
+      "orders": [
+        12,
+        4
+      ],
+      "poly_a": "x**9 + x*y + y + 1",
+      "poly_b": "x**9*y**2 + x**7 + x**2 + 1",
+      "n": 96,
+      "k": 10,
+      "d": null,
+      "distance_note": "Exact distance not populated by qldpc for this instance in the current flow.",
+      "matrix_x_shape": [
+        48,
+        96
+      ],
+      "matrix_z_shape": [
+        48,
+        96
+      ],
+      "logical_x_shape": [
+        10,
+        96
+      ],
+      "logical_z_shape": [
+        10,
+        96
+      ],
+      "max_check_weight": 8,
+      "css_orthogonal": true,
+      "artifact_file": "bbcode_n96_k10.npz",
+      "metadata_file": "bbcode_n96_k10.json"
+    },
+    {
+      "code_name": "bb_n144_k12",
+      "code_type": "BBCode",
+      "source": "qldpc.codes.BBCode parameters aligned with qldpc test examples",
+      "orders": [
+        12,
+        6
+      ],
+      "poly_a": "x**3 + y**2 + y",
+      "poly_b": "x**2 + x + y**3",
+      "n": 144,
+      "k": 12,
+      "d": 12,
+      "distance_note": "Distance 12 recorded from qldpc quantum_test.py comment for the [[144, 12, 12]] BB code example.",
+      "matrix_x_shape": [
+        72,
+        144
+      ],
+      "matrix_z_shape": [
+        72,
+        144
+      ],
+      "logical_x_shape": [
+        12,
+        144
+      ],
+      "logical_z_shape": [
+        12,
+        144
+      ],
+      "max_check_weight": 6,
+      "css_orthogonal": true,
+      "artifact_file": "bbcode_n144_k12.npz",
+      "metadata_file": "bbcode_n144_k12.json"
+    },
+    {
+      "code_name": "bb_n64_k10",
+      "code_type": "BBCode",
+      "source": "qldpc.codes.BBCode parameters aligned with qldpc test examples",
+      "orders": [
+        8,
+        4
+      ],
+      "poly_a": "x**5 + x*y + y + 1",
+      "poly_b": "x**5*y**2 + x**3 + x**2 + 1",
+      "n": 64,
+      "k": 10,
+      "d": null,
+      "distance_note": "Small BBCode in the same construction style as the qldpc Table-II-style example; exact distance not populated by qldpc in the current flow.",
+      "matrix_x_shape": [
+        32,
+        64
+      ],
+      "matrix_z_shape": [
+        32,
+        64
+      ],
+      "logical_x_shape": [
+        10,
+        64
+      ],
+      "logical_z_shape": [
+        10,
+        64
+      ],
+      "max_check_weight": 8,
+      "css_orthogonal": true,
+      "artifact_file": "bbcode_n64_k10.npz",
+      "metadata_file": "bbcode_n64_k10.json"
+    },
+    {
+      "code_name": "bb_n80_k6",
+      "code_type": "BBCode",
+      "source": "qldpc.codes.BBCode parameters aligned with qldpc test examples",
+      "orders": [
+        8,
+        5
+      ],
+      "poly_a": "x**5 + x*y + y + 1",
+      "poly_b": "x**5*y**2 + x**3 + x**2 + 1",
+      "n": 80,
+      "k": 6,
+      "d": null,
+      "distance_note": "Small BBCode in the same construction style as the qldpc Table-II-style example; exact distance not populated by qldpc in the current flow.",
+      "matrix_x_shape": [
+        40,
+        80
+      ],
+      "matrix_z_shape": [
+        40,
+        80
+      ],
+      "logical_x_shape": [
+        6,
+        80
+      ],
+      "logical_z_shape": [
+        6,
+        80
+      ],
+      "max_check_weight": 8,
+      "css_orthogonal": true,
+      "artifact_file": "bbcode_n80_k6.npz",
+      "metadata_file": "bbcode_n80_k6.json"
+    },
+    {
+      "code_name": "bb_n108_k4",
+      "code_type": "BBCode",
+      "source": "qldpc.codes.BBCode parameters aligned with qldpc test examples",
+      "orders": [
+        9,
+        6
+      ],
+      "poly_a": "x**6 + x*y + y + 1",
+      "poly_b": "x**6*y**2 + x**4 + x**2 + 1",
+      "n": 108,
+      "k": 4,
+      "d": null,
+      "distance_note": "Small BBCode in the same construction style as the qldpc Table-II-style example; exact distance not populated by qldpc in the current flow.",
+      "matrix_x_shape": [
+        54,
+        108
+      ],
+      "matrix_z_shape": [
+        54,
+        108
+      ],
+      "logical_x_shape": [
+        4,
+        108
+      ],
+      "logical_z_shape": [
+        4,
+        108
+      ],
+      "max_check_weight": 8,
+      "css_orthogonal": true,
+      "artifact_file": "bbcode_n108_k4.npz",
+      "metadata_file": "bbcode_n108_k4.json"
+    }
+  ]
+}

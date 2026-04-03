@@ -1,0 +1,35 @@
+{
+  "code_name": "bb_n96_k10",
+  "code_type": "BBCode",
+  "source": "qldpc.codes.BBCode parameters aligned with qldpc test examples",
+  "orders": [
+    12,
+    4
+  ],
+  "poly_a": "x**9 + x*y + y + 1",
+  "poly_b": "x**9*y**2 + x**7 + x**2 + 1",
+  "n": 96,
+  "k": 10,
+  "d": null,
+  "distance_note": "Exact distance not populated by qldpc for this instance in the current flow.",
+  "matrix_x_shape": [
+    48,
+    96
+  ],
+  "matrix_z_shape": [
+    48,
+    96
+  ],
+  "logical_x_shape": [
+    10,
+    96
+  ],
+  "logical_z_shape": [
+    10,
+    96
+  ],
+  "max_check_weight": 8,
+  "css_orthogonal": true,
+  "artifact_file": "bbcode_n96_k10.npz",
+  "metadata_file": "bbcode_n96_k10.json"
+}

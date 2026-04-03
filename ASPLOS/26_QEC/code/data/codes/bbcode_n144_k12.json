@@ -1,0 +1,35 @@
+{
+  "code_name": "bb_n144_k12",
+  "code_type": "BBCode",
+  "source": "qldpc.codes.BBCode parameters aligned with qldpc test examples",
+  "orders": [
+    12,
+    6
+  ],
+  "poly_a": "x**3 + y**2 + y",
+  "poly_b": "x**2 + x + y**3",
+  "n": 144,
+  "k": 12,
+  "d": 12,
+  "distance_note": "Distance 12 recorded from qldpc quantum_test.py comment for the [[144, 12, 12]] BB code example.",
+  "matrix_x_shape": [
+    72,
+    144
+  ],
+  "matrix_z_shape": [
+    72,
+    144
+  ],
+  "logical_x_shape": [
+    12,
+    144
+  ],
+  "logical_z_shape": [
+    12,
+    144
+  ],
+  "max_check_weight": 6,
+  "css_orthogonal": true,
+  "artifact_file": "bbcode_n144_k12.npz",
+  "metadata_file": "bbcode_n144_k12.json"
+}

@@ -1,0 +1,35 @@
+{
+  "code_name": "bb_n108_k4",
+  "code_type": "BBCode",
+  "source": "qldpc.codes.BBCode parameters aligned with qldpc test examples",
+  "orders": [
+    9,
+    6
+  ],
+  "poly_a": "x**6 + x*y + y + 1",
+  "poly_b": "x**6*y**2 + x**4 + x**2 + 1",
+  "n": 108,
+  "k": 4,
+  "d": null,
+  "distance_note": "Small BBCode in the same construction style as the qldpc Table-II-style example; exact distance not populated by qldpc in the current flow.",
+  "matrix_x_shape": [
+    54,
+    108
+  ],
+  "matrix_z_shape": [
+    54,
+    108
+  ],
+  "logical_x_shape": [
+    4,
+    108
+  ],
+  "logical_z_shape": [
+    4,
+    108
+  ],
+  "max_check_weight": 8,
+  "css_orthogonal": true,
+  "artifact_file": "bbcode_n108_k4.npz",
+  "metadata_file": "bbcode_n108_k4.json"
+}
