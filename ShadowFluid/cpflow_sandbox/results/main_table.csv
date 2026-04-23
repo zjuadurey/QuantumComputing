@@ -1,0 +1,4 @@
+Case,Task,Full backend,Shadow backend,Full qubits,Shadow qubits,Full target size,Shadow target size,Full achieved quality,Shadow achieved quality,Full twoq count,Shadow twoq count,Full twoq depth,Shadow twoq depth
+V=0,state_prep,generic_transpile,generic_transpile,7,5,128 amplitudes on 7 qubits,18 amplitudes packed into 32 amplitudes,0.0,4.440892098500626e-16,268,55,260,55
+V=0,time_evolution,generic_transpile,generic_transpile,6,4,64x64 active-mode unitary,9x9 reduced unitary padded to 16x16,2.220446049250313e-15,0.0,174,29,164,28
+V!=0,time_evolution,generic_transpile,generic_transpile,6,4+2,64x64 active-mode unitary,9x9 reduced unitary padded to 16x16 + 3x3 reduced unitary padded to 4x4,1.3322676295501878e-14,0.0,4650,235,4609,235

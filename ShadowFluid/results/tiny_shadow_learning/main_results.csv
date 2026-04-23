@@ -1,0 +1,7 @@
+train_size,feature_type,learner,feature_dim,test_mse,std,relative_gain_vs_lowpass
+16,Task-level low-pass density,PCA + Ridge,16,2.369251860461921e-07,3.5209567446099245e-09,0.0
+16,Shadow coherence Z,PCA + Ridge,16,2.015528463587855e-07,7.443793934821667e-09,0.1492975072751878
+32,Task-level low-pass density,PCA + Ridge,16,2.316244117123647e-07,1.4318620936618221e-08,0.0
+32,Shadow coherence Z,PCA + Ridge,16,1.6769964850902812e-07,1.5731791485667623e-08,0.27598456799415205
+64,Task-level low-pass density,PCA + Ridge,16,2.5969458773161325e-07,2.0876371704468452e-08,0.0
+64,Shadow coherence Z,PCA + Ridge,16,1.509508149750951e-07,1.2575080145491082e-08,0.41873715469535183
