@@ -23,6 +23,8 @@ def main() -> None:
     parser.add_argument("--measurement-error-rate", type=float, default=0.02)
     parser.add_argument("--idle-error-rate", type=float, default=0.002)
     parser.add_argument("--decoder-timeout-base-rate", type=float, default=0.01)
+    parser.add_argument("--decoder-capacity", type=float, default=4.0)
+    parser.add_argument("--synchronization-slack", type=float, default=0.45)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--run-id", default="p1")
     parser.add_argument("--circuit-id", default="stim_repetition_memory")
@@ -38,11 +40,13 @@ def main() -> None:
         idle_error_rate=args.idle_error_rate,
         decoder_timeout_base_rate=args.decoder_timeout_base_rate,
         seed=args.seed,
+        decoder_capacity=args.decoder_capacity,
+        synchronization_slack=args.synchronization_slack,
         run_id=args.run_id,
         circuit_id=args.circuit_id,
     )
     write_csv_rows(args.output, rows, QEC_BASELINE_FIELDS)
-    print(f"wrote {len(rows)} P1 baseline rows to {args.output}")
+    print(f"wrote {len(rows)} QEC baseline rows to {args.output}")
 
 
 if __name__ == "__main__":

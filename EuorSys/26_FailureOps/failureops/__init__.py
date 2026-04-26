@@ -7,5 +7,6 @@ __all__ = [
     "metrics",
     "qec_backend",
     "qec_interventions",
+    "runtime_interventions",
     "toy_simulator",
 ]

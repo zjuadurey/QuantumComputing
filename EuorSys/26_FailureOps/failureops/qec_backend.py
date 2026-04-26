@@ -34,6 +34,8 @@ def generate_qec_runs(
     idle_error_rate: float,
     decoder_timeout_base_rate: float,
     seed: int,
+    decoder_capacity: float = 4.0,
+    synchronization_slack: float = 0.45,
     run_id: str = "p1",
     circuit_id: str = "stim_repetition_memory",
 ) -> list[dict[str, object]]:
@@ -63,6 +65,8 @@ def generate_qec_runs(
             num_rounds=num_rounds,
             idle_error_rate=idle_error_rate,
             decoder_timeout_base_rate=decoder_timeout_base_rate,
+            decoder_capacity=decoder_capacity,
+            synchronization_slack=synchronization_slack,
             seed=shot_seed,
         )
         row: dict[str, object] = {
@@ -78,6 +82,7 @@ def generate_qec_runs(
             "measurement_error_rate": measurement_error_rate,
             "idle_error_rate": idle_error_rate,
             "decoder_timeout_base_rate": decoder_timeout_base_rate,
+            "decoder_capacity": fmt_float(decoder_capacity),
             "detector_count": circuit.num_detectors,
             "detector_event_count": len(detector_indices),
             "detector_events": json.dumps(detector_indices, separators=(",", ":")),
@@ -129,29 +134,42 @@ def compute_runtime_fields(
     num_rounds: int,
     idle_error_rate: float,
     decoder_timeout_base_rate: float,
+    decoder_capacity: float = 4.0,
+    synchronization_slack: float = 0.45,
     seed: int,
     delay_scale: float = 1.0,
     exposure_scale: float = 1.0,
+    capacity_scale: float = 1.0,
+    backlog_scale: float = 1.0,
+    slack_bonus: float = 0.0,
+    timeout_scale: float = 1.0,
     force_no_timeout: bool = False,
 ) -> dict[str, object]:
     rng = random.Random(seed + 1_000_003)
     normalized_syndrome_weight = detector_event_count / max(1, distance * num_rounds)
+    effective_capacity = max(0.25, decoder_capacity * capacity_scale)
+    decoder_backlog = max(0.0, detector_event_count - effective_capacity) * backlog_scale
+    effective_slack = min(1.0, synchronization_slack + slack_bonus)
     delay = delay_scale * (
         0.08
-        + 0.045 * detector_event_count
+        + 0.035 * detector_event_count
+        + 0.11 * decoder_backlog
         + rng.uniform(0.0, 0.035)
     )
     timeout_probability = min(
         0.95,
-        decoder_timeout_base_rate + 1.6 * normalized_syndrome_weight,
+        decoder_timeout_base_rate
+        + timeout_scale * (0.9 * normalized_syndrome_weight + 0.10 * decoder_backlog),
     )
     decoder_timeout = False if force_no_timeout else rng.random() < timeout_probability
     if decoder_timeout:
-        delay += delay_scale * (0.35 + 0.04 * detector_event_count)
+        delay += delay_scale * (0.30 + 0.035 * detector_event_count + 0.08 * decoder_backlog)
 
     idle_exposure = exposure_scale * (
         0.10
         + delay * 0.85
+        + decoder_backlog * 0.06
+        + max(0.0, 0.55 - effective_slack) * 0.45
         + idle_error_rate * num_rounds * 4.0
     )
     idle_rng = random.Random(seed + 2_000_003)
@@ -160,6 +178,8 @@ def compute_runtime_fields(
     return {
         "decoder_timeout": decoder_timeout,
         "decoder_delay": fmt_float(delay),
+        "decoder_backlog": fmt_float(decoder_backlog),
+        "synchronization_slack": fmt_float(effective_slack),
         "idle_exposure": fmt_float(idle_exposure),
         "runtime_idle_flip": runtime_idle_flip,
     }
@@ -234,6 +254,9 @@ def normalize_qec_record_types(row: dict[str, object]) -> dict[str, object]:
         "measurement_error_rate",
         "idle_error_rate",
         "decoder_timeout_base_rate",
+        "decoder_capacity",
+        "decoder_backlog",
+        "synchronization_slack",
         "decoder_delay",
         "idle_exposure",
     ):
@@ -259,10 +282,16 @@ def apply_runtime_intervention(record: dict[str, object], intervention: str) -> 
     num_rounds = parse_int(out["num_rounds"])
     idle_error_rate = parse_float(out["idle_error_rate"])
     decoder_timeout_base_rate = parse_float(out["decoder_timeout_base_rate"])
+    decoder_capacity = parse_float(out.get("decoder_capacity", 4.0))
+    synchronization_slack = parse_float(out.get("synchronization_slack", 0.45))
     seed = parse_int(out["seed"])
 
     delay_scale = 1.0
     exposure_scale = 1.0
+    capacity_scale = 1.0
+    backlog_scale = 1.0
+    slack_bonus = 0.0
+    timeout_scale = 1.0
     force_no_timeout = False
     if intervention == "remove_decoder_timeout":
         force_no_timeout = True
@@ -270,6 +299,14 @@ def apply_runtime_intervention(record: dict[str, object], intervention: str) -> 
         delay_scale = 0.5
     elif intervention == "reduce_idle_exposure_50pct":
         exposure_scale = 0.5
+    elif intervention == "increase_decoder_capacity_2x":
+        capacity_scale = 2.0
+    elif intervention == "eliminate_decoder_backlog":
+        backlog_scale = 0.0
+    elif intervention == "increase_synchronization_slack":
+        slack_bonus = 0.35
+    elif intervention == "relax_timeout_policy":
+        timeout_scale = 0.35
     else:
         raise ValueError(f"unknown runtime intervention: {intervention}")
 
@@ -279,9 +316,15 @@ def apply_runtime_intervention(record: dict[str, object], intervention: str) -> 
         num_rounds=num_rounds,
         idle_error_rate=idle_error_rate,
         decoder_timeout_base_rate=decoder_timeout_base_rate,
+        decoder_capacity=decoder_capacity,
+        synchronization_slack=synchronization_slack,
         seed=seed,
         delay_scale=delay_scale,
         exposure_scale=exposure_scale,
+        capacity_scale=capacity_scale,
+        backlog_scale=backlog_scale,
+        slack_bonus=slack_bonus,
+        timeout_scale=timeout_scale,
         force_no_timeout=force_no_timeout,
     )
     out.update(runtime)

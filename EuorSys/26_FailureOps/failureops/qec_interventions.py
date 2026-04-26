@@ -72,6 +72,8 @@ def generate_noise_intervention_rows(
         idle_error_rate=idle_error_rate,
         decoder_timeout_base_rate=parse_float(first["decoder_timeout_base_rate"]),
         seed=seed,
+        decoder_capacity=parse_float(first.get("decoder_capacity", 4.0)),
+        synchronization_slack=parse_float(first.get("synchronization_slack", 0.45)),
         run_id=str(first["run_id"]),
         circuit_id=str(first["circuit_id"]),
     )

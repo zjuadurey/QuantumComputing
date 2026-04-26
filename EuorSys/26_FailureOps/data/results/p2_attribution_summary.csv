@@ -1,0 +1,14 @@
+intervention,num_shots,baseline_logical_failure_rate,intervened_logical_failure_rate,absolute_delta_lfr,relative_delta_lfr,baseline_failure_count,intervened_failure_count,rescued_failure_count,new_failure_count,rescue_rate,new_failure_rate,dominant_baseline_failure_pattern,dominant_intervened_failure_pattern
+eliminate_decoder_backlog,1000,0.096000,0.023000,-0.073000,-0.760417,96,23,73,0,0.760417,0.000000,timeout_correlated,timeout_correlated
+remove_measurement_noise,1000,0.096000,0.024000,-0.072000,-0.750000,96,24,85,13,0.885417,0.013000,timeout_correlated,timeout_correlated
+increase_decoder_capacity_2x,1000,0.096000,0.032000,-0.064000,-0.666667,96,32,64,0,0.666667,0.000000,timeout_correlated,timeout_correlated
+remove_data_noise,1000,0.096000,0.032000,-0.064000,-0.666667,96,32,89,25,0.927083,0.025000,timeout_correlated,timeout_correlated
+reduce_idle_exposure_50pct,1000,0.096000,0.039000,-0.057000,-0.593750,96,39,61,4,0.635417,0.004000,timeout_correlated,timeout_correlated
+remove_decoder_timeout,1000,0.096000,0.039000,-0.057000,-0.593750,96,39,59,2,0.614583,0.002000,timeout_correlated,idle_correlated
+weaken_measurement_noise_50pct,1000,0.096000,0.042000,-0.054000,-0.562500,96,42,81,27,0.843750,0.027000,timeout_correlated,timeout_correlated
+weaken_data_noise_50pct,1000,0.096000,0.056000,-0.040000,-0.416667,96,56,76,36,0.791667,0.036000,timeout_correlated,timeout_correlated
+relax_timeout_policy,1000,0.096000,0.057000,-0.039000,-0.406250,96,57,39,0,0.406250,0.000000,timeout_correlated,idle_correlated
+reduce_decoder_delay_50pct,1000,0.096000,0.058000,-0.038000,-0.395833,96,58,40,2,0.416667,0.002000,timeout_correlated,timeout_correlated
+remove_idle_noise,1000,0.096000,0.060000,-0.036000,-0.375000,96,60,80,44,0.833333,0.044000,timeout_correlated,timeout_correlated
+weaken_idle_noise_50pct,1000,0.096000,0.078000,-0.018000,-0.187500,96,78,72,54,0.750000,0.054000,timeout_correlated,timeout_correlated
+increase_synchronization_slack,1000,0.096000,0.084000,-0.012000,-0.125000,96,84,14,2,0.145833,0.002000,timeout_correlated,timeout_correlated
