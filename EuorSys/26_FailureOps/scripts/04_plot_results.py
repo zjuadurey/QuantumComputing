@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import html
+import os
 import shutil
 import subprocess
 import sys
@@ -20,19 +21,21 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--input", default="data/results/attribution_summary.csv")
     parser.add_argument("--output", default="figures/intervention_delta_lfr.png")
+    parser.add_argument("--title", default="FailureOps intervention sensitivity")
     args = parser.parse_args()
 
     rows = read_csv_rows(args.input)
     try:
-        _plot_with_matplotlib(rows, args.output)
+        _plot_with_matplotlib(rows, args.output, args.title)
     except ModuleNotFoundError as exc:
         if exc.name != "matplotlib":
             raise
-        _plot_with_svg_convert(rows, args.output)
+        _plot_with_svg_convert(rows, args.output, args.title)
     print(f"wrote plot to {args.output}")
 
 
-def _plot_with_matplotlib(rows: list[dict[str, str]], output: str) -> None:
+def _plot_with_matplotlib(rows: list[dict[str, str]], output: str, title: str) -> None:
+    os.environ.setdefault("MPLCONFIGDIR", "/tmp/failureops-matplotlib")
     import matplotlib
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
@@ -46,7 +49,7 @@ def _plot_with_matplotlib(rows: list[dict[str, str]], output: str) -> None:
     ax.axhline(0.0, color="#333333", linewidth=0.8)
     ax.set_ylabel("Absolute delta LFR")
     ax.set_xlabel("Intervention")
-    ax.set_title("FailureOps P0 intervention sensitivity")
+    ax.set_title(title)
     ax.tick_params(axis="x", labelrotation=35)
     for label in ax.get_xticklabels():
         label.set_horizontalalignment("right")
@@ -56,7 +59,7 @@ def _plot_with_matplotlib(rows: list[dict[str, str]], output: str) -> None:
     fig.savefig(output, dpi=180)
 
 
-def _plot_with_svg_convert(rows: list[dict[str, str]], output: str) -> None:
+def _plot_with_svg_convert(rows: list[dict[str, str]], output: str, title: str) -> None:
     convert = shutil.which("convert")
     if convert is None:
         raise RuntimeError(
@@ -64,7 +67,7 @@ def _plot_with_svg_convert(rows: list[dict[str, str]], output: str) -> None:
             "or ImageMagick's convert command"
         )
 
-    svg = _build_svg_bar_chart(rows)
+    svg = _build_svg_bar_chart(rows, title)
     ensure_parent_dir(output)
     with tempfile.NamedTemporaryFile("w", suffix=".svg", delete=False) as handle:
         handle.write(svg)
@@ -75,7 +78,7 @@ def _plot_with_svg_convert(rows: list[dict[str, str]], output: str) -> None:
         Path(svg_path).unlink(missing_ok=True)
 
 
-def _build_svg_bar_chart(rows: list[dict[str, str]]) -> str:
+def _build_svg_bar_chart(rows: list[dict[str, str]], title: str) -> str:
     width = 1100
     height = 620
     margin_left = 88
@@ -106,7 +109,7 @@ def _build_svg_bar_chart(rows: list[dict[str, str]]) -> str:
     parts = [
         f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}" viewBox="0 0 {width} {height}">',
         '<rect width="100%" height="100%" fill="white"/>',
-        '<text x="550" y="28" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="22">FailureOps P0 intervention sensitivity</text>',
+        f'<text x="550" y="28" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="22">{html.escape(title)}</text>',
         f'<line x1="{margin_left}" y1="{zero_y:.2f}" x2="{width - margin_right}" y2="{zero_y:.2f}" stroke="#333" stroke-width="1"/>',
         f'<line x1="{margin_left}" y1="{margin_top}" x2="{margin_left}" y2="{height - margin_bottom}" stroke="#333" stroke-width="1"/>',
         f'<text x="22" y="{margin_top + plot_height / 2:.2f}" transform="rotate(-90 22 {margin_top + plot_height / 2:.2f})" text-anchor="middle" font-family="DejaVu Sans, Arial, sans-serif" font-size="15">Absolute delta LFR</text>',

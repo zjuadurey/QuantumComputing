@@ -1,0 +1,10 @@
+intervention,num_shots,baseline_logical_failure_rate,intervened_logical_failure_rate,absolute_delta_lfr,relative_delta_lfr,baseline_failure_count,intervened_failure_count,rescued_failure_count,new_failure_count,rescue_rate,new_failure_rate,dominant_baseline_failure_pattern,dominant_intervened_failure_pattern
+remove_decoder_timeout,1000,0.033000,0.003000,-0.030000,-0.909091,33,3,30,0,0.909091,0.000000,timeout_correlated,syndrome_decoding_mismatch
+remove_data_noise,1000,0.033000,0.013000,-0.020000,-0.606061,33,13,29,9,0.878788,0.009000,timeout_correlated,timeout_correlated
+remove_measurement_noise,1000,0.033000,0.019000,-0.014000,-0.424242,33,19,29,15,0.878788,0.015000,timeout_correlated,timeout_correlated
+weaken_measurement_noise_50pct,1000,0.033000,0.020000,-0.013000,-0.393939,33,20,25,12,0.757576,0.012000,timeout_correlated,timeout_correlated
+reduce_decoder_delay_50pct,1000,0.033000,0.023000,-0.010000,-0.303030,33,23,13,3,0.393939,0.003000,timeout_correlated,timeout_correlated
+reduce_idle_exposure_50pct,1000,0.033000,0.023000,-0.010000,-0.303030,33,23,13,3,0.393939,0.003000,timeout_correlated,timeout_correlated
+weaken_data_noise_50pct,1000,0.033000,0.025000,-0.008000,-0.242424,33,25,26,18,0.787879,0.018000,timeout_correlated,timeout_correlated
+remove_idle_noise,1000,0.033000,0.032000,-0.001000,-0.030303,33,32,25,24,0.757576,0.024000,timeout_correlated,timeout_correlated
+weaken_idle_noise_50pct,1000,0.033000,0.042000,0.009000,0.272727,33,42,25,34,0.757576,0.034000,timeout_correlated,timeout_correlated
