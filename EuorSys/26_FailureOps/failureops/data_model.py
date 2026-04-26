@@ -1,0 +1,61 @@
+"""Stable CSV schemas for the P0 FailureOps pipeline."""
+
+BASELINE_FIELDS = [
+    "run_id",
+    "circuit_id",
+    "shot_id",
+    "seed",
+    "num_rounds",
+    "num_operations",
+    "data_error_rate",
+    "measurement_error_rate",
+    "idle_error_rate",
+    "decoder_timeout_rate",
+    "data_error_count",
+    "measurement_error_count",
+    "idle_error_count",
+    "decoder_timeout",
+    "decoder_delay",
+    "idle_exposure",
+    "error_events",
+    "failure_round",
+    "failure_region",
+    "failure_operation",
+    "failure_mode",
+    "failure_pattern",
+    "logical_failure",
+]
+
+INTERVENTION_FIELDS = [
+    "shot_id",
+    "seed",
+    "intervention",
+    "baseline_logical_failure",
+    "intervened_logical_failure",
+    "baseline_failure_round",
+    "intervened_failure_round",
+    "baseline_failure_mode",
+    "intervened_failure_mode",
+    "baseline_failure_pattern",
+    "intervened_failure_pattern",
+    "rescued_failure",
+    "new_failure",
+]
+
+ATTRIBUTION_FIELDS = [
+    "intervention",
+    "num_shots",
+    "baseline_logical_failure_rate",
+    "intervened_logical_failure_rate",
+    "absolute_delta_lfr",
+    "relative_delta_lfr",
+    "baseline_failure_count",
+    "intervened_failure_count",
+    "rescued_failure_count",
+    "new_failure_count",
+    "rescue_rate",
+    "new_failure_rate",
+    "dominant_baseline_failure_pattern",
+    "dominant_intervened_failure_pattern",
+]
+
