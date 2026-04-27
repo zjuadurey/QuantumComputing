@@ -1,0 +1,26 @@
+{
+  "command": [
+    "scripts/20_run_p4_from_config.py",
+    "--config",
+    "configs/p4_default.yaml"
+  ],
+  "config_hash": "923920e02e8e86d63dcb6fe78f264ad513367e61f48cbdc3638edcd810f6b767",
+  "experiment_id": "p4_default",
+  "git_commit": "09a94821015a880b9cc6fe01bfff754bd792ad23",
+  "git_dirty": true,
+  "intervention_registry_version": "p4_registry_v1",
+  "outputs": {
+    "baseline": "data/results/p4_baseline_runs.csv",
+    "effects": "data/results/p4_paired_effects.csv",
+    "interventions": "data/results/p4_intervened_runs.csv",
+    "manifest": "data/results/p4_manifest.json",
+    "validation": "data/results/p4_pairing_validation.csv"
+  },
+  "row_counts": {
+    "baseline": 800,
+    "effects": 52,
+    "interventions": 10400,
+    "validation": 13
+  },
+  "timestamp_utc": "2026-04-27T16:12:10.686173+00:00"
+}

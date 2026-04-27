@@ -1,0 +1,34 @@
+experiment_id: p4_default
+workloads:
+  - memory_x
+  - idle_heavy_memory
+stress_levels:
+  - low
+  - high
+num_seeds: 2
+num_shots_per_seed: 100
+seed_start: 42
+seed_stride: 10000
+interventions:
+  - remove_data_noise
+  - weaken_data_noise_50pct
+  - remove_measurement_noise
+  - weaken_measurement_noise_50pct
+  - remove_idle_noise
+  - weaken_idle_noise_50pct
+  - remove_decoder_timeout
+  - increase_decoder_workers_2x
+  - increase_decoder_service_rate_2x
+  - remove_decoder_queueing
+  - relax_decoder_deadline_2x
+  - reduce_idle_exposure_50pct
+  - prioritize_high_weight_syndromes
+bootstrap:
+  num_resamples: 500
+  seed: 2026
+outputs:
+  baseline: data/results/p4_baseline_runs.csv
+  interventions: data/results/p4_intervened_runs.csv
+  validation: data/results/p4_pairing_validation.csv
+  effects: data/results/p4_paired_effects.csv
+  manifest: data/results/p4_manifest.json

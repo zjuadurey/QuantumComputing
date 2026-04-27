@@ -172,21 +172,25 @@ sensitivity profile
 Current target:
 
 ```text
-P0: toy intervention pipeline
+P4: verifiable paired counterfactual engine
 ```
 
-The first version uses:
+The repository now includes the original P0 toy pipeline plus P1/P2/P2.5/P3
+extensions. P4 adds:
 
 ```text
-simplified event model
-toy logical failure rule
-CSV-based execution records
-paired counterfactual interventions
-simple attribution summary
-basic plotting
+intervention registry
+pair ids and event-record hashes
+pairing validation
+paired treatment-effect metrics
+bootstrap confidence intervals
+YAML config runner
+experiment manifest
 ```
 
-This is intentional.
+The implementation remains intentionally small. P4 is a verifiable
+paired-counterfactual evaluation engine, not a full FTQC runtime or decoder
+scheduler.
 
 The purpose of P0 is not to prove a QEC result.
 
