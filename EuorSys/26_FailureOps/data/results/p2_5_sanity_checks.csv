@@ -1,0 +1,7 @@
+check_name,intervention,expected_direction,observed_metric,passed,notes
+data_noise_reduces_failures,remove_data_noise,total intervened failures should be lower than baseline,-64,True,Current P2 pattern vocabulary does not separate data-dominated failures.
+measurement_noise_reduces_failures,remove_measurement_noise,total intervened failures should be lower than baseline,-72,True,Current P2 pattern vocabulary does not separate measurement-dominated failures.
+timeout_intervention_reduces_timeout_pattern,remove_decoder_timeout,timeout_correlated failures should decrease,-72,True,
+backlog_intervention_reduces_runtime_patterns,eliminate_decoder_backlog,timeout_correlated plus syndrome_burst failures should decrease,-53,True,decoder_backlog is represented through timeout/delay/syndrome pressure patterns.
+capacity_intervention_reduces_runtime_patterns,increase_decoder_capacity_2x,timeout_correlated plus syndrome_burst failures should decrease,-46,True,capacity affects decoder_backlog in the runtime proxy model.
+idle_exposure_intervention_reduces_idle_pattern,reduce_idle_exposure_50pct,idle_correlated failures should decrease or total failures should decrease,"(-21, -57)",True,
