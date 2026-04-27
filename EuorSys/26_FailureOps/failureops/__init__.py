@@ -16,6 +16,7 @@ __all__ = [
     "pairing",
     "rank_stability",
     "runtime_service",
+    "runtime_trace",
     "runtime_interventions",
     "toy_simulator",
     "workloads",

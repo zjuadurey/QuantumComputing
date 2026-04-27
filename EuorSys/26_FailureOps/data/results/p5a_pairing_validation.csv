@@ -1,0 +1,14 @@
+intervention,intervention_class,num_pairs,valid_pairs,invalid_pairs,violation_rate,top_violations
+increase_decoder_service_rate_2x,runtime,800,800,0,0.000000,{}
+increase_decoder_workers_2x,runtime,800,800,0,0.000000,{}
+prioritize_high_weight_syndromes,policy,800,800,0,0.000000,{}
+reduce_idle_exposure_50pct,runtime,800,800,0,0.000000,{}
+relax_decoder_deadline_2x,policy,800,800,0,0.000000,{}
+remove_data_noise,noise,800,800,0,0.000000,{}
+remove_decoder_queueing,runtime,800,800,0,0.000000,{}
+remove_decoder_timeout,policy,800,800,0,0.000000,{}
+remove_idle_noise,noise,800,800,0,0.000000,{}
+remove_measurement_noise,noise,800,800,0,0.000000,{}
+weaken_data_noise_50pct,noise,800,800,0,0.000000,{}
+weaken_idle_noise_50pct,noise,800,800,0,0.000000,{}
+weaken_measurement_noise_50pct,noise,800,800,0,0.000000,{}

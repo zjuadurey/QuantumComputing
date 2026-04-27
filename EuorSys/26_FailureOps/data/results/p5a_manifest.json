@@ -1,0 +1,29 @@
+{
+  "command": [
+    "scripts/22_run_p5a_trace_mode.py",
+    "--config",
+    "configs/p5a_trace_mode.yaml"
+  ],
+  "config_hash": "1c034072048955889439bc49d0faa1204889d7865b3ac9d1def2c214f0717dcb",
+  "experiment_id": "p5a_trace_mode",
+  "git_commit": "cdad1402e348c93ce4b09a830d300456dd2ab632",
+  "git_dirty": true,
+  "intervention_registry_version": "p4_registry_v1",
+  "outputs": {
+    "baseline": "data/results/p5a_baseline_runs.csv",
+    "effects": "data/results/p5a_paired_effects.csv",
+    "interventions": "data/results/p5a_intervened_runs.csv",
+    "manifest": "data/results/p5a_manifest.json",
+    "runtime_trace": "data/results/p5a_runtime_trace.csv",
+    "validation": "data/results/p5a_pairing_validation.csv"
+  },
+  "row_counts": {
+    "baseline": 800,
+    "effects": 52,
+    "interventions": 10400,
+    "matched_traces": 800,
+    "missing_traces": 0,
+    "validation": 13
+  },
+  "timestamp_utc": "2026-04-27T16:18:08.350449+00:00"
+}

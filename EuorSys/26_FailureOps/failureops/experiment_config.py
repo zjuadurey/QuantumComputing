@@ -46,6 +46,7 @@ def normalize_experiment_config(config: dict[str, Any]) -> dict[str, Any]:
         "seed_stride": int(config.get("seed_stride", 10000)),
         "interventions": list(config.get("interventions", [])),
         "bootstrap": dict(config.get("bootstrap", {})),
+        "runtime_trace": dict(config.get("runtime_trace", {})),
         "outputs": {**DEFAULT_OUTPUTS, **dict(config.get("outputs", {}))},
     }
     if not normalized["interventions"]:
@@ -54,6 +55,11 @@ def normalize_experiment_config(config: dict[str, Any]) -> dict[str, Any]:
         normalized["interventions"] = list(P3_INTERVENTIONS)
     normalized["bootstrap"].setdefault("num_resamples", 1000)
     normalized["bootstrap"].setdefault("seed", 2026)
+    normalized["runtime_trace"].setdefault("input", "")
+    normalized["runtime_trace"].setdefault("output", "data/results/p5a_runtime_trace.csv")
+    normalized["runtime_trace"].setdefault("export_proxy_trace_if_missing", False)
+    normalized["runtime_trace"].setdefault("missing_policy", "error")
+    normalized["runtime_trace"].setdefault("ignore_run_id", False)
     validate_experiment_config(normalized)
     return normalized
 
@@ -126,3 +132,5 @@ def validate_experiment_config(config: dict[str, Any]) -> None:
         raise ValueError("num_shots_per_seed must be positive")
     if int(config["bootstrap"]["num_resamples"]) <= 0:
         raise ValueError("bootstrap.num_resamples must be positive")
+    if config["runtime_trace"]["missing_policy"] not in {"error", "keep_proxy"}:
+        raise ValueError("runtime_trace.missing_policy must be error or keep_proxy")

@@ -271,3 +271,26 @@ P4_PAIRED_EFFECT_FIELDS = [
     "num_bootstrap",
     "bootstrap_seed",
 ]
+
+P5_RUNTIME_TRACE_FIELDS = [
+    "trace_id",
+    "trace_source",
+    "run_id",
+    "workload_id",
+    "stress_level",
+    "shot_id",
+    "seed",
+    "decoder_arrival_time",
+    "decoder_start_time",
+    "decoder_finish_time",
+    "decoder_latency",
+    "decoder_queue_wait",
+    "decoder_service_time",
+    "decoder_backlog",
+    "decoder_timeout",
+    "decoder_deadline_miss",
+    "decoder_queue_overflow",
+    "runtime_stall_rounds",
+    "idle_exposure",
+    "runtime_idle_flip",
+]

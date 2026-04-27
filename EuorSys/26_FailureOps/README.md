@@ -172,25 +172,22 @@ sensitivity profile
 Current target:
 
 ```text
-P4: verifiable paired counterfactual engine
+P5a: runtime trace mode
 ```
 
-The repository now includes the original P0 toy pipeline plus P1/P2/P2.5/P3
-extensions. P4 adds:
+The repository now includes the original P0 toy pipeline plus P1/P2/P2.5/P3/P4
+extensions. P5a adds:
 
 ```text
-intervention registry
-pair ids and event-record hashes
-pairing validation
-paired treatment-effect metrics
-bootstrap confidence intervals
-YAML config runner
-experiment manifest
+external runtime trace import
+CSV/JSON runtime trace export
+trace-driven baseline recomputation
+P4 pairing validation over trace-backed executions
+paired treatment-effect metrics over imported runtime observations
 ```
 
-The implementation remains intentionally small. P4 is a verifiable
-paired-counterfactual evaluation engine, not a full FTQC runtime or decoder
-scheduler.
+The implementation remains intentionally small. P5a is a runtime observability
+interface for FailureOps, not a full FTQC runtime or decoder scheduler.
 
 The purpose of P0 is not to prove a QEC result.
 
