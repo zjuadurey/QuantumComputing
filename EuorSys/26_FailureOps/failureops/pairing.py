@@ -20,6 +20,7 @@ EVENT_HASH_FIELDS = (
     "seed",
     "shot_id",
     "detector_events",
+    "event_layers",
     "observable_flip",
     "decoder_prediction",
 )

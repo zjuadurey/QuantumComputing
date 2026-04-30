@@ -1,0 +1,28 @@
+{
+  "command": [
+    "scripts/25_run_p6_cross_mode.py",
+    "--config",
+    "configs/p6_cross_mode.yaml"
+  ],
+  "config_hash": "52b9d58caab316118f397334ee908302d7da94cf787fcc17785763ea36c8192d",
+  "experiment_id": "p6_cross_mode",
+  "git_commit": "92193794a3258d2390677690247be471c2c076cf",
+  "git_dirty": true,
+  "intervention_registry_version": "p4_registry_v1",
+  "outputs": {
+    "baseline": "data/results/p6/repetition_proxy_detector_baseline_runs.csv",
+    "effects": "data/results/p6/repetition_proxy_detector_paired_effects.csv",
+    "interventions": "data/results/p6/repetition_proxy_detector_intervened_runs.csv",
+    "manifest": "data/results/p6/repetition_proxy_detector_manifest.json",
+    "validation": "data/results/p6/repetition_proxy_detector_pairing_validation.csv"
+  },
+  "row_counts": {
+    "baseline": 400,
+    "effects": 26,
+    "interventions": 5200,
+    "matched_traces": 0,
+    "missing_traces": 0,
+    "validation": 13
+  },
+  "timestamp_utc": "2026-04-30T16:23:45.925525+00:00"
+}

@@ -1,0 +1,26 @@
+{
+  "command": [
+    "scripts/24_run_p5c_surface_pilot.py",
+    "--config",
+    "configs/p5c_surface_pilot.yaml"
+  ],
+  "config_hash": "429f0fe0819fe9f9b5f23b722b1063833ab8eb93ef100ab018c7e5a750fcc939",
+  "experiment_id": "p5c_surface_pilot",
+  "git_commit": "92193794a3258d2390677690247be471c2c076cf",
+  "git_dirty": true,
+  "intervention_registry_version": "p4_registry_v1",
+  "outputs": {
+    "baseline": "data/results/p5c_surface_baseline_runs.csv",
+    "effects": "data/results/p5c_surface_paired_effects.csv",
+    "interventions": "data/results/p5c_surface_intervened_runs.csv",
+    "manifest": "data/results/p5c_surface_manifest.json",
+    "validation": "data/results/p5c_surface_pairing_validation.csv"
+  },
+  "row_counts": {
+    "baseline": 400,
+    "effects": 26,
+    "interventions": 5200,
+    "validation": 13
+  },
+  "timestamp_utc": "2026-04-29T05:41:13.968004+00:00"
+}

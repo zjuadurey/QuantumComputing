@@ -1,0 +1,14 @@
+intervention,num_modes,mode_ids,mean_paired_delta_lfr,min_paired_delta_lfr,max_paired_delta_lfr,mean_net_rescue_rate,top_mode,top_mode_paired_delta_lfr
+remove_decoder_queueing,4,repetition_proxy_detector|repetition_proxy_layered|repetition_trace_layered|surface_proxy_layered,-0.153125,-0.192500,-0.035000,0.153125,repetition_proxy_detector,-0.192500
+increase_decoder_service_rate_2x,4,repetition_proxy_detector|repetition_proxy_layered|repetition_trace_layered|surface_proxy_layered,-0.145000,-0.180000,-0.040000,0.145000,repetition_proxy_detector,-0.180000
+increase_decoder_workers_2x,4,repetition_proxy_detector|repetition_proxy_layered|repetition_trace_layered|surface_proxy_layered,-0.145000,-0.180000,-0.040000,0.145000,repetition_proxy_detector,-0.180000
+reduce_idle_exposure_50pct,4,repetition_proxy_detector|repetition_proxy_layered|repetition_trace_layered|surface_proxy_layered,-0.102500,-0.130000,-0.020000,0.102500,repetition_proxy_detector,-0.130000
+remove_measurement_noise,4,repetition_proxy_detector|repetition_proxy_layered|repetition_trace_layered|surface_proxy_layered,-0.081875,-0.162500,-0.015000,0.081875,repetition_proxy_detector,-0.162500
+remove_data_noise,4,repetition_proxy_detector|repetition_proxy_layered|repetition_trace_layered|surface_proxy_layered,-0.081250,-0.175000,-0.015000,0.081250,repetition_proxy_detector,-0.175000
+remove_idle_noise,4,repetition_proxy_detector|repetition_proxy_layered|repetition_trace_layered|surface_proxy_layered,-0.051250,-0.110000,-0.010000,0.051250,repetition_proxy_detector,-0.110000
+weaken_measurement_noise_50pct,4,repetition_proxy_detector|repetition_proxy_layered|repetition_trace_layered|surface_proxy_layered,-0.049375,-0.102500,-0.015000,0.049375,repetition_proxy_detector,-0.102500
+weaken_data_noise_50pct,4,repetition_proxy_detector|repetition_proxy_layered|repetition_trace_layered|surface_proxy_layered,-0.042500,-0.095000,-0.020000,0.042500,repetition_proxy_detector,-0.095000
+prioritize_high_weight_syndromes,4,repetition_proxy_detector|repetition_proxy_layered|repetition_trace_layered|surface_proxy_layered,-0.030000,-0.030000,-0.030000,0.030000,repetition_proxy_detector,-0.030000
+weaken_idle_noise_50pct,4,repetition_proxy_detector|repetition_proxy_layered|repetition_trace_layered|surface_proxy_layered,-0.025000,-0.055000,0.000000,0.025000,repetition_proxy_detector,-0.055000
+relax_decoder_deadline_2x,4,repetition_proxy_detector|repetition_proxy_layered|repetition_trace_layered|surface_proxy_layered,-0.016250,-0.020000,-0.005000,0.016250,repetition_proxy_detector,-0.020000
+remove_decoder_timeout,4,repetition_proxy_detector|repetition_proxy_layered|repetition_trace_layered|surface_proxy_layered,0.009375,0.007500,0.015000,-0.009375,repetition_proxy_detector,0.007500

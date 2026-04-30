@@ -1,0 +1,5 @@
+mode_id,backend,runtime_source,event_model,workloads,stress_levels,baseline_rows,intervention_rows,validation_rows,effect_rows,invalid_pairs,max_violation_rate,strongest_intervention,strongest_paired_delta_lfr,strongest_intervention_class
+repetition_proxy_detector,repetition,proxy,detector,memory_x|idle_heavy_memory,high,400,5200,13,26,0,0.000000,remove_decoder_queueing,-0.192500,runtime
+repetition_proxy_layered,repetition,proxy,layered,memory_x|idle_heavy_memory,high,400,5200,13,26,0,0.000000,remove_decoder_queueing,-0.192500,runtime
+repetition_trace_layered,repetition,trace,layered,memory_x|idle_heavy_memory,high,400,5200,13,26,0,0.000000,remove_decoder_queueing,-0.192500,runtime
+surface_proxy_layered,surface,proxy,layered,surface_rotated_memory_x,high,200,2600,13,13,0,0.000000,increase_decoder_service_rate_2x,-0.040000,runtime

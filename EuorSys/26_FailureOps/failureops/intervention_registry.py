@@ -18,6 +18,7 @@ IDENTITY_INVARIANTS = (
 
 EVENT_INVARIANTS = (
     "detector_events",
+    "event_layers",
     "observable_flip",
     "decoder_prediction",
 )
@@ -38,6 +39,8 @@ NOISE_ALLOWED_CHANGES = (
     "idle_error_rate",
     "detector_event_count",
     "detector_events",
+    "event_layers",
+    "event_layer_hash",
     "decoder_prediction",
     "qec_decoder_failure",
     "decoder_arrival_time",

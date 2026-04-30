@@ -85,6 +85,18 @@ WORKLOADS = {
         idle_window_scale=1.45,
         deadline_scale=0.95,
     ),
+    "surface_rotated_memory_x": Workload(
+        workload_id="surface_rotated_memory_x",
+        circuit_id="stim_surface_rotated_memory_x",
+        distance=3,
+        num_rounds=3,
+        data_error_rate=0.010,
+        measurement_error_rate=0.010,
+        idle_error_rate=0.0010,
+        detector_load_scale=1.20,
+        idle_window_scale=1.00,
+        deadline_scale=1.00,
+    ),
 }
 
 
@@ -101,4 +113,3 @@ def parse_workload_ids(value: str) -> list[str]:
     for workload_id in ids:
         get_workload(workload_id)
     return ids
-

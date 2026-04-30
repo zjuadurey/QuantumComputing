@@ -172,22 +172,23 @@ sensitivity profile
 Current target:
 
 ```text
-P5a: runtime trace mode
+P6: cross-mode evaluation
 ```
 
 The repository now includes the original P0 toy pipeline plus P1/P2/P2.5/P3/P4
-extensions. P5a adds:
+and P5 extensions. P6 adds:
 
 ```text
-external runtime trace import
-CSV/JSON runtime trace export
-trace-driven baseline recomputation
-P4 pairing validation over trace-backed executions
-paired treatment-effect metrics over imported runtime observations
+one unified experiment interface
+backend/runtime/event-model mode selection
+cross-mode paired-effect summaries
+cross-mode intervention stability
+cross-mode rank stability
+per-mode P4/P5 artifacts
 ```
 
-The implementation remains intentionally small. P5a is a runtime observability
-interface for FailureOps, not a full FTQC runtime or decoder scheduler.
+The implementation remains intentionally small. P6 evaluates FailureOps across
+input modes; it is not a full FTQC runtime or decoder scheduler.
 
 The purpose of P0 is not to prove a QEC result.
 

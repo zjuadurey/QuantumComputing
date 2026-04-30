@@ -1,0 +1,26 @@
+{
+  "command": [
+    "scripts/23_run_p5b_layered_events.py",
+    "--config",
+    "configs/p5b_layered_events.yaml"
+  ],
+  "config_hash": "b188eeba91e318398c23c25bdd2d2ccbea90662cc5ef8cdde5693e916c74fbb9",
+  "experiment_id": "p5b_layered_events",
+  "git_commit": "92193794a3258d2390677690247be471c2c076cf",
+  "git_dirty": true,
+  "intervention_registry_version": "p4_registry_v1",
+  "outputs": {
+    "baseline": "data/results/p5b_baseline_runs.csv",
+    "effects": "data/results/p5b_paired_effects.csv",
+    "interventions": "data/results/p5b_intervened_runs.csv",
+    "manifest": "data/results/p5b_manifest.json",
+    "validation": "data/results/p5b_pairing_validation.csv"
+  },
+  "row_counts": {
+    "baseline": 800,
+    "effects": 52,
+    "interventions": 10400,
+    "validation": 13
+  },
+  "timestamp_utc": "2026-04-29T05:41:00.449988+00:00"
+}

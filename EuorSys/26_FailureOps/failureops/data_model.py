@@ -231,6 +231,8 @@ P4_INTERVENTION_FIELDS = [
 
 P4_BASELINE_FIELDS = [
     *P3_BASELINE_FIELDS,
+    "event_layers",
+    "event_layer_hash",
     "event_record_hash",
     "record_hash",
 ]
@@ -293,4 +295,41 @@ P5_RUNTIME_TRACE_FIELDS = [
     "runtime_stall_rounds",
     "idle_exposure",
     "runtime_idle_flip",
+]
+
+P6_MODE_SUMMARY_FIELDS = [
+    "mode_id",
+    "backend",
+    "runtime_source",
+    "event_model",
+    "workloads",
+    "stress_levels",
+    "baseline_rows",
+    "intervention_rows",
+    "validation_rows",
+    "effect_rows",
+    "invalid_pairs",
+    "max_violation_rate",
+    "strongest_intervention",
+    "strongest_paired_delta_lfr",
+    "strongest_intervention_class",
+]
+
+P6_INTERVENTION_STABILITY_FIELDS = [
+    "intervention",
+    "num_modes",
+    "mode_ids",
+    "mean_paired_delta_lfr",
+    "min_paired_delta_lfr",
+    "max_paired_delta_lfr",
+    "mean_net_rescue_rate",
+    "top_mode",
+    "top_mode_paired_delta_lfr",
+]
+
+P6_RANK_STABILITY_FIELDS = [
+    "num_modes",
+    "mean_top3_overlap",
+    "mean_pairwise_rank_distance",
+    "mode_rankings",
 ]
