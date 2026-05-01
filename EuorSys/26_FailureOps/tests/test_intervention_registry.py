@@ -3,7 +3,8 @@ from failureops.runtime_service import P3_INTERVENTIONS
 
 
 def test_registry_contains_all_p3_interventions():
-    assert set(P3_INTERVENTIONS) == set(INTERVENTION_REGISTRY)
+    assert set(P3_INTERVENTIONS).issubset(INTERVENTION_REGISTRY)
+    assert "switch_decoder_pathway" in INTERVENTION_REGISTRY
 
 
 def test_runtime_policy_specs_preserve_event_record():
@@ -12,4 +13,3 @@ def test_runtime_policy_specs_preserve_event_record():
         if spec.intervention_class in {"runtime", "policy"}:
             assert spec.preserve_event_record
             assert "detector_events" in spec.required_invariants
-

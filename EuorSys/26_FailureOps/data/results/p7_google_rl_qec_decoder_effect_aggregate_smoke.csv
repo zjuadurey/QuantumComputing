@@ -1,0 +1,7 @@
+group_by,group_value,num_conditions,total_pairs,mean_baseline_lfr,mean_intervened_lfr,mean_paired_delta_lfr,min_paired_delta_lfr,max_paired_delta_lfr,mean_net_rescue_rate,strongest_condition,strongest_paired_delta_lfr
+code_family,surface_code_memory,2,400,0.042500,0.017500,-0.025000,-0.030000,-0.020000,0.025000,surface_code_reinforcement_learning_X_r020,-0.030000
+control_mode,reinforcement_learning,2,400,0.042500,0.017500,-0.025000,-0.030000,-0.020000,0.025000,surface_code_reinforcement_learning_X_r020,-0.030000
+basis,X,2,400,0.042500,0.017500,-0.025000,-0.030000,-0.020000,0.025000,surface_code_reinforcement_learning_X_r020,-0.030000
+cycles,10,1,200,0.025000,0.005000,-0.020000,-0.020000,-0.020000,0.020000,surface_code_reinforcement_learning_X_r010,-0.020000
+cycles,20,1,200,0.060000,0.030000,-0.030000,-0.030000,-0.030000,0.030000,surface_code_reinforcement_learning_X_r020,-0.030000
+all,all,2,400,0.042500,0.017500,-0.025000,-0.030000,-0.020000,0.025000,surface_code_reinforcement_learning_X_r020,-0.030000

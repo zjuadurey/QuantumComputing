@@ -1,0 +1,17 @@
+group_by,group_value,num_conditions,total_pairs,mean_baseline_lfr,mean_intervened_lfr,mean_paired_delta_lfr,min_paired_delta_lfr,max_paired_delta_lfr,mean_net_rescue_rate,strongest_condition,strongest_paired_delta_lfr
+code_family,surface_code_memory,40,400000,0.121907,0.102415,-0.019492,-0.036900,-0.001900,0.019492,surface_code_traditional_calibration_X_r090,-0.036900
+control_mode,reinforcement_learning,20,200000,0.111450,0.093885,-0.017565,-0.032600,-0.001900,0.017565,surface_code_reinforcement_learning_X_r090,-0.032600
+control_mode,traditional_calibration,20,200000,0.132365,0.110945,-0.021420,-0.036900,-0.003600,0.021420,surface_code_traditional_calibration_X_r090,-0.036900
+basis,X,20,200000,0.123435,0.102450,-0.020985,-0.036900,-0.002800,0.020985,surface_code_traditional_calibration_X_r090,-0.036900
+basis,Z,20,200000,0.120380,0.102380,-0.018000,-0.032600,-0.001900,0.018000,surface_code_traditional_calibration_Z_r100,-0.032600
+cycles,10,4,40000,0.024500,0.021125,-0.003375,-0.005200,-0.001900,0.003375,surface_code_traditional_calibration_X_r010,-0.005200
+cycles,100,4,40000,0.208725,0.177050,-0.031675,-0.034400,-0.028400,0.031675,surface_code_traditional_calibration_X_r100,-0.034400
+cycles,20,4,40000,0.050050,0.042100,-0.007950,-0.008600,-0.006700,0.007950,surface_code_reinforcement_learning_Z_r020,-0.008600
+cycles,30,4,40000,0.072825,0.060425,-0.012400,-0.016500,-0.009600,0.012400,surface_code_traditional_calibration_X_r030,-0.016500
+cycles,40,4,40000,0.095425,0.078075,-0.017350,-0.020200,-0.013800,0.017350,surface_code_traditional_calibration_X_r040,-0.020200
+cycles,50,4,40000,0.114900,0.097500,-0.017400,-0.021600,-0.014600,0.017400,surface_code_traditional_calibration_X_r050,-0.021600
+cycles,60,4,40000,0.135750,0.113600,-0.022150,-0.026800,-0.016800,0.022150,surface_code_traditional_calibration_X_r060,-0.026800
+cycles,70,4,40000,0.155425,0.130325,-0.025100,-0.029500,-0.021900,0.025100,surface_code_traditional_calibration_X_r070,-0.029500
+cycles,80,4,40000,0.173075,0.145850,-0.027225,-0.032200,-0.019200,0.027225,surface_code_traditional_calibration_X_r080,-0.032200
+cycles,90,4,40000,0.188400,0.158100,-0.030300,-0.036900,-0.023200,0.030300,surface_code_traditional_calibration_X_r090,-0.036900
+all,all,40,400000,0.121907,0.102415,-0.019492,-0.036900,-0.001900,0.019492,surface_code_traditional_calibration_X_r090,-0.036900

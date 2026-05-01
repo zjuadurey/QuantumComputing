@@ -81,6 +81,13 @@ POLICY_ALLOWED_CHANGES = (
     *BASE_ALLOWED_CHANGES,
 )
 
+DECODER_ALLOWED_CHANGES = (
+    "decoder_pathway",
+    "decoder_prediction",
+    "qec_decoder_failure",
+    *BASE_ALLOWED_CHANGES,
+)
+
 
 @dataclass(frozen=True)
 class InterventionSpec:
@@ -183,6 +190,18 @@ INTERVENTION_REGISTRY: dict[str, InterventionSpec] = {
         required_invariants=(*IDENTITY_INVARIANTS, *EVENT_INVARIANTS),
         preserve_event_record=True,
     ),
+    "switch_decoder_pathway": InterventionSpec(
+        name="switch_decoder_pathway",
+        intervention_class="decoder",
+        allowed_changes=DECODER_ALLOWED_CHANGES,
+        required_invariants=(
+            *IDENTITY_INVARIANTS,
+            "detector_events",
+            "event_layers",
+            "observable_flip",
+        ),
+        preserve_event_record=False,
+    ),
 }
 
 
@@ -196,9 +215,8 @@ def get_intervention_spec(intervention: str) -> InterventionSpec:
 
 def validate_registry_complete() -> None:
     missing = sorted(set(P3_INTERVENTIONS) - set(INTERVENTION_REGISTRY))
-    extra = sorted(set(INTERVENTION_REGISTRY) - set(P3_INTERVENTIONS))
-    if missing or extra:
-        raise ValueError(f"registry mismatch: missing={missing}, extra={extra}")
+    if missing:
+        raise ValueError(f"registry mismatch: missing={missing}")
     for intervention in P3_NOISE_INTERVENTIONS:
         if INTERVENTION_REGISTRY[intervention].intervention_class != "noise":
             raise ValueError(f"{intervention} must be registered as noise")
