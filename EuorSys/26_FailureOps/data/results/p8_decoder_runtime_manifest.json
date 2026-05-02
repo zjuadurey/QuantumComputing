@@ -1,0 +1,22 @@
+{
+  "command": [
+    "scripts/29_measure_p8_decoder_runtime.py"
+  ],
+  "config_hash": "8231c11da00897e5b7009a809b494e46bded14d4b266aa986ffc38dc90be441d",
+  "experiment_id": "p8_decoder_runtime_replay",
+  "git_commit": "877c1f7734a6ec6409e44a421e07001cba9e0fbc",
+  "git_dirty": true,
+  "intervention_registry_version": "p4_registry_v1",
+  "outputs": {
+    "batches": "data/results/p8_decoder_runtime_batches.csv",
+    "plot": "figures/p8_decoder_latency_vs_syndrome_weight.png",
+    "summary": "data/results/p8_decoder_runtime_summary.csv",
+    "trace": "data/results/p8_decoder_runtime_trace.csv"
+  },
+  "row_counts": {
+    "batches": 79,
+    "summary": 1,
+    "trace": 10000
+  },
+  "timestamp_utc": "2026-05-02T08:24:16.132973+00:00"
+}

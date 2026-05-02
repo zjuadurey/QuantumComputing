@@ -1,0 +1,38 @@
+{
+  "command": [
+    "scripts/29_measure_p8_decoder_runtime.py",
+    "--max-shots",
+    "200",
+    "--batch-size",
+    "32",
+    "--warmup-batches",
+    "1",
+    "--trace-output",
+    "data/results/p8_decoder_runtime_trace_smoke.csv",
+    "--batch-output",
+    "data/results/p8_decoder_runtime_batches_smoke.csv",
+    "--summary-output",
+    "data/results/p8_decoder_runtime_summary_smoke.csv",
+    "--manifest-output",
+    "data/results/p8_decoder_runtime_manifest_smoke.json",
+    "--plot-output",
+    "figures/p8_decoder_latency_vs_syndrome_weight_smoke.png"
+  ],
+  "config_hash": "79743f7942125a690a48c107a61de7e581b86f7e32dd32f5b0bfcea8784910f0",
+  "experiment_id": "p8_decoder_runtime_replay",
+  "git_commit": "877c1f7734a6ec6409e44a421e07001cba9e0fbc",
+  "git_dirty": true,
+  "intervention_registry_version": "p4_registry_v1",
+  "outputs": {
+    "batches": "data/results/p8_decoder_runtime_batches_smoke.csv",
+    "plot": "figures/p8_decoder_latency_vs_syndrome_weight_smoke.png",
+    "summary": "data/results/p8_decoder_runtime_summary_smoke.csv",
+    "trace": "data/results/p8_decoder_runtime_trace_smoke.csv"
+  },
+  "row_counts": {
+    "batches": 7,
+    "summary": 1,
+    "trace": 200
+  },
+  "timestamp_utc": "2026-05-02T07:22:00.816049+00:00"
+}

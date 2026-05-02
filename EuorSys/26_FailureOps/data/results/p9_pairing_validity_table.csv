@@ -1,0 +1,3 @@
+evidence_source,num_units,valid_units,invalid_units,violation_rate,validation_note,source_artifact
+P7/P7.5 decoder-pathway pairs,400000,400000,0,0.000000,"same shot identity, detector record, and observable flip preserved",data/results/p7_google_rl_qec_decoder_effect_matrix.csv
+P8 local replay vs stored decoder output,10000,9667,333,0.033300,agreement check only; local DEM replay is not assumed identical to stored decoder pathway,data/results/p8_decoder_runtime_summary.csv

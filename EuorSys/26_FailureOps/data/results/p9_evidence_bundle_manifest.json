@@ -1,0 +1,24 @@
+{
+  "command": [
+    "scripts/30_run_p9_evidence_bundle.py"
+  ],
+  "config_hash": "4af30c2ab6074a590a9be17caa064d83ae6e5c7bbe8a3e58cd351abac8cdbbba",
+  "experiment_id": "p9_evidence_bundle",
+  "git_commit": "877c1f7734a6ec6409e44a421e07001cba9e0fbc",
+  "git_dirty": true,
+  "intervention_registry_version": "p4_registry_v1",
+  "outputs": {
+    "claims": "data/results/p9_claim_table.csv",
+    "figure": "figures/p9_evidence_bundle.png",
+    "pairing": "data/results/p9_pairing_validity_table.csv",
+    "realness": "data/results/p9_realness_table.csv",
+    "summary": "data/results/p9_evidence_summary.csv"
+  },
+  "row_counts": {
+    "claims": 5,
+    "pairing": 2,
+    "realness": 3,
+    "summary": 2
+  },
+  "timestamp_utc": "2026-05-02T08:24:50.136593+00:00"
+}
