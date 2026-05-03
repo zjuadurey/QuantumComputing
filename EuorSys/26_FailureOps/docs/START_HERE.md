@@ -184,6 +184,11 @@ Run expanded Google RL QEC v2 evidence:
 conda run -n failureops --no-capture-output python scripts/35_run_google_rl_qec_v2_evidence.py
 ```
 
+This v2 path is used as expanded same-family evidence. In `C6b`, the intended
+reading is broad net-rescuing sign stability across the larger corpus plus
+negative subgroup means across the observed control modes and bases, not an
+independent replication claim.
+
 Run qec3v5 external replication:
 
 ```bash

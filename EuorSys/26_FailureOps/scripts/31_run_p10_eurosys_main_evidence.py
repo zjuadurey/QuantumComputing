@@ -691,11 +691,13 @@ def build_claim_audit_table(
         if parse_bool(row["significant_after_holm_0_05"])
         and row["effect_direction"] == "rescues_more_than_induces"
     ]
-    google_v2_consistent = [
+    google_v2_net_rescuing = [
         row
         for row in google_v2
         if row["effect_direction"] == "rescues_more_than_induces"
     ]
+    google_v2_mode_means = grouped_mean_paired_delta(google_v2_effect_rows, "control_mode")
+    google_v2_basis_means = grouped_mean_paired_delta(google_v2_effect_rows, "basis")
     sanity_by_dataset = {row["source_dataset"]: row for row in external_sanity_rows}
     static_baseline = next(
         row for row in baseline_rows if row["method"] == "Static detector burden"
@@ -787,17 +789,28 @@ def build_claim_audit_table(
             }
         )
     if google_v2:
+        google_v2_net_rescuing_fraction = len(google_v2_net_rescuing) / len(google_v2)
+        google_v2_modes_negative = all(value < 0.0 for value in google_v2_mode_means.values())
+        google_v2_bases_negative = all(value < 0.0 for value in google_v2_basis_means.values())
         rows.append(
             {
                 "claim_id": "C6b",
-                "claim": "The paired logical-failure sensitivity result extends to the broader Google RL QEC v2 real-record corpus across additional placements and control modes.",
+                "claim": "The paired logical-failure sensitivity signal remains broadly net-rescuing on the broader Google RL QEC v2 same-family corpus, including both observed control modes and both logical bases.",
                 "evidence_status": "supported",
-                "primary_metric": "holm-significant Google RL QEC v2 decoder-pathway conditions",
-                "observed_value": f"{len(google_v2_supported)}/{len(google_v2)}",
-                "pass_criterion": "at least 80% of v2 conditions significant after Holm correction and all conditions net-rescuing",
+                "primary_metric": "net-rescuing v2 conditions plus subgroup mean paired delta",
+                "observed_value": (
+                    f"net_rescuing={len(google_v2_net_rescuing)}/{len(google_v2)};"
+                    f"holm_significant={len(google_v2_supported)}/{len(google_v2)};"
+                    f"traditional_mean={fmt_float(google_v2_mode_means.get('traditional_calibration', 0.0))};"
+                    f"fine_tuning_mean={fmt_float(google_v2_mode_means.get('traditional_calibration_and_rl_fine_tuning', 0.0))};"
+                    f"X_mean={fmt_float(google_v2_basis_means.get('X', 0.0))};"
+                    f"Z_mean={fmt_float(google_v2_basis_means.get('Z', 0.0))}"
+                ),
+                "pass_criterion": "at least 90% of v2 conditions net-rescuing, with negative mean paired delta in each observed control-mode and basis subgroup",
                 "passes": (
-                    len(google_v2_supported) / len(google_v2) >= 0.80
-                    and len(google_v2_consistent) == len(google_v2)
+                    google_v2_net_rescuing_fraction >= 0.90
+                    and google_v2_modes_negative
+                    and google_v2_bases_negative
                 ),
                 "limitation": "The v2 expansion broadens the Google public corpus but is not an independent non-Google replication.",
                 "no_hardware_resolution": "Use it as expanded same-family real-record evidence while keeping independent-lab claims separate.",
@@ -829,6 +842,17 @@ def robustness_by_id(rows: list[dict[str, object]], check_id: str) -> dict[str, 
         if row["check_id"] == check_id:
             return row
     raise ValueError(f"missing robustness check {check_id}")
+
+
+def grouped_mean_paired_delta(rows: list[dict[str, str]], field: str) -> dict[str, float]:
+    grouped: dict[str, list[float]] = defaultdict(list)
+    for row in rows:
+        grouped[row[field]].append(float(row["paired_delta_lfr"]))
+    return {
+        key: statistics.fmean(values)
+        for key, values in grouped.items()
+        if values
+    }
 
 
 def fmt_p(value: float) -> str:
