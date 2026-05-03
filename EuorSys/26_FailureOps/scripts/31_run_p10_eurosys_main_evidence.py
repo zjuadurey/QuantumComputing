@@ -40,6 +40,8 @@ def main() -> None:
     parser.add_argument("--prior-effects", default="data/results/p7_5_decoder_prior_interventions.csv")
     parser.add_argument("--p8-trace", default="data/results/p8_decoder_runtime_trace.csv")
     parser.add_argument("--external-replication", default="data/results/p10_qec3v5_external_decoder_effect_matrix.csv")
+    parser.add_argument("--google-v2-effect-matrix", default="data/results/p10_google_rl_qec_v2_decoder_effect_matrix.csv")
+    parser.add_argument("--google-v2-variance", default="data/results/p10_google_rl_qec_v2_paired_vs_unpaired_variance.csv")
     parser.add_argument("--external-sanity", default="data/results/p10_external_sanity_checks.csv")
     parser.add_argument("--deadlines-us", default="4,5,6,7,8")
     parser.add_argument("--baseline-output", default="data/results/p10_baseline_comparison.csv")
@@ -65,11 +67,20 @@ def main() -> None:
     prior_rows = read_csv_rows(args.prior_effects)
     p8_trace_rows = read_csv_rows(args.p8_trace)
     external_replication_rows = read_csv_rows(args.external_replication) if Path(args.external_replication).exists() else []
+    google_v2_effect_rows = read_csv_rows(args.google_v2_effect_matrix) if Path(args.google_v2_effect_matrix).exists() else []
+    google_v2_variance_rows = read_csv_rows(args.google_v2_variance) if Path(args.google_v2_variance).exists() else []
     external_sanity_rows = read_csv_rows(args.external_sanity) if Path(args.external_sanity).exists() else []
     deadlines = parse_deadlines(args.deadlines_us)
 
     baseline_rows = build_baseline_comparison(effect_rows, variance_rows, feature_rows, args)
-    robustness_rows = build_robustness_table(effect_rows, variance_rows, prior_rows, args)
+    robustness_rows = build_robustness_table(
+        effect_rows,
+        variance_rows,
+        prior_rows,
+        google_v2_effect_rows,
+        google_v2_variance_rows,
+        args,
+    )
     runtime_intervention_rows, runtime_summary_rows = build_runtime_deadline_closure(
         p8_trace_rows,
         deadlines=deadlines,
@@ -80,6 +91,7 @@ def main() -> None:
         prior_rows=prior_rows,
         runtime_summary_rows=runtime_summary_rows,
         external_replication_rows=external_replication_rows,
+        google_v2_effect_rows=google_v2_effect_rows,
         args=args,
     )
     claim_audit_rows = build_claim_audit_table(
@@ -88,6 +100,7 @@ def main() -> None:
         significance_rows=significance_rows,
         runtime_summary_rows=runtime_summary_rows,
         external_replication_rows=external_replication_rows,
+        google_v2_effect_rows=google_v2_effect_rows,
         external_sanity_rows=external_sanity_rows,
         args=args,
     )
@@ -120,6 +133,8 @@ def main() -> None:
                 "prior_effects": args.prior_effects,
                 "p8_trace": args.p8_trace,
                 "external_replication": args.external_replication,
+                "google_v2_effect_matrix": args.google_v2_effect_matrix,
+                "google_v2_variance": args.google_v2_variance,
                 "external_sanity": args.external_sanity,
                 "deadlines_us": deadlines,
             },
@@ -292,6 +307,8 @@ def build_robustness_table(
     effect_rows: list[dict[str, str]],
     variance_rows: list[dict[str, str]],
     prior_rows: list[dict[str, str]],
+    google_v2_effect_rows: list[dict[str, str]],
+    google_v2_variance_rows: list[dict[str, str]],
     args: argparse.Namespace,
 ) -> list[dict[str, object]]:
     deltas = [float(row["paired_delta_lfr"]) for row in effect_rows]
@@ -310,7 +327,7 @@ def build_robustness_table(
         row for row in prior_rows
         if float(row["paired_delta_lfr_ci_lower"]) > 0 or float(row["paired_delta_lfr_ci_upper"]) < 0
     ]
-    return [
+    rows = [
         {
             "check_id": "R1",
             "scope": "all P7/P7.5 conditions",
@@ -367,6 +384,37 @@ def build_robustness_table(
             "source_artifact": args.prior_effects,
         },
     ]
+    if google_v2_effect_rows:
+        v2_deltas = [float(row["paired_delta_lfr"]) for row in google_v2_effect_rows]
+        rows.append(
+            {
+                "check_id": "R6",
+                "scope": "Google RL QEC v2 expanded real-record conditions",
+                "num_units": len(google_v2_effect_rows),
+                "metric": "negative_delta_fraction",
+                "value": fmt_float(sum(delta < 0.0 for delta in v2_deltas) / len(v2_deltas)),
+                "supporting_value": f"min={fmt_float(min(v2_deltas))};max={fmt_float(max(v2_deltas))}",
+                "interpretation": "The decoder-pathway sensitivity sign remains stable on the broader Google RL QEC v2 corpus.",
+                "limitation": "The v2 expansion is still a Google real-record dataset family rather than an independent lab.",
+                "source_artifact": args.google_v2_effect_matrix,
+            }
+        )
+    if google_v2_variance_rows:
+        v2_ratios = [float(row["std_ratio_unpaired_over_paired"]) for row in google_v2_variance_rows]
+        rows.append(
+            {
+                "check_id": "R7",
+                "scope": "Google RL QEC v2 paired-vs-unpaired bootstrap",
+                "num_units": len(google_v2_variance_rows),
+                "metric": "mean_std_ratio_unpaired_over_paired",
+                "value": fmt_float(statistics.fmean(v2_ratios)),
+                "supporting_value": f"min={fmt_float(min(v2_ratios))};max={fmt_float(max(v2_ratios))}",
+                "interpretation": "Pairing continues to reduce estimator variance on the expanded v2 corpus.",
+                "limitation": "Variance reduction supports methodology but does not itself provide external independence.",
+                "source_artifact": args.google_v2_variance,
+            }
+        )
+    return rows
 
 
 def build_runtime_deadline_closure(
@@ -451,6 +499,7 @@ def build_effect_significance_table(
     prior_rows: list[dict[str, str]],
     runtime_summary_rows: list[dict[str, object]],
     external_replication_rows: list[dict[str, str]],
+    google_v2_effect_rows: list[dict[str, str]],
     args: argparse.Namespace,
 ) -> list[dict[str, object]]:
     rows = []
@@ -500,6 +549,18 @@ def build_effect_significance_table(
                 rescued=parse_int(row["rescued_failure_count"]),
                 induced=parse_int(row["induced_failure_count"]),
                 source_artifact=args.external_replication,
+            )
+        )
+    for row in google_v2_effect_rows:
+        rows.append(
+            significance_row(
+                analysis_scope="google_rl_qec_v2_decoder_pathway",
+                unit_id=row["workload_id"],
+                intervention=f"{row['baseline_decoder_pathway']}->{row['intervened_decoder_pathway']}",
+                num_pairs=parse_int(row["num_pairs"]),
+                rescued=parse_int(row["rescued_failure_count"]),
+                induced=parse_int(row["induced_failure_count"]),
+                source_artifact=args.google_v2_effect_matrix,
             )
         )
     apply_holm_correction(rows)
@@ -586,6 +647,7 @@ def build_claim_audit_table(
     significance_rows: list[dict[str, object]],
     runtime_summary_rows: list[dict[str, object]],
     external_replication_rows: list[dict[str, str]],
+    google_v2_effect_rows: list[dict[str, str]],
     external_sanity_rows: list[dict[str, str]],
     args: argparse.Namespace,
 ) -> list[dict[str, object]]:
@@ -621,6 +683,18 @@ def build_claim_audit_table(
         row
         for row in external_qec3v5
         if row["effect_direction"] in {"rescues_more_than_induces", "no_net_transition"}
+    ]
+    google_v2 = [row for row in significance_rows if row["analysis_scope"] == "google_rl_qec_v2_decoder_pathway"]
+    google_v2_supported = [
+        row
+        for row in google_v2
+        if parse_bool(row["significant_after_holm_0_05"])
+        and row["effect_direction"] == "rescues_more_than_induces"
+    ]
+    google_v2_consistent = [
+        row
+        for row in google_v2
+        if row["effect_direction"] == "rescues_more_than_induces"
     ]
     sanity_by_dataset = {row["source_dataset"]: row for row in external_sanity_rows}
     static_baseline = next(
@@ -710,6 +784,24 @@ def build_claim_audit_table(
                 "limitation": "qec3v5 is a separate public experiment dataset but still from Google.",
                 "no_hardware_resolution": "Use it as external dataset replication while keeping independent-lab claims separate.",
                 "source_artifact": args.external_replication,
+            }
+        )
+    if google_v2:
+        rows.append(
+            {
+                "claim_id": "C6b",
+                "claim": "The paired logical-failure sensitivity result extends to the broader Google RL QEC v2 real-record corpus across additional placements and control modes.",
+                "evidence_status": "supported",
+                "primary_metric": "holm-significant Google RL QEC v2 decoder-pathway conditions",
+                "observed_value": f"{len(google_v2_supported)}/{len(google_v2)}",
+                "pass_criterion": "at least 80% of v2 conditions significant after Holm correction and all conditions net-rescuing",
+                "passes": (
+                    len(google_v2_supported) / len(google_v2) >= 0.80
+                    and len(google_v2_consistent) == len(google_v2)
+                ),
+                "limitation": "The v2 expansion broadens the Google public corpus but is not an independent non-Google replication.",
+                "no_hardware_resolution": "Use it as expanded same-family real-record evidence while keeping independent-lab claims separate.",
+                "source_artifact": args.google_v2_effect_matrix,
             }
         )
     if external_sanity_rows:

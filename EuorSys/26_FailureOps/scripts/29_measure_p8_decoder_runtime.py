@@ -23,6 +23,7 @@ from failureops.data_model import (
 from failureops.google_rl_qec_adapter import (
     code_family_from_experiment,
     detector_indices,
+    google_workload_id,
     read_b8,
     read_circuit,
     read_decoder_predictions,
@@ -177,7 +178,7 @@ def measure_decoder_runtime(
     for batch in iter_batches(detector_samples, batch_size, limit=warmup_batches):
         matching.decode_batch(batch)
 
-    workload_id = f"{metadata['experiment_name']}_{metadata['basis']}_{metadata['cycle_dir']}"
+    workload_id = google_workload_id(metadata)
     exemplar = {
         "run_id": run_id,
         "workload_id": workload_id,

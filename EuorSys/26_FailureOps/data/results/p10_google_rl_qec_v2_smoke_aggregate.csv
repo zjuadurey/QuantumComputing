@@ -1,0 +1,6 @@
+group_by,group_value,num_conditions,total_pairs,mean_baseline_lfr,mean_intervened_lfr,mean_paired_delta_lfr,min_paired_delta_lfr,max_paired_delta_lfr,mean_net_rescue_rate,strongest_condition,strongest_paired_delta_lfr
+code_family,color_code_memory,1,32,0.156250,0.093750,-0.062500,-0.062500,-0.062500,0.062500,color_code_distance_5_traditional_calibration_X_r006,-0.062500
+control_mode,traditional_calibration,1,32,0.156250,0.093750,-0.062500,-0.062500,-0.062500,0.062500,color_code_distance_5_traditional_calibration_X_r006,-0.062500
+basis,X,1,32,0.156250,0.093750,-0.062500,-0.062500,-0.062500,0.062500,color_code_distance_5_traditional_calibration_X_r006,-0.062500
+cycles,6,1,32,0.156250,0.093750,-0.062500,-0.062500,-0.062500,0.062500,color_code_distance_5_traditional_calibration_X_r006,-0.062500
+all,all,1,32,0.156250,0.093750,-0.062500,-0.062500,-0.062500,0.062500,color_code_distance_5_traditional_calibration_X_r006,-0.062500

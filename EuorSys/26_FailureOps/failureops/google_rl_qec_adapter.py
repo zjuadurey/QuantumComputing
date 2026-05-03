@@ -1,4 +1,4 @@
-"""Adapter for Google RL QEC real-device records used in P7.
+"""Adapter for Google public QEC real-device records used in P7.
 
 P7 intentionally starts with real QEC shot records, not real runtime traces.
 It imports detector events, actual observable flips, and decoder predictions
@@ -24,6 +24,20 @@ DECODER_INTERVENTION = "switch_decoder_pathway"
 DECODER_PATHWAYS = (
     "correlated_matching_decoder_with_si1000_prior",
     "tesseract_decoder_with_si1000_prior",
+)
+CONTROL_MODES = (
+    "reinforcement_learning",
+    "traditional_calibration",
+    "traditional_calibration_and_rl_fine_tuning",
+)
+EXPERIMENT_CODE_PREFIXES = (
+    "surface_code",
+    "color_code",
+    "repetition_code",
+)
+GENERIC_DATASET_PREFIXES = (
+    "google_",
+    "sycamore_",
 )
 
 
@@ -92,15 +106,34 @@ def load_google_rl_qec_records(
     return baseline_rows, intervention_rows
 
 
-def discover_google_rl_qec_data_dirs(root: str | Path) -> list[Path]:
-    """Find leaf experiment directories in the extracted Google RL QEC dataset."""
+def discover_google_rl_qec_data_dirs(
+    root: str | Path,
+    *,
+    baseline_decoder_pathway: str | None = None,
+    intervened_decoder_pathway: str | None = None,
+    required_decoder_pathways: tuple[str, ...] | None = None,
+) -> list[Path]:
+    """Find leaf experiment directories in extracted Google real-record datasets."""
     root = Path(root)
     dirs = []
-    for metadata_path in root.glob("*/*/*/metadata.json"):
+    if required_decoder_pathways is None:
+        requested = tuple(
+            pathway
+            for pathway in (baseline_decoder_pathway, intervened_decoder_pathway)
+            if pathway
+        )
+        required_decoder_pathways = requested or None
+    for metadata_path in root.rglob("metadata.json"):
         data_dir = metadata_path.parent
-        if all((data_dir / name).exists() for name in required_files()):
-            if all((data_dir / "decoding_results" / pathway / "obs_flips_predicted.b8").exists() for pathway in DECODER_PATHWAYS):
-                dirs.append(data_dir)
+        if not all((data_dir / name).exists() for name in required_files()):
+            continue
+        available = available_decoder_pathways(data_dir)
+        if required_decoder_pathways is None:
+            if len(available) < 2:
+                continue
+        elif not all(pathway in available for pathway in required_decoder_pathways):
+            continue
+        dirs.append(data_dir)
     return sorted(dirs)
 
 
@@ -111,6 +144,18 @@ def required_files() -> tuple[str, ...]:
         "obs_flips_actual.b8",
         "metadata.json",
     )
+
+
+def available_decoder_pathways(data_dir: str | Path) -> tuple[str, ...]:
+    data_dir = Path(data_dir)
+    decoding_root = data_dir / "decoding_results"
+    if not decoding_root.exists():
+        return ()
+    pathways = {
+        path.parent.name
+        for path in decoding_root.glob("*/obs_flips_predicted.b8")
+    }
+    return tuple(sorted(pathways))
 
 
 def summarize_google_rl_qec_condition(
@@ -214,13 +259,58 @@ def summarize_p7_sweep_group(
 def read_metadata(data_dir: Path) -> dict[str, Any]:
     with (data_dir / "metadata.json").open() as handle:
         metadata = json.load(handle)
-    parts = data_dir.parts
     return {
         **metadata,
-        "experiment_name": parts[-3],
-        "basis": parts[-2],
-        "cycle_dir": parts[-1],
+        **infer_google_experiment_context(data_dir),
     }
+
+
+def infer_google_experiment_context(data_dir: Path) -> dict[str, str]:
+    basis = data_dir.parent.name
+    cycle_dir = data_dir.name
+    prefix_tokens = experiment_prefix_tokens(data_dir)
+    nearest = prefix_tokens[0] if len(prefix_tokens) > 0 else ""
+    next_nearest = prefix_tokens[1] if len(prefix_tokens) > 1 else ""
+    third_nearest = prefix_tokens[2] if len(prefix_tokens) > 2 else ""
+
+    if nearest.startswith(EXPERIMENT_CODE_PREFIXES):
+        experiment_name = nearest
+        condition_id = ""
+    elif nearest in CONTROL_MODES:
+        experiment_name = join_identifier_tokens(next_nearest, nearest)
+        condition_id = ""
+    elif next_nearest in CONTROL_MODES:
+        experiment_name = join_identifier_tokens(third_nearest, next_nearest)
+        condition_id = nearest
+    elif third_nearest.startswith(GENERIC_DATASET_PREFIXES):
+        experiment_name = join_identifier_tokens(third_nearest, next_nearest)
+        condition_id = nearest
+    elif next_nearest.startswith(GENERIC_DATASET_PREFIXES):
+        experiment_name = next_nearest
+        condition_id = nearest
+    else:
+        experiment_name = nearest or "google_qec"
+        condition_id = ""
+
+    return {
+        "experiment_name": experiment_name,
+        "basis": basis,
+        "cycle_dir": cycle_dir,
+        "condition_id": condition_id,
+    }
+
+
+def experiment_prefix_tokens(data_dir: Path, *, max_depth: int = 3) -> list[str]:
+    tokens = []
+    current = data_dir.parent.parent
+    while current.name and len(tokens) < max_depth:
+        tokens.append(current.name)
+        current = current.parent
+    return tokens
+
+
+def join_identifier_tokens(*tokens: str) -> str:
+    return "_".join(token.replace("/", "_") for token in tokens if token)
 
 
 def read_circuit(path: Path):
@@ -249,8 +339,15 @@ def read_decoder_predictions(
     bits_per_shot: int,
     max_shots: int | None,
 ):
+    path = data_dir / "decoding_results" / decoder_pathway / "obs_flips_predicted.b8"
+    if not path.exists():
+        available = ", ".join(available_decoder_pathways(data_dir))
+        raise FileNotFoundError(
+            f"missing decoder prediction file for pathway {decoder_pathway!r} under {data_dir}; "
+            f"available pathways: {available or 'none'}"
+        )
     return read_b8(
-        data_dir / "decoding_results" / decoder_pathway / "obs_flips_predicted.b8",
+        path,
         bits_per_shot=bits_per_shot,
         max_shots=max_shots,
     )
@@ -273,20 +370,22 @@ def build_baseline_row(
     decoder_prediction: bool,
 ) -> dict[str, object]:
     experiment_name = str(metadata["experiment_name"])
+    condition_id = str(metadata.get("condition_id", ""))
     basis = str(metadata["basis"])
     cycle_dir = str(metadata["cycle_dir"])
     cycles = parse_int(metadata["rounds"])
+    workload_id = google_workload_id(metadata)
     event_layers = serialize_event_layers({})
     row: dict[str, object] = {
         "run_id": run_id,
-        "workload_id": f"{experiment_name}_{basis}_{cycle_dir}",
+        "workload_id": workload_id,
         "stress_level": "real_device",
         "experiment_name": experiment_name,
         "basis": basis,
         "cycles": cycles,
         "cycle_dir": cycle_dir,
         "source_data_dir": str(data_dir),
-        "circuit_id": f"{experiment_name}_{basis}_{cycle_dir}",
+        "circuit_id": workload_id,
         "backend": "google_willow_real_device",
         "code_family": code_family_from_experiment(experiment_name),
         "shot_id": shot_id,
@@ -299,6 +398,8 @@ def build_baseline_row(
         "decoder_prediction": decoder_prediction,
         "event_layers": event_layers,
     }
+    if condition_id:
+        row["condition_id"] = condition_id
     row["event_layer_hash"] = event_layer_hash(row)
     row = recompute_real_qec_failure_behavior(row)
     row["event_record_hash"] = event_record_hash(row)
@@ -398,16 +499,29 @@ def build_decoder_intervention_row(
 
 
 def code_family_from_experiment(experiment_name: str) -> str:
-    if experiment_name.startswith("surface_code"):
+    if "surface_code" in experiment_name:
         return "surface_code_memory"
-    if experiment_name.startswith("color_code"):
+    if "color_code" in experiment_name:
         return "color_code_memory"
+    if "repetition_code" in experiment_name:
+        return "repetition_code_memory"
     return "unknown_qec_memory"
 
 
 def control_mode_from_experiment(experiment_name: str) -> str:
+    if experiment_name.endswith("traditional_calibration_and_rl_fine_tuning"):
+        return "traditional_calibration_and_rl_fine_tuning"
     if experiment_name.endswith("reinforcement_learning"):
         return "reinforcement_learning"
     if experiment_name.endswith("traditional_calibration"):
         return "traditional_calibration"
     return "unknown"
+
+
+def google_workload_id(metadata: dict[str, Any]) -> str:
+    return join_identifier_tokens(
+        str(metadata["experiment_name"]),
+        str(metadata.get("condition_id", "")),
+        str(metadata["basis"]),
+        str(metadata["cycle_dir"]),
+    )

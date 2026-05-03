@@ -1,0 +1,24 @@
+{
+  "command": [
+    "scripts/35_run_google_rl_qec_v2_evidence.py"
+  ],
+  "config_hash": "9d30cefffb0209f9932757d0946294677e12049ba82c64b952eb8a85f7c77e73",
+  "experiment_id": "p10_google_rl_qec_v2",
+  "git_commit": "6fc4dfafaa5cd19858dfb3ddc520a9a2e015f40e",
+  "git_dirty": true,
+  "intervention_registry_version": "p4_registry_v1",
+  "outputs": {
+    "aggregate": "data/results/p10_google_rl_qec_v2_decoder_effect_aggregate.csv",
+    "features": "data/results/p10_google_rl_qec_v2_rescue_induction_features.csv",
+    "figure": "figures/p10_google_rl_qec_v2_evidence.png",
+    "summary": "data/results/p10_google_rl_qec_v2_decoder_effect_matrix.csv",
+    "variance": "data/results/p10_google_rl_qec_v2_paired_vs_unpaired_variance.csv"
+  },
+  "row_counts": {
+    "aggregate": 24,
+    "features": 1984,
+    "summary": 496,
+    "variance": 496
+  },
+  "timestamp_utc": "2026-05-03T14:32:20.817834+00:00"
+}

@@ -101,6 +101,15 @@ data/results/p7_5_rescue_induction_features.csv
 data/results/p7_5_decoder_prior_interventions.csv
 ```
 
+Expanded Google real-record evidence:
+
+```text
+data/results/p10_google_rl_qec_v2_decoder_effect_matrix.csv
+data/results/p10_google_rl_qec_v2_decoder_effect_aggregate.csv
+data/results/p10_google_rl_qec_v2_rescue_induction_features.csv
+data/results/p10_google_rl_qec_v2_paired_vs_unpaired_variance.csv
+```
+
 Measured decoder-runtime replay:
 
 ```text
@@ -167,6 +176,12 @@ Run P10 after upstream artifacts exist:
 
 ```bash
 conda run -n failureops --no-capture-output python scripts/31_run_p10_eurosys_main_evidence.py
+```
+
+Run expanded Google RL QEC v2 evidence:
+
+```bash
+conda run -n failureops --no-capture-output python scripts/35_run_google_rl_qec_v2_evidence.py
 ```
 
 Run qec3v5 external replication:

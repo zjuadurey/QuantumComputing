@@ -4,7 +4,9 @@ from failureops.google_rl_qec_adapter import (
     build_baseline_row,
     build_decoder_intervention_row,
     build_intervened_decoder_row,
+    control_mode_from_experiment,
     discover_google_rl_qec_data_dirs,
+    read_metadata,
     summarize_p7_sweep_groups,
 )
 
@@ -58,6 +60,54 @@ def test_discover_google_rl_qec_data_dirs_requires_decoder_predictions(tmp_path)
     assert discover_google_rl_qec_data_dirs(tmp_path) == [data_dir]
 
 
+def test_discover_google_rl_qec_data_dirs_supports_v2_layout_and_custom_decoders(tmp_path):
+    data_dir = (
+        tmp_path
+        / "surface_code_distance_3_5_7"
+        / "traditional_calibration_and_rl_fine_tuning"
+        / "d3_0+0j"
+        / "Z"
+        / "r030"
+    )
+    data_dir.mkdir(parents=True)
+    for name in ("circuit_ideal.stim", "detection_events.b8", "obs_flips_actual.b8"):
+        (data_dir / name).write_text("")
+    (data_dir / "metadata.json").write_text('{"basis":"Z","rounds":30}')
+    for pathway in (
+        "tesseract_decoder_with_si1000_prior",
+        "tesseract_decoder_with_frequency_calibrated_prior",
+    ):
+        decoder_dir = data_dir / "decoding_results" / pathway
+        decoder_dir.mkdir(parents=True)
+        (decoder_dir / "obs_flips_predicted.b8").write_text("")
+
+    assert discover_google_rl_qec_data_dirs(
+        tmp_path,
+        baseline_decoder_pathway="tesseract_decoder_with_si1000_prior",
+        intervened_decoder_pathway="tesseract_decoder_with_frequency_calibrated_prior",
+    ) == [data_dir]
+
+
+def test_read_metadata_infers_v2_surface_context(tmp_path):
+    data_dir = (
+        tmp_path
+        / "surface_code_distance_3_5_7"
+        / "traditional_calibration"
+        / "d5_4+4j"
+        / "X"
+        / "r070"
+    )
+    data_dir.mkdir(parents=True)
+    (data_dir / "metadata.json").write_text('{"basis":"X","rounds":70}')
+
+    metadata = read_metadata(data_dir)
+
+    assert metadata["experiment_name"] == "surface_code_distance_3_5_7_traditional_calibration"
+    assert metadata["condition_id"] == "d5_4+4j"
+    assert metadata["basis"] == "X"
+    assert metadata["cycle_dir"] == "r070"
+
+
 def test_summarize_p7_sweep_groups_reports_strongest_condition():
     rows = [
         {
@@ -89,3 +139,10 @@ def test_summarize_p7_sweep_groups_reports_strongest_condition():
     assert all_row["num_conditions"] == 2
     assert all_row["strongest_condition"] == "b"
     assert all_row["mean_paired_delta_lfr"] == "-0.035000"
+
+
+def test_control_mode_from_experiment_supports_rl_fine_tuning_variant():
+    assert (
+        control_mode_from_experiment("surface_code_distance_3_5_7_traditional_calibration_and_rl_fine_tuning")
+        == "traditional_calibration_and_rl_fine_tuning"
+    )

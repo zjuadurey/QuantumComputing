@@ -1,0 +1,48 @@
+{
+  "command": [
+    "scripts/31_run_p10_eurosys_main_evidence.py",
+    "--google-v2-effect-matrix",
+    "data/results/p10_google_rl_qec_v2_smoke_matrix.csv",
+    "--google-v2-variance",
+    "data/results/p10_google_rl_qec_v2_smoke_variance.csv",
+    "--baseline-output",
+    "data/results/p10_smoke_baseline_comparison.csv",
+    "--robustness-output",
+    "data/results/p10_smoke_realdata_robustness.csv",
+    "--runtime-intervention-output",
+    "data/results/p10_smoke_runtime_deadline_interventions.csv",
+    "--runtime-summary-output",
+    "data/results/p10_smoke_runtime_deadline_summary.csv",
+    "--significance-output",
+    "data/results/p10_smoke_effect_significance.csv",
+    "--claim-audit-output",
+    "data/results/p10_smoke_claim_audit.csv",
+    "--figure-output",
+    "figures/p10_smoke_eurosys_main_evidence.png",
+    "--manifest-output",
+    "data/results/p10_smoke_eurosys_main_evidence_manifest.json"
+  ],
+  "config_hash": "ac306b0e0eb811ae90a500a0ae3b0cdf5037f862a87643fe8eaea8dd381aec4a",
+  "experiment_id": "p10_eurosys_main_evidence",
+  "git_commit": "6fc4dfafaa5cd19858dfb3ddc520a9a2e015f40e",
+  "git_dirty": true,
+  "intervention_registry_version": "p4_registry_v1",
+  "outputs": {
+    "baseline_comparison": "data/results/p10_smoke_baseline_comparison.csv",
+    "claim_audit": "data/results/p10_smoke_claim_audit.csv",
+    "figure": "figures/p10_smoke_eurosys_main_evidence.png",
+    "robustness": "data/results/p10_smoke_realdata_robustness.csv",
+    "runtime_interventions": "data/results/p10_smoke_runtime_deadline_interventions.csv",
+    "runtime_summary": "data/results/p10_smoke_runtime_deadline_summary.csv",
+    "significance": "data/results/p10_smoke_effect_significance.csv"
+  },
+  "row_counts": {
+    "baseline_comparison": 5,
+    "claim_audit": 8,
+    "robustness": 7,
+    "runtime_interventions": 50000,
+    "runtime_summary": 5,
+    "significance": 77
+  },
+  "timestamp_utc": "2026-05-03T12:33:39.063657+00:00"
+}

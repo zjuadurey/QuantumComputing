@@ -91,7 +91,11 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    data_dirs = discover_google_rl_qec_data_dirs(args.dataset_root)
+    data_dirs = discover_google_rl_qec_data_dirs(
+        args.dataset_root,
+        baseline_decoder_pathway=args.baseline_decoder,
+        intervened_decoder_pathway=args.intervened_decoder,
+    )
     if args.limit:
         data_dirs = data_dirs[: args.limit]
     if not data_dirs:

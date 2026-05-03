@@ -2,9 +2,9 @@
   "command": [
     "scripts/31_run_p10_eurosys_main_evidence.py"
   ],
-  "config_hash": "5d195c5f9cf0a757dbb22f3ea28cc8d9ac6e46055497797c5bdfc5567e57bf2d",
+  "config_hash": "bbbcba949776ce7cb770bcad7788217e167f641e6051da35da76a5fd5562a1f6",
   "experiment_id": "p10_eurosys_main_evidence",
-  "git_commit": "4737b8c4c42f0de930cc7d367b35574fd1aa25b8",
+  "git_commit": "6fc4dfafaa5cd19858dfb3ddc520a9a2e015f40e",
   "git_dirty": true,
   "intervention_registry_version": "p4_registry_v1",
   "outputs": {
@@ -18,11 +18,11 @@
   },
   "row_counts": {
     "baseline_comparison": 5,
-    "claim_audit": 7,
-    "robustness": 5,
+    "claim_audit": 8,
+    "robustness": 7,
     "runtime_interventions": 50000,
     "runtime_summary": 5,
-    "significance": 76
+    "significance": 572
   },
-  "timestamp_utc": "2026-05-03T07:42:05.585366+00:00"
+  "timestamp_utc": "2026-05-03T14:32:29.737269+00:00"
 }

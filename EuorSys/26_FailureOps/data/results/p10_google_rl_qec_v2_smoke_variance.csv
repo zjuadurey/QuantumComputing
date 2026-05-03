@@ -1,0 +1,2 @@
+experiment_name,code_family,control_mode,basis,cycles,workload_id,num_pairs,paired_delta_lfr,paired_bootstrap_std,unpaired_bootstrap_std,std_ratio_unpaired_over_paired,paired_ci_lower,paired_ci_upper,unpaired_ci_lower,unpaired_ci_upper,num_bootstrap,source_data_dir
+color_code_distance_5_traditional_calibration,color_code_memory,traditional_calibration,X,6,color_code_distance_5_traditional_calibration_X_r006,32,-0.062500,0.025727,0.075404,2.930898,-0.125000,-0.031250,-0.187500,0.062500,10,data/raw/google_rl_qec_v2/color_code_distance_5/traditional_calibration/X/r006
