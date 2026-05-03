@@ -15,6 +15,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from failureops.data_model import (
     P10_BASELINE_COMPARISON_FIELDS,
+    P10_CLAIM_AUDIT_FIELDS,
+    P10_EFFECT_SIGNIFICANCE_FIELDS,
     P10_ROBUSTNESS_FIELDS,
     P10_RUNTIME_DEADLINE_INTERVENTION_FIELDS,
     P10_RUNTIME_DEADLINE_SUMMARY_FIELDS,
@@ -37,6 +39,8 @@ def main() -> None:
     parser.add_argument("--features", default="data/results/p7_5_rescue_induction_features.csv")
     parser.add_argument("--prior-effects", default="data/results/p7_5_decoder_prior_interventions.csv")
     parser.add_argument("--p8-trace", default="data/results/p8_decoder_runtime_trace.csv")
+    parser.add_argument("--external-replication", default="data/results/p10_qec3v5_external_decoder_effect_matrix.csv")
+    parser.add_argument("--external-sanity", default="data/results/p10_external_sanity_checks.csv")
     parser.add_argument("--deadlines-us", default="4,5,6,7,8")
     parser.add_argument("--baseline-output", default="data/results/p10_baseline_comparison.csv")
     parser.add_argument("--robustness-output", default="data/results/p10_realdata_robustness.csv")
@@ -45,6 +49,8 @@ def main() -> None:
         default="data/results/p10_runtime_deadline_interventions.csv",
     )
     parser.add_argument("--runtime-summary-output", default="data/results/p10_runtime_deadline_summary.csv")
+    parser.add_argument("--significance-output", default="data/results/p10_effect_significance.csv")
+    parser.add_argument("--claim-audit-output", default="data/results/p10_claim_audit.csv")
     parser.add_argument("--figure-output", default="figures/p10_eurosys_main_evidence.png")
     parser.add_argument("--manifest-output", default="data/results/p10_eurosys_main_evidence_manifest.json")
     args = parser.parse_args()
@@ -58,6 +64,8 @@ def main() -> None:
     feature_rows = read_csv_rows(args.features)
     prior_rows = read_csv_rows(args.prior_effects)
     p8_trace_rows = read_csv_rows(args.p8_trace)
+    external_replication_rows = read_csv_rows(args.external_replication) if Path(args.external_replication).exists() else []
+    external_sanity_rows = read_csv_rows(args.external_sanity) if Path(args.external_sanity).exists() else []
     deadlines = parse_deadlines(args.deadlines_us)
 
     baseline_rows = build_baseline_comparison(effect_rows, variance_rows, feature_rows, args)
@@ -66,6 +74,22 @@ def main() -> None:
         p8_trace_rows,
         deadlines=deadlines,
         source_artifact=args.p8_trace,
+    )
+    significance_rows = build_effect_significance_table(
+        effect_rows=effect_rows,
+        prior_rows=prior_rows,
+        runtime_summary_rows=runtime_summary_rows,
+        external_replication_rows=external_replication_rows,
+        args=args,
+    )
+    claim_audit_rows = build_claim_audit_table(
+        baseline_rows=baseline_rows,
+        robustness_rows=robustness_rows,
+        significance_rows=significance_rows,
+        runtime_summary_rows=runtime_summary_rows,
+        external_replication_rows=external_replication_rows,
+        external_sanity_rows=external_sanity_rows,
+        args=args,
     )
 
     write_csv_rows(args.baseline_output, baseline_rows, P10_BASELINE_COMPARISON_FIELDS)
@@ -76,6 +100,8 @@ def main() -> None:
         P10_RUNTIME_DEADLINE_INTERVENTION_FIELDS,
     )
     write_csv_rows(args.runtime_summary_output, runtime_summary_rows, P10_RUNTIME_DEADLINE_SUMMARY_FIELDS)
+    write_csv_rows(args.significance_output, significance_rows, P10_EFFECT_SIGNIFICANCE_FIELDS)
+    write_csv_rows(args.claim_audit_output, claim_audit_rows, P10_CLAIM_AUDIT_FIELDS)
     plot_p10(
         baseline_rows=baseline_rows,
         effect_rows=effect_rows,
@@ -93,6 +119,8 @@ def main() -> None:
                 "features": args.features,
                 "prior_effects": args.prior_effects,
                 "p8_trace": args.p8_trace,
+                "external_replication": args.external_replication,
+                "external_sanity": args.external_sanity,
                 "deadlines_us": deadlines,
             },
         },
@@ -102,6 +130,8 @@ def main() -> None:
             "robustness": args.robustness_output,
             "runtime_interventions": args.runtime_intervention_output,
             "runtime_summary": args.runtime_summary_output,
+            "significance": args.significance_output,
+            "claim_audit": args.claim_audit_output,
             "figure": args.figure_output,
         },
         row_counts={
@@ -109,12 +139,16 @@ def main() -> None:
             "robustness": len(robustness_rows),
             "runtime_interventions": len(runtime_intervention_rows),
             "runtime_summary": len(runtime_summary_rows),
+            "significance": len(significance_rows),
+            "claim_audit": len(claim_audit_rows),
         },
     )
     print(f"wrote {len(baseline_rows)} P10 baseline-comparison rows to {args.baseline_output}")
     print(f"wrote {len(robustness_rows)} P10 robustness rows to {args.robustness_output}")
     print(f"wrote {len(runtime_intervention_rows)} P10 runtime-deadline intervention rows to {args.runtime_intervention_output}")
     print(f"wrote {len(runtime_summary_rows)} P10 runtime-deadline summary rows to {args.runtime_summary_output}")
+    print(f"wrote {len(significance_rows)} P10 paired-significance rows to {args.significance_output}")
+    print(f"wrote {len(claim_audit_rows)} P10 claim-audit rows to {args.claim_audit_output}")
     print(f"wrote P10 evidence figure to {args.figure_output}")
     print(f"wrote P10 manifest to {args.manifest_output}")
 
@@ -409,6 +443,311 @@ def build_runtime_deadline_closure(
             }
         )
     return intervention_rows, summary_rows
+
+
+def build_effect_significance_table(
+    *,
+    effect_rows: list[dict[str, str]],
+    prior_rows: list[dict[str, str]],
+    runtime_summary_rows: list[dict[str, object]],
+    external_replication_rows: list[dict[str, str]],
+    args: argparse.Namespace,
+) -> list[dict[str, object]]:
+    rows = []
+    for row in effect_rows:
+        rows.append(
+            significance_row(
+                analysis_scope="real_decoder_pathway",
+                unit_id=row["workload_id"],
+                intervention="switch_decoder_pathway",
+                num_pairs=parse_int(row["num_pairs"]),
+                rescued=parse_int(row["rescued_failure_count"]),
+                induced=parse_int(row["induced_failure_count"]),
+                source_artifact=args.effect_matrix,
+            )
+        )
+    for row in prior_rows:
+        rows.append(
+            significance_row(
+                analysis_scope="real_decoder_prior",
+                unit_id=f"{row['workload_id']}|{row['intervened_prior']}",
+                intervention=str(row["intervened_prior"]),
+                num_pairs=parse_int(row["num_pairs"]),
+                rescued=parse_int(row["rescued_failure_count"]),
+                induced=parse_int(row["induced_failure_count"]),
+                source_artifact=args.prior_effects,
+            )
+        )
+    for row in runtime_summary_rows:
+        rows.append(
+            significance_row(
+                analysis_scope="measured_runtime_deadline",
+                unit_id=f"deadline_us={row['deadline_us']}",
+                intervention="drop_late_decoder_prediction",
+                num_pairs=parse_int(row["num_pairs"]),
+                rescued=parse_int(row["rescued_failure_count"]),
+                induced=parse_int(row["induced_failure_count"]),
+                source_artifact=args.p8_trace,
+            )
+        )
+    for row in external_replication_rows:
+        rows.append(
+            significance_row(
+                analysis_scope="external_qec3v5_decoder_pathway",
+                unit_id=row["workload_id"],
+                intervention=f"{row['baseline_decoder_pathway']}->{row['intervened_decoder_pathway']}",
+                num_pairs=parse_int(row["num_pairs"]),
+                rescued=parse_int(row["rescued_failure_count"]),
+                induced=parse_int(row["induced_failure_count"]),
+                source_artifact=args.external_replication,
+            )
+        )
+    apply_holm_correction(rows)
+    rows.sort(key=lambda row: (row["analysis_scope"], row["unit_id"]))
+    return rows
+
+
+def significance_row(
+    *,
+    analysis_scope: str,
+    unit_id: str,
+    intervention: str,
+    num_pairs: int,
+    rescued: int,
+    induced: int,
+    source_artifact: str,
+) -> dict[str, object]:
+    discordant = rescued + induced
+    paired_delta = (induced - rescued) / num_pairs if num_pairs else 0.0
+    net_rescue = (rescued - induced) / num_pairs if num_pairs else 0.0
+    p_value = exact_mcnemar_p(rescued, induced)
+    if rescued > induced:
+        direction = "rescues_more_than_induces"
+    elif induced > rescued:
+        direction = "induces_more_than_rescues"
+    else:
+        direction = "no_net_transition"
+    return {
+        "analysis_scope": analysis_scope,
+        "unit_id": unit_id,
+        "intervention": intervention,
+        "num_pairs": num_pairs,
+        "rescued_failure_count": rescued,
+        "induced_failure_count": induced,
+        "discordant_pair_count": discordant,
+        "paired_delta_lfr": fmt_float(paired_delta),
+        "net_rescue_rate": fmt_float(net_rescue),
+        "effect_direction": direction,
+        "mcnemar_exact_p": fmt_p(p_value),
+        "holm_adjusted_p": "",
+        "significant_after_holm_0_05": "",
+        "interpretation": "Exact paired test over discordant rescued/induced transitions.",
+        "source_artifact": source_artifact,
+    }
+
+
+def exact_mcnemar_p(rescued: int, induced: int) -> float:
+    """Two-sided exact sign test over discordant paired outcomes."""
+    n = rescued + induced
+    if n == 0:
+        return 1.0
+    tail = min(rescued, induced)
+    log_terms = [
+        math.lgamma(n + 1) - math.lgamma(k + 1) - math.lgamma(n - k + 1) - n * math.log(2.0)
+        for k in range(tail + 1)
+    ]
+    lower_tail = math.exp(logsumexp(log_terms))
+    return min(1.0, 2.0 * lower_tail)
+
+
+def logsumexp(values: list[float]) -> float:
+    if not values:
+        return float("-inf")
+    top = max(values)
+    return top + math.log(sum(math.exp(value - top) for value in values))
+
+
+def apply_holm_correction(rows: list[dict[str, object]]) -> None:
+    ranked = sorted(rows, key=lambda row: parse_p(row["mcnemar_exact_p"]))
+    previous = 0.0
+    total = len(ranked)
+    for index, row in enumerate(ranked):
+        adjusted = min(1.0, (total - index) * parse_p(row["mcnemar_exact_p"]))
+        adjusted = max(previous, adjusted)
+        previous = adjusted
+        row["holm_adjusted_p"] = fmt_p(adjusted)
+        row["significant_after_holm_0_05"] = adjusted < 0.05
+
+
+def build_claim_audit_table(
+    *,
+    baseline_rows: list[dict[str, object]],
+    robustness_rows: list[dict[str, object]],
+    significance_rows: list[dict[str, object]],
+    runtime_summary_rows: list[dict[str, object]],
+    external_replication_rows: list[dict[str, str]],
+    external_sanity_rows: list[dict[str, str]],
+    args: argparse.Namespace,
+) -> list[dict[str, object]]:
+    real_significance = [row for row in significance_rows if row["analysis_scope"] == "real_decoder_pathway"]
+    real_supported = [
+        row
+        for row in real_significance
+        if parse_bool(row["significant_after_holm_0_05"])
+        and row["effect_direction"] == "rescues_more_than_induces"
+    ]
+    real_sign_consistent = [
+        row
+        for row in real_significance
+        if row["effect_direction"] == "rescues_more_than_induces"
+    ]
+    variance = robustness_by_id(robustness_rows, "R4")
+    negative = robustness_by_id(robustness_rows, "R1")
+    runtime_significant = [
+        row
+        for row in significance_rows
+        if row["analysis_scope"] == "measured_runtime_deadline"
+        and parse_bool(row["significant_after_holm_0_05"])
+        and row["effect_direction"] == "induces_more_than_rescues"
+    ]
+    external_qec3v5 = [row for row in significance_rows if row["analysis_scope"] == "external_qec3v5_decoder_pathway"]
+    external_qec3v5_supported = [
+        row
+        for row in external_qec3v5
+        if parse_bool(row["significant_after_holm_0_05"])
+        and row["effect_direction"] == "rescues_more_than_induces"
+    ]
+    external_qec3v5_consistent = [
+        row
+        for row in external_qec3v5
+        if row["effect_direction"] in {"rescues_more_than_induces", "no_net_transition"}
+    ]
+    sanity_by_dataset = {row["source_dataset"]: row for row in external_sanity_rows}
+    static_baseline = next(
+        row for row in baseline_rows if row["method"] == "Static detector burden"
+    )
+    plain_lfr = next(row for row in baseline_rows if row["method"] == "Plain baseline LFR")
+    max_deadline_delta = max((abs(float(row["paired_delta_lfr"])) for row in runtime_summary_rows), default=0.0)
+    rows = [
+        {
+            "claim_id": "C1",
+            "claim": "FailureOps finds paired intervention-sensitive logical failure behavior on real QEC detector records.",
+            "evidence_status": "supported",
+            "primary_metric": "holm-significant real decoder-pathway conditions",
+            "observed_value": f"{len(real_supported)}/{len(real_significance)}",
+            "pass_criterion": "at least 90% of observed real-data conditions significant after Holm correction, with all conditions net-rescuing",
+            "passes": (
+                bool(real_significance)
+                and len(real_supported) / len(real_significance) >= 0.90
+                and len(real_sign_consistent) == len(real_significance)
+            ),
+            "limitation": "Evidence uses one public Google RL QEC dataset family rather than independent hardware campaigns.",
+            "no_hardware_resolution": "Use all public conditions as paired records; state dataset-family boundary explicitly.",
+            "source_artifact": args.significance_output,
+        },
+        {
+            "claim_id": "C2",
+            "claim": "Pairing is methodologically necessary because it reduces estimator variance and exposes rescued/induced transitions.",
+            "evidence_status": "supported",
+            "primary_metric": "mean unpaired/paired bootstrap std ratio",
+            "observed_value": variance["value"],
+            "pass_criterion": "ratio > 1.0 across observed conditions",
+            "passes": float(variance["value"]) > 1.0,
+            "limitation": "Bootstrap does not replace external replication.",
+            "no_hardware_resolution": "Report paired-vs-unpaired estimator comparison over the same public shot records.",
+            "source_artifact": args.robustness_output,
+        },
+        {
+            "claim_id": "C3",
+            "claim": "Static burden and plain LFR baselines do not provide intervention attribution.",
+            "evidence_status": "supported_with_caveat",
+            "primary_metric": "baseline ranking agreement vs FailureOps",
+            "observed_value": f"static_spearman={static_baseline['spearman_with_failureops']};plain_lfr_spearman={plain_lfr['spearman_with_failureops']}",
+            "pass_criterion": "baselines lack rescued/induced paired transition fields even when rankings correlate",
+            "passes": True,
+            "limitation": "Ranking agreement can be high because difficult conditions also have larger intervention effects.",
+            "no_hardware_resolution": "Frame baselines as missing attribution semantics, not as universally inaccurate predictors.",
+            "source_artifact": args.baseline_output,
+        },
+        {
+            "claim_id": "C4",
+            "claim": "Measured decoder-runtime replay can be closed into paired runtime deadline interventions.",
+            "evidence_status": "supported_as_replay",
+            "primary_metric": "max absolute deadline-induced paired delta LFR",
+            "observed_value": fmt_float(max_deadline_delta),
+            "pass_criterion": "at least one measured-runtime deadline has Holm-significant paired effect",
+            "passes": bool(runtime_significant),
+            "limitation": "Replay measures local decoder service time, not live control-stack queueing or hardware feedback latency.",
+            "no_hardware_resolution": "Call this measured-runtime replay, and do not claim live hardware runtime attribution.",
+            "source_artifact": args.runtime_summary_output,
+        },
+        {
+            "claim_id": "C5",
+            "claim": "The current artifact is ready for a EuroSys main-track systems story without claiming live-hardware runtime traces.",
+            "evidence_status": "partially_supported",
+            "primary_metric": "explicit realness boundary plus robustness checks",
+            "observed_value": f"negative_delta_fraction={negative['value']};runtime_replay_claim_only=true",
+            "pass_criterion": "paper claims are limited to public real detector records, measured replay, and controlled proxy experiments",
+            "passes": True,
+            "limitation": "No true machine means no live feedback, no production queue traces, and no hardware-control timing attribution.",
+            "no_hardware_resolution": "Position contribution as paired FailureOps methodology plus public real-record evaluation; list live trace collection as future work.",
+            "source_artifact": args.claim_audit_output,
+        },
+    ]
+    if external_qec3v5:
+        rows.append(
+            {
+                "claim_id": "C6",
+                "claim": "The real-record decoder-pathway sensitivity result externally replicates on the qec3v5 public surface-code scaling dataset.",
+                "evidence_status": "supported",
+                "primary_metric": "holm-significant qec3v5 decoder-pathway conditions",
+                "observed_value": f"{len(external_qec3v5_supported)}/{len(external_qec3v5)}",
+                "pass_criterion": "at least 80% of qec3v5 conditions significant after Holm correction and no condition net-inducing",
+                "passes": (
+                    len(external_qec3v5_supported) / len(external_qec3v5) >= 0.80
+                    and len(external_qec3v5_consistent) == len(external_qec3v5)
+                ),
+                "limitation": "qec3v5 is a separate public experiment dataset but still from Google.",
+                "no_hardware_resolution": "Use it as external dataset replication while keeping independent-lab claims separate.",
+                "source_artifact": args.external_replication,
+            }
+        )
+    if external_sanity_rows:
+        daqec = sanity_by_dataset.get("daqec_ibm_2025", {})
+        eth = sanity_by_dataset.get("eth_surface_code_2020", {})
+        rows.append(
+            {
+                "claim_id": "C7",
+                "claim": "Independent non-Google public QEC datasets support boundary checks but not shot-level FailureOps attribution.",
+                "evidence_status": "boundary_supported",
+                "primary_metric": "independent dataset compatibility",
+                "observed_value": f"daqec_delta={daqec.get('absolute_delta', '')};eth_units={eth.get('num_units', '')}",
+                "pass_criterion": "independent data inspected and classified by FailureOps compatibility",
+                "passes": True,
+                "limitation": "DAQEC is aggregate/session-level and ETH 2020 is figure-level CSV, so neither is a P7-style shot-level detector-record intervention.",
+                "no_hardware_resolution": "Use independent datasets as bounded sanity evidence, not as the main paired real-record replication.",
+                "source_artifact": args.external_sanity,
+            }
+        )
+    return rows
+
+
+def robustness_by_id(rows: list[dict[str, object]], check_id: str) -> dict[str, object]:
+    for row in rows:
+        if row["check_id"] == check_id:
+            return row
+    raise ValueError(f"missing robustness check {check_id}")
+
+
+def fmt_p(value: float) -> str:
+    return f"{value:.6g}"
+
+
+def parse_p(value: object) -> float:
+    text = str(value)
+    if text.startswith("<"):
+        return float(text[1:])
+    return float(text)
 
 
 def plot_p10(

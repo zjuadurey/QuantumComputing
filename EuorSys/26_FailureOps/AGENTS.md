@@ -8,7 +8,31 @@ The goal is to build small, runnable experimental pipelines that reveal how logi
 
 Prefer minimal runnable workflows over large abstract frameworks.
 
-The first priority is to make the FailureOps idea executable.
+The current priority is to keep the EuroSys-facing evidence pass reproducible,
+honest about its no-real-machine boundary, and centered on paired
+counterfactual attribution.
+
+## New Session Reading Rule
+
+Do not read every milestone document by default.
+
+For a new coding session, read:
+
+```text
+AGENTS.md
+docs/START_HERE.md
+docs/P10.md
+```
+
+Then read older milestone docs only when the task touches that phase:
+
+```text
+P0-P3: early pipeline, QEC backend, runtime proxy, evaluation harness
+P4: pairing contracts, hashes, validation, paired metrics
+P5-P6: runtime traces, layered events, cross-mode evaluation
+P7-P8: real QEC records and measured decoder-runtime replay
+P9-P10: paper-facing evidence tables and figures
+```
 
 ## Core Research Definition
 
@@ -116,49 +140,43 @@ operation pacing
 
 However, building a decoder scheduler or a full runtime is not the goal of the early repository.
 
-## Current P0 Scope
+## Current P10 Scope
 
 The current scope is:
 
 ```text
-P0: toy intervention pipeline
+P10: EuroSys main evidence pass
 ```
 
-P0 should implement a minimal closed loop:
+P10 should preserve a reproducible paper-facing evidence loop:
 
 ```text
-generate baseline logical execution records
+public real QEC detector records
         ↓
-apply paired interventions
+paired decoder / prior / runtime-replay interventions
         ↓
-compare baseline and intervened outcomes
+rescued vs induced logical-failure transitions
         ↓
-compute attribution metrics
-        ↓
-write CSV summaries and simple figures
+paired significance, robustness, and claim audit
 ```
 
-P0 may use:
+The current evidence includes:
 
 ```text
-toy event model
-toy logical failure rule
-CSV files
-simple Python scripts
-standard library or lightweight dependencies
+Google RL QEC real detector records
+Google qec3v5 external real-record replication
+measured decoder-runtime replay
+ETH/IBM independent public sanity-boundary evidence
 ```
 
-P0 should not implement:
+P10 should not claim:
 
 ```text
-real surface-code simulation
-real lattice surgery
-real decoder integration
-threshold experiments
-large benchmark suite
-complex visualization
-plugin systems
-abstract simulation engines
+live hardware feedback timing
+production control-stack queueing attribution
+hardware idle exposure caused by measured decoder latency
+new decoder or new QEC code
+threshold estimation
 ```
 
 ## Coding Principles

@@ -2,23 +2,27 @@
   "command": [
     "scripts/31_run_p10_eurosys_main_evidence.py"
   ],
-  "config_hash": "f2e8e139d17a0d24f9b7fe5af5438930db00b70f62b13a439b32b5b3b490a944",
+  "config_hash": "5d195c5f9cf0a757dbb22f3ea28cc8d9ac6e46055497797c5bdfc5567e57bf2d",
   "experiment_id": "p10_eurosys_main_evidence",
-  "git_commit": "877c1f7734a6ec6409e44a421e07001cba9e0fbc",
+  "git_commit": "4737b8c4c42f0de930cc7d367b35574fd1aa25b8",
   "git_dirty": true,
   "intervention_registry_version": "p4_registry_v1",
   "outputs": {
     "baseline_comparison": "data/results/p10_baseline_comparison.csv",
+    "claim_audit": "data/results/p10_claim_audit.csv",
     "figure": "figures/p10_eurosys_main_evidence.png",
     "robustness": "data/results/p10_realdata_robustness.csv",
     "runtime_interventions": "data/results/p10_runtime_deadline_interventions.csv",
-    "runtime_summary": "data/results/p10_runtime_deadline_summary.csv"
+    "runtime_summary": "data/results/p10_runtime_deadline_summary.csv",
+    "significance": "data/results/p10_effect_significance.csv"
   },
   "row_counts": {
     "baseline_comparison": 5,
+    "claim_audit": 7,
     "robustness": 5,
     "runtime_interventions": 50000,
-    "runtime_summary": 5
+    "runtime_summary": 5,
+    "significance": 76
   },
-  "timestamp_utc": "2026-05-02T08:24:29.042586+00:00"
+  "timestamp_utc": "2026-05-03T07:42:05.585366+00:00"
 }

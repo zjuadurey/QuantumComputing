@@ -172,23 +172,23 @@ sensitivity profile
 Current target:
 
 ```text
-P6: cross-mode evaluation
+P10: EuroSys main evidence pass
 ```
 
 The repository now includes the original P0 toy pipeline plus P1/P2/P2.5/P3/P4
-and P5 extensions. P6 adds:
+through P10 extensions. P10 adds:
 
 ```text
-one unified experiment interface
-backend/runtime/event-model mode selection
-cross-mode paired-effect summaries
-cross-mode intervention stability
-cross-mode rank stability
-per-mode P4/P5 artifacts
+baseline comparison
+real-data robustness checks
+measured decoder-runtime replay closure
+paired statistical significance
+claim-to-evidence audit
 ```
 
-The implementation remains intentionally small. P6 evaluates FailureOps across
-input modes; it is not a full FTQC runtime or decoder scheduler.
+The implementation remains intentionally small. P10 strengthens the paper-facing
+evidence story; it is not a full FTQC runtime, live hardware feedback trace, or
+decoder scheduler.
 
 The purpose of P0 is not to prove a QEC result.
 
@@ -739,38 +739,27 @@ and if the attribution summary clearly ranks interventions by their effect on lo
 
 ---
 
-## First Codex Task
+## New Session Context
 
-A good first Codex task is:
+For new coding sessions, do not read every milestone document by default.
+Start with:
 
 ```text
-Read AGENTS.md, docs/idea.md, docs/spec.md, docs/roadmap.md, and README.md.
-
-Implement only P0 Step 1.
-
-Create the repository skeleton and implement:
-
-- failureops/data_model.py
-- failureops/io_utils.py
-- failureops/toy_simulator.py
-- scripts/01_generate_runs.py
-
-The script should generate baseline toy logical execution records and save them to:
-
-data/results/baseline_runs.csv
-
-Use the schema described in README.md.
-
-Do not implement interventions yet.
-Do not implement plotting yet.
-Do not add heavy dependencies.
-
-After implementation, run the script once and report the generated files.
+AGENTS.md
+docs/START_HERE.md
+docs/P10.md
 ```
+
+Then read only the milestone document that matches the task. For example, use
+`docs/P4.md` for pairing-contract work, `docs/P7.md` for real-record ingestion,
+and `docs/P8.md` for measured decoder-runtime replay.
+
+Historical setup instructions for the original P0 bootstrap are preserved in
+`docs/P0.md`, `docs/spec.md`, and `docs/roadmap.md`.
 
 ---
 
-## First Expected Command
+## Original P0 Expected Command
 
 ```bash
 python scripts/01_generate_runs.py \
@@ -787,7 +776,7 @@ python scripts/01_generate_runs.py \
 
 ---
 
-## First Expected Output
+## Original P0 Expected Output
 
 ```text
 data/results/baseline_runs.csv
