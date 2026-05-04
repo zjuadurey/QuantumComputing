@@ -4,7 +4,7 @@
   ],
   "config_hash": "9d30cefffb0209f9932757d0946294677e12049ba82c64b952eb8a85f7c77e73",
   "experiment_id": "p10_google_rl_qec_v2",
-  "git_commit": "6fc4dfafaa5cd19858dfb3ddc520a9a2e015f40e",
+  "git_commit": "da9cf99519d1c9db218232d783cb6a89f61b483f",
   "git_dirty": true,
   "intervention_registry_version": "p4_registry_v1",
   "outputs": {
@@ -20,5 +20,5 @@
     "summary": 496,
     "variance": 496
   },
-  "timestamp_utc": "2026-05-03T14:32:20.817834+00:00"
+  "timestamp_utc": "2026-05-03T16:14:37.689692+00:00"
 }

@@ -1,0 +1,4 @@
+decoder_backend,baseline_prior,intervened_prior,num_conditions,total_pairs,mean_paired_delta_lfr,min_paired_delta_lfr,max_paired_delta_lfr,negative_delta_fraction,mean_net_rescue_rate,strongest_condition,strongest_paired_delta_lfr
+correlated_matching,dem_simple,dem_correlations,1908,19080000,-0.013326,-0.034500,0.015400,0.983229,0.013326,sycamore_surface_code_d3_d5_sample_21_d3_at_q4_5_X_r09,-0.034500
+correlated_matching,dem_simple,dem_rl_isolated_correlated_matching,1908,19080000,-0.021166,-0.049400,0.011400,0.997379,0.021166,sycamore_surface_code_d3_d5_sample_22_d3_at_q6_3_X_r17,-0.049400
+correlated_matching,dem_simple,dem_rl_shared_correlated_matching,1908,19080000,-0.018025,-0.047100,0.015000,0.960168,0.018025,sycamore_surface_code_d3_d5_sample_22_d3_at_q6_3_X_r17,-0.047100

@@ -196,6 +196,44 @@ The purpose of P0 is to verify that the FailureOps workflow can be made executab
 
 ---
 
+## Script Layout
+
+The repository no longer exposes every historical milestone script at the top
+level of `scripts/`.
+
+Current public entry points live directly under:
+
+```text
+scripts/
+```
+
+The main ones are:
+
+```text
+01_generate_runs.py
+02_apply_interventions.py
+03_analyze_attribution.py
+04_plot_results.py
+31_run_p10_eurosys_main_evidence.py
+32_run_qec3v5_external_replication.py
+33_run_external_sanity_checks.py
+35_run_google_rl_qec_v2_evidence.py
+36_run_google_decoder_priors_evidence.py
+37_build_p10_eurosys_digest.py
+```
+
+Older milestone and intermediate rebuild scripts now live under:
+
+```text
+scripts/archive/
+```
+
+This keeps the repository surface focused on the toy pipeline and the current
+EuroSys-facing evidence pass, while still preserving historical reproduction
+paths.
+
+---
+
 ## P0 Design Goal
 
 P0 should demonstrate the following minimal loop:

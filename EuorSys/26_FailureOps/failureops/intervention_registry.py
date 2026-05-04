@@ -202,6 +202,18 @@ INTERVENTION_REGISTRY: dict[str, InterventionSpec] = {
         ),
         preserve_event_record=False,
     ),
+    "switch_decoder_prior": InterventionSpec(
+        name="switch_decoder_prior",
+        intervention_class="decoder",
+        allowed_changes=DECODER_ALLOWED_CHANGES,
+        required_invariants=(
+            *IDENTITY_INVARIANTS,
+            "detector_events",
+            "event_layers",
+            "observable_flip",
+        ),
+        preserve_event_record=False,
+    ),
 }
 
 

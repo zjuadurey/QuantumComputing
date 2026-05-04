@@ -1,0 +1,6 @@
+deadline_us,num_pairs,deadline_miss_count,deadline_miss_rate,baseline_lfr,intervened_lfr,paired_delta_lfr,rescued_failure_count,induced_failure_count,unchanged_failure_count,unchanged_success_count,mean_service_time_us,p95_service_time_us,interpretation,source_artifact
+4.000000,10000,9360,0.936000,0.039500,0.346700,0.307200,185,3257,210,6348,4.654338,5.643000,Deadline intervention drops late decoder predictions to a default no-flip correction.,data/results/p8_decoder_runtime_trace.csv
+5.000000,10000,1936,0.193600,0.039500,0.103100,0.063600,32,668,363,8937,4.654338,5.643000,Deadline intervention drops late decoder predictions to a default no-flip correction.,data/results/p8_decoder_runtime_trace.csv
+6.000000,10000,128,0.012800,0.039500,0.043700,0.004200,2,44,393,9561,4.654338,5.643000,Deadline intervention drops late decoder predictions to a default no-flip correction.,data/results/p8_decoder_runtime_trace.csv
+7.000000,10000,0,0.000000,0.039500,0.039500,0.000000,0,0,395,9605,4.654338,5.643000,Deadline intervention drops late decoder predictions to a default no-flip correction.,data/results/p8_decoder_runtime_trace.csv
+8.000000,10000,0,0.000000,0.039500,0.039500,0.000000,0,0,395,9605,4.654338,5.643000,Deadline intervention drops late decoder predictions to a default no-flip correction.,data/results/p8_decoder_runtime_trace.csv

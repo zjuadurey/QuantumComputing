@@ -694,6 +694,17 @@ P10_CLAIM_AUDIT_FIELDS = [
     "source_artifact",
 ]
 
+P10_EUROSYS_DIGEST_FIELDS = [
+    "story_id",
+    "story_section",
+    "claim",
+    "key_metric",
+    "key_result",
+    "why_it_matters",
+    "scope_boundary",
+    "source_artifact",
+]
+
 P10_EXTERNAL_REPLICATION_FIELDS = [
     "source_dataset",
     "dataset_family",

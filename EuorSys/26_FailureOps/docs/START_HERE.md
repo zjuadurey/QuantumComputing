@@ -4,6 +4,14 @@ Use this file as the first context document for new coding sessions. It is the
 compressed map of the repository; read detailed milestone docs only when the
 task touches that phase.
 
+The `scripts/` surface has been intentionally reduced. Current public entry
+points remain under `scripts/`, while older milestone rebuild scripts now live
+under `scripts/archive/`. See:
+
+```text
+scripts/README.md
+```
+
 ## Current Status
 
 Current target:
@@ -98,7 +106,7 @@ Primary real-record evidence:
 data/results/p7_google_rl_qec_decoder_effect_matrix.csv
 data/results/p7_5_paired_vs_unpaired_variance.csv
 data/results/p7_5_rescue_induction_features.csv
-data/results/p7_5_decoder_prior_interventions.csv
+data/results/p10_google_decoder_priors_prior_effects.csv
 ```
 
 Expanded Google real-record evidence:
@@ -108,6 +116,7 @@ data/results/p10_google_rl_qec_v2_decoder_effect_matrix.csv
 data/results/p10_google_rl_qec_v2_decoder_effect_aggregate.csv
 data/results/p10_google_rl_qec_v2_rescue_induction_features.csv
 data/results/p10_google_rl_qec_v2_paired_vs_unpaired_variance.csv
+data/results/p10_google_decoder_priors_prior_effects.csv
 ```
 
 Measured decoder-runtime replay:
@@ -126,7 +135,22 @@ data/results/p10_runtime_deadline_interventions.csv
 data/results/p10_runtime_deadline_summary.csv
 data/results/p10_effect_significance.csv
 data/results/p10_claim_audit.csv
+data/results/p10_eurosys_digest.csv
 figures/p10_eurosys_main_evidence.png
+```
+
+EuroSys-facing packaging notes:
+
+```text
+docs/P10_EUROSYS_STYLE.md
+docs/P10_FIGURE_SELECTION.md
+```
+
+Default P10 outputs now use:
+
+```text
+scope-wise Holm correction across analysis families
+the expanded Google decoder-prior corpus as the default prior input
 ```
 
 External public-dataset replication:
@@ -176,6 +200,7 @@ Run P10 after upstream artifacts exist:
 
 ```bash
 conda run -n failureops --no-capture-output python scripts/31_run_p10_eurosys_main_evidence.py
+conda run -n failureops --no-capture-output python scripts/37_build_p10_eurosys_digest.py
 ```
 
 Run expanded Google RL QEC v2 evidence:
@@ -195,6 +220,12 @@ Run qec3v5 external replication:
 conda run -n failureops --no-capture-output python scripts/32_run_qec3v5_external_replication.py
 ```
 
+Run Google decoder-prior evidence:
+
+```bash
+conda run -n failureops --no-capture-output python scripts/36_run_google_decoder_priors_evidence.py
+```
+
 Run independent external sanity checks:
 
 ```bash
@@ -205,6 +236,15 @@ Run tests:
 
 ```bash
 conda run -n failureops --no-capture-output pytest tests
+```
+
+If you need to rebuild upstream P7.5/P8 inputs from scratch, use the archived
+milestone scripts:
+
+```bash
+conda run -n failureops --no-capture-output python scripts/archive/27_run_p7_sweep.py
+conda run -n failureops --no-capture-output python scripts/archive/28_run_p7_5_analysis.py
+conda run -n failureops --no-capture-output python scripts/archive/29_measure_p8_decoder_runtime.py
 ```
 
 ## Paper Boundary

@@ -1,0 +1,46 @@
+{
+  "command": [
+    "scripts/31_run_p10_eurosys_main_evidence.py",
+    "--prior-effects",
+    "data/results/p10_google_decoder_priors_prior_effects.csv",
+    "--baseline-output",
+    "data/results/p10_scopeholm_baseline.csv",
+    "--robustness-output",
+    "data/results/p10_scopeholm_robustness.csv",
+    "--runtime-intervention-output",
+    "data/results/p10_scopeholm_runtime_interventions.csv",
+    "--runtime-summary-output",
+    "data/results/p10_scopeholm_runtime_summary.csv",
+    "--significance-output",
+    "data/results/p10_scopeholm_significance.csv",
+    "--claim-audit-output",
+    "data/results/p10_scopeholm_claim_audit.csv",
+    "--figure-output",
+    "figures/p10_scopeholm_evidence.png",
+    "--manifest-output",
+    "data/results/p10_scopeholm_manifest.json"
+  ],
+  "config_hash": "2605adfc562bae80979f681d0212c80b7fd19fa5c1ec8c38d92e697b6f4d4c52",
+  "experiment_id": "p10_eurosys_main_evidence",
+  "git_commit": "da9cf99519d1c9db218232d783cb6a89f61b483f",
+  "git_dirty": true,
+  "intervention_registry_version": "p4_registry_v1",
+  "outputs": {
+    "baseline_comparison": "data/results/p10_scopeholm_baseline.csv",
+    "claim_audit": "data/results/p10_scopeholm_claim_audit.csv",
+    "figure": "figures/p10_scopeholm_evidence.png",
+    "robustness": "data/results/p10_scopeholm_robustness.csv",
+    "runtime_interventions": "data/results/p10_scopeholm_runtime_interventions.csv",
+    "runtime_summary": "data/results/p10_scopeholm_runtime_summary.csv",
+    "significance": "data/results/p10_scopeholm_significance.csv"
+  },
+  "row_counts": {
+    "baseline_comparison": 5,
+    "claim_audit": 8,
+    "robustness": 7,
+    "runtime_interventions": 50000,
+    "runtime_summary": 5,
+    "significance": 6291
+  },
+  "timestamp_utc": "2026-05-04T06:48:19.385444+00:00"
+}

@@ -1,0 +1,34 @@
+{
+  "command": [
+    "scripts/36_run_google_decoder_priors_evidence.py",
+    "--limit",
+    "1",
+    "--max-shots",
+    "64",
+    "--num-bootstrap",
+    "10",
+    "--output",
+    "data/results/p10_google_decoder_priors_smoke.csv",
+    "--aggregate-output",
+    "data/results/p10_google_decoder_priors_smoke_aggregate.csv",
+    "--figure-output",
+    "figures/p10_google_decoder_priors_smoke.png",
+    "--manifest-output",
+    "data/results/p10_google_decoder_priors_smoke_manifest.json"
+  ],
+  "config_hash": "564c53b2df646fd32bafd81deecd7c8c14729ef57be37999f6cf0791b4148321",
+  "experiment_id": "p10_google_decoder_priors",
+  "git_commit": "da9cf99519d1c9db218232d783cb6a89f61b483f",
+  "git_dirty": true,
+  "intervention_registry_version": "p4_registry_v1",
+  "outputs": {
+    "aggregate": "data/results/p10_google_decoder_priors_smoke_aggregate.csv",
+    "figure": "figures/p10_google_decoder_priors_smoke.png",
+    "prior_effects": "data/results/p10_google_decoder_priors_smoke.csv"
+  },
+  "row_counts": {
+    "aggregate": 3,
+    "prior_effects": 3
+  },
+  "timestamp_utc": "2026-05-03T15:02:26.106524+00:00"
+}

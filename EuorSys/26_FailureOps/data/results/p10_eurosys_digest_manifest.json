@@ -1,0 +1,17 @@
+{
+  "command": [
+    "scripts/37_build_p10_eurosys_digest.py"
+  ],
+  "config_hash": "91b5a055d81e6281b4b179234bf61fea2dd0ef19e03d56f3d8175a920c50985d",
+  "experiment_id": "p10_eurosys_digest",
+  "git_commit": "da9cf99519d1c9db218232d783cb6a89f61b483f",
+  "git_dirty": true,
+  "intervention_registry_version": "p4_registry_v1",
+  "outputs": {
+    "digest": "data/results/p10_eurosys_digest.csv"
+  },
+  "row_counts": {
+    "digest": 7
+  },
+  "timestamp_utc": "2026-05-04T07:37:06.988635+00:00"
+}

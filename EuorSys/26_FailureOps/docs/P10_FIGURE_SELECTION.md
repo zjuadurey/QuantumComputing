@@ -62,7 +62,7 @@ figures/p10_eurosys_main_evidence.png
 1. It is valuable, but it is more of a paper dashboard than a first-punch main
    figure.
 2. Its strength is breadth: baseline comparison, subgroup robustness,
-   measured-runtime replay, and focused prior interventions.
+   measured-runtime replay, and corpus-level prior interventions.
 3. It supports the full systems story after the reader already accepts the
    main paired-sensitivity result.
 
@@ -76,12 +76,14 @@ figures/p10_eurosys_main_evidence.png
 - Measured runtime replay closes into paired deadline interventions:
   a `4 us` deadline miss rate of `0.936` induces a paired delta LFR of
   `+0.3072`, while the effect vanishes by `7 us`.
-- In the focused prior sweep, `3/5` variants exclude zero by bootstrap CI.
+- In the expanded same-family decoder-prior corpus, `4879/5724` prior effects
+  exclude zero by bootstrap CI, and all three default prior families have
+  negative mean paired delta.
 
 **Suggested caption**
 
 ```text
-Figure S1: Additional P10 evidence on attribution semantics, subgroup robustness, measured-runtime replay, and focused prior interventions. The top-left panel shows that static detector burden and plain baseline logical-failure rate can rank difficult conditions similarly to FailureOps, but they do not recover rescued versus induced paired transitions and therefore do not provide intervention attribution. The top-right panel shows that mean paired sensitivity becomes stronger with cycle depth and remains broadly stable across control-mode and logical-basis subgroups on the original real-record condition matrix. The bottom-left panel closes measured decoder service-time traces into paired runtime deadline interventions: aggressive deadlines sharply increase logical failure, while the effect disappears once the deadline exceeds the observed service-time tail. The bottom-right panel shows that a focused prior sweep produces nontrivial paired effects, with 3 of 5 prior variants excluding zero. This figure is best used as supporting evidence for the broader systems story after the main real-record paired-sensitivity result is established.
+Figure S1: Additional P10 evidence on attribution semantics, subgroup robustness, measured-runtime replay, and corpus-level prior interventions. The top-left panel shows that static detector burden and plain baseline logical-failure rate can rank difficult conditions similarly to FailureOps, but they do not recover rescued versus induced paired transitions and therefore do not provide intervention attribution. The top-right panel shows that mean paired sensitivity becomes stronger with cycle depth and remains broadly stable across control-mode and logical-basis subgroups on the original real-record condition matrix. The bottom-left panel closes measured decoder service-time traces into paired runtime deadline interventions: aggressive deadlines sharply increase logical failure, while the effect disappears once the deadline exceeds the observed service-time tail. The bottom-right panel aggregates the expanded Google decoder-prior corpus by prior family and shows negative mean paired delta for all three default prior families, with 4879 of 5724 paired prior effects excluding zero by bootstrap CI. This figure is best used as supporting evidence for the broader systems story after the main real-record paired-sensitivity result is established.
 ```
 
 ## Recommendation Summary
@@ -101,3 +103,25 @@ supplement: figures/p10_eurosys_main_evidence.png
 This split keeps the front of the paper centered on the strongest real-record
 paired-sensitivity result, while moving the denser multi-claim support figure
 into a role where its breadth helps instead of competing for attention.
+
+## Suggested Claim Wording
+
+These sentences are aligned with the current `scope-wise Holm` P10 outputs.
+
+**Main claim wording**
+
+```text
+FailureOps exposes paired intervention-sensitive logical failure behavior on public QEC detector records. On the original Google RL QEC real-record matrix, 39 of 40 decoder-pathway conditions remain Holm-significant after scope-wise family correction, and all 40 conditions are net-rescuing.
+```
+
+**Expanded same-family wording**
+
+```text
+The paired logical-failure sensitivity signal remains broadly stable on the expanded Google RL QEC v2 same-family corpus: 461 of 496 conditions are net-rescuing, mean paired delta remains negative in both observed control modes and both logical bases, and 273 of 496 conditions remain Holm-significant after scope-wise family correction.
+```
+
+**Prior-corpus wording**
+
+```text
+FailureOps also generalizes from a focused prior sweep to a corpus-level prior intervention study. Across 5724 paired decoder-prior effects in the public Google decoder-priors corpus, 4879 bootstrap confidence intervals exclude zero, and all three default prior families have negative mean paired delta logical-failure rate.
+```

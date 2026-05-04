@@ -1,0 +1,46 @@
+{
+  "command": [
+    "scripts/31_run_p10_eurosys_main_evidence.py",
+    "--prior-effects",
+    "data/results/p10_google_decoder_priors_smoke.csv",
+    "--baseline-output",
+    "data/results/p10_decoder_priors_compat_baseline.csv",
+    "--robustness-output",
+    "data/results/p10_decoder_priors_compat_robustness.csv",
+    "--runtime-intervention-output",
+    "data/results/p10_decoder_priors_compat_runtime_interventions.csv",
+    "--runtime-summary-output",
+    "data/results/p10_decoder_priors_compat_runtime_summary.csv",
+    "--significance-output",
+    "data/results/p10_decoder_priors_compat_significance.csv",
+    "--claim-audit-output",
+    "data/results/p10_decoder_priors_compat_claim_audit.csv",
+    "--figure-output",
+    "figures/p10_decoder_priors_compat.png",
+    "--manifest-output",
+    "data/results/p10_decoder_priors_compat_manifest.json"
+  ],
+  "config_hash": "29c2f034c680c7ea5afd1d6954a6487c5d41ff35f8b7c78ed426fae471987e47",
+  "experiment_id": "p10_eurosys_main_evidence",
+  "git_commit": "da9cf99519d1c9db218232d783cb6a89f61b483f",
+  "git_dirty": true,
+  "intervention_registry_version": "p4_registry_v1",
+  "outputs": {
+    "baseline_comparison": "data/results/p10_decoder_priors_compat_baseline.csv",
+    "claim_audit": "data/results/p10_decoder_priors_compat_claim_audit.csv",
+    "figure": "figures/p10_decoder_priors_compat.png",
+    "robustness": "data/results/p10_decoder_priors_compat_robustness.csv",
+    "runtime_interventions": "data/results/p10_decoder_priors_compat_runtime_interventions.csv",
+    "runtime_summary": "data/results/p10_decoder_priors_compat_runtime_summary.csv",
+    "significance": "data/results/p10_decoder_priors_compat_significance.csv"
+  },
+  "row_counts": {
+    "baseline_comparison": 5,
+    "claim_audit": 8,
+    "robustness": 7,
+    "runtime_interventions": 50000,
+    "runtime_summary": 5,
+    "significance": 570
+  },
+  "timestamp_utc": "2026-05-03T15:02:51.475377+00:00"
+}

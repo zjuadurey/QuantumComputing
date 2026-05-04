@@ -37,7 +37,7 @@ def main() -> None:
     parser.add_argument("--effect-matrix", default="data/results/p7_google_rl_qec_decoder_effect_matrix.csv")
     parser.add_argument("--variance", default="data/results/p7_5_paired_vs_unpaired_variance.csv")
     parser.add_argument("--features", default="data/results/p7_5_rescue_induction_features.csv")
-    parser.add_argument("--prior-effects", default="data/results/p7_5_decoder_prior_interventions.csv")
+    parser.add_argument("--prior-effects", default="data/results/p10_google_decoder_priors_prior_effects.csv")
     parser.add_argument("--p8-trace", default="data/results/p8_decoder_runtime_trace.csv")
     parser.add_argument("--external-replication", default="data/results/p10_qec3v5_external_decoder_effect_matrix.csv")
     parser.add_argument("--google-v2-effect-matrix", default="data/results/p10_google_rl_qec_v2_decoder_effect_matrix.csv")
@@ -327,6 +327,18 @@ def build_robustness_table(
         row for row in prior_rows
         if float(row["paired_delta_lfr_ci_lower"]) > 0 or float(row["paired_delta_lfr_ci_upper"]) < 0
     ]
+    prior_workloads = {str(row["workload_id"]) for row in prior_rows}
+    if len(prior_workloads) <= 1:
+        prior_scope = "single-condition decoder-prior sweep"
+        prior_interpretation = "Most prior variants in the focused sweep have nonzero observed effects."
+        prior_limitation = "The current prior sweep covers one real-data condition."
+    else:
+        prior_scope = "Google decoder-prior corpus"
+        prior_interpretation = "Most prior variants in the expanded same-family corpus have nonzero paired effects."
+        prior_limitation = (
+            "The current prior corpus is same-family Google public evidence with a fixed decoder backend, "
+            "not an independent cross-lab prior replication."
+        )
     rows = [
         {
             "check_id": "R1",
@@ -374,13 +386,13 @@ def build_robustness_table(
         },
         {
             "check_id": "R5",
-            "scope": "single-condition decoder-prior sweep",
+            "scope": prior_scope,
             "num_units": len(prior_rows),
             "metric": "ci_excludes_zero_fraction",
             "value": fmt_float(len(prior_significant) / len(prior_rows) if prior_rows else 0.0),
             "supporting_value": f"significant={len(prior_significant)}",
-            "interpretation": "Most prior variants in the focused sweep have nonzero observed effects.",
-            "limitation": "The current prior sweep covers one real-data condition.",
+            "interpretation": prior_interpretation,
+            "limitation": prior_limitation,
             "source_artifact": args.prior_effects,
         },
     ]
@@ -629,15 +641,19 @@ def logsumexp(values: list[float]) -> float:
 
 
 def apply_holm_correction(rows: list[dict[str, object]]) -> None:
-    ranked = sorted(rows, key=lambda row: parse_p(row["mcnemar_exact_p"]))
-    previous = 0.0
-    total = len(ranked)
-    for index, row in enumerate(ranked):
-        adjusted = min(1.0, (total - index) * parse_p(row["mcnemar_exact_p"]))
-        adjusted = max(previous, adjusted)
-        previous = adjusted
-        row["holm_adjusted_p"] = fmt_p(adjusted)
-        row["significant_after_holm_0_05"] = adjusted < 0.05
+    by_scope: dict[str, list[dict[str, object]]] = defaultdict(list)
+    for row in rows:
+        by_scope[str(row["analysis_scope"])].append(row)
+    for scope_rows in by_scope.values():
+        ranked = sorted(scope_rows, key=lambda row: parse_p(row["mcnemar_exact_p"]))
+        previous = 0.0
+        total = len(ranked)
+        for index, row in enumerate(ranked):
+            adjusted = min(1.0, (total - index) * parse_p(row["mcnemar_exact_p"]))
+            adjusted = max(previous, adjusted)
+            previous = adjusted
+            row["holm_adjusted_p"] = fmt_p(adjusted)
+            row["significant_after_holm_0_05"] = adjusted < 0.05
 
 
 def build_claim_audit_table(
@@ -927,16 +943,47 @@ def plot_runtime_deadline_closure(ax, rows: list[dict[str, object]]) -> None:
 
 
 def plot_prior_effects(ax, rows: list[dict[str, str]]) -> None:
-    labels = [row["intervened_prior"].replace("pymatching_", "").replace("_", "\n") for row in rows]
-    values = [float(row["paired_delta_lfr"]) for row in rows]
-    lower = [float(row["paired_delta_lfr"]) - float(row["paired_delta_lfr_ci_lower"]) for row in rows]
-    upper = [float(row["paired_delta_lfr_ci_upper"]) - float(row["paired_delta_lfr"]) for row in rows]
-    ax.bar(labels, values, color="#855c9c")
-    ax.errorbar(range(len(values)), values, yerr=[lower, upper], fmt="none", color="#222222", linewidth=0.8)
+    workload_count = len({str(row["workload_id"]) for row in rows})
+    if workload_count <= 1:
+        labels = [row["intervened_prior"].replace("pymatching_", "").replace("_", "\n") for row in rows]
+        values = [float(row["paired_delta_lfr"]) for row in rows]
+        lower = [float(row["paired_delta_lfr"]) - float(row["paired_delta_lfr_ci_lower"]) for row in rows]
+        upper = [float(row["paired_delta_lfr_ci_upper"]) - float(row["paired_delta_lfr"]) for row in rows]
+        ax.bar(labels, values, color="#855c9c")
+        ax.errorbar(range(len(values)), values, yerr=[lower, upper], fmt="none", color="#222222", linewidth=0.8)
+        ax.axhline(0.0, color="#333333", linewidth=0.8)
+        ax.set_title("Prior intervention effects")
+        ax.set_ylabel("paired delta LFR")
+        ax.tick_params(axis="x", labelsize=6)
+        return
+
+    grouped: dict[str, list[dict[str, str]]] = defaultdict(list)
+    for row in rows:
+        grouped[str(row["intervened_prior"])].append(row)
+    labels = [prior_label(label) for label in sorted(grouped)]
+    values = [
+        statistics.fmean(float(row["paired_delta_lfr"]) for row in grouped[key])
+        for key in sorted(grouped)
+    ]
+    negative_fraction = [
+        sum(float(row["paired_delta_lfr"]) < 0.0 for row in grouped[key]) / len(grouped[key])
+        for key in sorted(grouped)
+    ]
+    x = list(range(len(labels)))
+    ax.bar(x, values, color="#855c9c")
     ax.axhline(0.0, color="#333333", linewidth=0.8)
-    ax.set_title("Prior intervention effects")
-    ax.set_ylabel("paired delta LFR")
+    ax.set_xticks(x, labels)
+    ax.set_title("Prior intervention effects (corpus mean)")
+    ax.set_ylabel("mean paired delta LFR")
     ax.tick_params(axis="x", labelsize=6)
+    twin = ax.twinx()
+    twin.plot(x, negative_fraction, color="#b65f35", marker="o", linewidth=1.6)
+    twin.set_ylim(0.0, 1.05)
+    twin.set_ylabel("negative-delta fraction")
+
+
+def prior_label(value: str) -> str:
+    return value.replace("pymatching_", "").replace("dem_", "").replace("_", "\n")
 
 
 def cycle_mean_deltas(rows: list[dict[str, str]]) -> dict[int, float]:
