@@ -1,0 +1,30 @@
+%%
+%% 2. Background and Motivation
+%%
+\section{Background and Motivation}
+
+\subsection{Quantum Error Correction in Brief}
+
+A logical qubit is protected by encoding it across many physical qubits and repeatedly measuring stabilizer operators that reveal the presence of errors without collapsing the logical state. Each measurement round produces a set of detector events---comparisons between consecutive stabilizer measurements that signal where a physical error may have occurred. A decoder consumes this stream of detector events and produces a correction prediction: which physical qubits should be flipped to restore the logical state.
+
+The detector-event record is the observable output of a QEC system during operation. It contains, for each shot (a single logical-circuit execution), the full temporal sequence of detector firings across all measurement rounds. This record is what a real QEC control system would log during live operation, and it is the input to every decoder that must produce a correction in real time.
+
+\subsection{Logical Failure and Its Measurement}
+
+A logical failure occurs when the decoder's correction prediction, combined with the actual physical errors on the qubits, results in a net logical error---the logical state is not what it should have been. The logical failure rate (LFR) is the fraction of shots in which this occurs. It is the primary metric by which QEC performance is evaluated.
+
+Current practice measures LFR at two levels. The aggregate level reports the fraction of failing shots across an experiment condition, typically broken down by code distance, cycle count, basis, and control mode. The diagnostic level labels individual failures by suspected physical origin: a data-qubit error, a measurement error, an idle error, or a decoder mistake. Both levels are valuable. Aggregate LFR tells you how well a code is performing. Error-type labels tell you where the trouble might be.
+
+What neither level provides is an answer to the counterfactual question: if a specific controllable factor had been different---the decoder algorithm, the prior distribution, the runtime deadline budget---would this particular shot still have failed? A shot with a high detector-event count under a data-error label might or might not have been correctable by a different decoder. A shot labeled as an idle-error failure might or might not have survived a tighter inter-cycle schedule. Aggregate LFR and error labels describe what happened; they do not attribute logical failure to intervenable factors.
+
+\subsection{The Attribution Gap}
+
+The gap between description and attribution matters for systems design. Consider three scenarios:
+
+A QEC engineer must choose between two decoder backends. Both achieve similar aggregate LFR on a benchmark suite. The choice would be arbitrary---unless one rescues more failures than the other on the same shots, and the rescue pattern is concentrated in a particular cycle regime or error-type profile. Knowing which decoder to deploy requires knowing which decoder changes failure behavior on which shots, not which decoder has the lower average error rate.
+
+A runtime system designer must set a decoder deadline. A shorter deadline reduces cycle time but risks late corrections; a longer deadline is safer but costs throughput. The optimal deadline depends on how many shots would be rescued or induced at each budget level. Aggregate LFR sensitivity to cycle count does not answer this question, because it does not distinguish the effect of the deadline from the effect of longer memory exposure.
+
+A researcher proposes a new prior distribution for a decoder. Testing the new prior on a fresh set of shots might show a lower LFR, but this could be due to sampling variation or shot-level differences unrelated to the prior. Without comparing the new prior and the baseline prior on the same shots, it is impossible to attribute the LFR difference to the prior change rather than to shot-level variation.
+
+In all three cases, the missing ingredient is a paired counterfactual: the same shot records, evaluated under both the baseline and the intervened configuration, with the outcome difference attributed to the intervention. This is the design that FailureOps provides.

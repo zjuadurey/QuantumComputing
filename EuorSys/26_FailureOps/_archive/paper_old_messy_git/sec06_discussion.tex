@@ -1,0 +1,22 @@
+%%
+%% 6. Discussion
+%%
+\section{Discussion}
+
+\subsection{Scope and Boundaries}
+
+FailureOps is evaluated on public real QEC detector records, which is both a strength and a boundary. The use of real records means the evaluation operates on data that a real QEC system produces, avoiding the external-validity concerns of pure simulation. However, all current evidence comes from Google's public QEC releases. The external replication on qec3v5 and the v2 same-family expansion broaden the evidence base, but they remain within the Google QEC ecosystem. Independent replication on non-Google detector records---from IBM, Quantinuum, or other platforms---is not yet available and remains future work.
+
+The runtime-replay intervention is a measured-service-time closure, not a live-hardware attribution. The decoder service times are measured on the same detector records used for the logical outcome evaluation, which means the deadline intervention accurately reflects how long the decoder actually took. However, in a live system, decoder service time is only one component of the control-stack latency budget; hardware feedback, queueing delay, and real-time scheduling add additional sources of timing variation that our replay does not capture. We present the runtime intervention as evidence that decoder timing can be turned into a paired intervention, not as a claim that the specific deadline thresholds observed here would hold under live hardware conditions.
+
+\subsection{Generality of the Paired Design}
+
+The paired counterfactual design is not specific to decoder-pathway or prior interventions. Any component of the QEC pipeline that can be varied while holding the detector records fixed is a candidate intervention. Potential extensions include: varying the syndrome-extraction schedule (changing which stabilizers are measured in which rounds), applying different post-selection or erasure-conversion policies, testing the effect of decoding latency on logical outcomes under different code distances, and evaluating the sensitivity of failure behavior to calibration drift over time. The FailureOps methodology provides the measurement framework; the space of intervenable factors is limited only by what can be varied without changing the underlying physical execution records.
+
+\subsection{From Replay to Live Attribution}
+
+The natural next step for FailureOps is closing the gap from replay-based evidence to live-system attribution. This requires access to a QEC testbed that can log detector records, vary runtime parameters between shots, and measure decoder service time under real control-stack conditions. As experimental platforms from IBM, Google, and Quantinuum advance toward real-time decoding with logged detector streams, we expect that the paired counterfactual design will remain applicable: the same detector records, processed under different runtime configurations, with rescued and induced transitions reported at the shot level. The methodology does not change; the input data improves.
+
+\subsection{Statistical Considerations}
+
+The scope-wise Holm correction is a pragmatic choice that balances claim separation against multiplicity control. An alternative would be a global correction across all 6,291 tests, which would penalize the main decoder-pathway claim for the presence of thousands of prior-variant tests that address a different research question. We believe scope-wise correction is appropriate when the analysis scopes correspond to genuinely distinct families of claims, as they do here. However, readers who prefer a more conservative multiplicity adjustment can apply a global correction without affecting the sign-consistency evidence: the fraction of net-rescuing conditions and the paired-vs-unpaired variance ratio are descriptive statistics that do not depend on hypothesis-testing thresholds.

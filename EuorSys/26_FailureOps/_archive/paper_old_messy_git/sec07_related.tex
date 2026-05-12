@@ -1,0 +1,20 @@
+%%
+%% 7. Related Work
+%%
+\section{Related Work}
+
+\subsection{QEC Evaluation and Benchmarking}
+
+The QEC community has developed a rich set of evaluation methodologies, from threshold estimation and logical error rate measurement to detailed error-source decomposition. Google's RL QEC experiments~\cite{google2023} and the qec3v5 surface-code scaling study~\cite{google2022} established public benchmarks for decoding performance on real detector records. Stim~\cite{stim} and PyMatching~\cite{pymatching} provide high-performance simulation and decoding backends. These tools and datasets are essential infrastructure, and FailureOps depends on them as inputs. The distinction is one of purpose: existing QEC evaluation measures how well a code and decoder perform, while FailureOps measures which controllable factors change that performance on the same execution records.
+
+\subsection{Error Classification and Root-Cause Analysis}
+
+A substantial body of work classifies QEC errors by physical origin: data-qubit errors, measurement errors, leakage, idling errors, and crosstalk. These classifications are diagnostically valuable and can inform code design and physical error mitigation. However, error classification answers a different question than FailureOps. Classifying a failure as measurement-error-related does not tell you whether a different decoder prior would have corrected it. Classifying a shot as idle-error-dominant does not tell you whether a shorter inter-cycle gap would have changed the outcome. FailureOps does not compete with error classification; it adds an orthogonal dimension---intervention sensitivity---that is not derivable from error-type labels alone.
+
+\subsection{Counterfactual Methods in Systems}
+
+Counterfactual reasoning has a long history in systems research. A/B testing, canary deployments, and shadow traffic evaluation are standard practice in distributed systems and networking. Causal inference frameworks, including difference-in-differences, instrumental variables, and propensity-score matching, have been applied to performance debugging~\cite{causal_perf}, configuration tuning, and capacity planning. What distinguishes FailureOps from these methods is the domain constraint: in QEC, the detector record is the only observable output of a physical execution, and the decoder is a deterministic function of that record. The paired counterfactual is exact because the same detector record can be replayed through different configurations without resampling. This is a stronger guarantee than is typically available in classical systems counterfactual work, where re-running the same request through a different configuration is not always possible.
+
+\subsection{Reproducibility and Artifact Evaluation}
+
+EuroSys has a strong tradition of artifact evaluation and reproducible research. FailureOps is designed with reproducibility as a first-order requirement: the pipeline runs on public data, produces paper-facing tables from a single command, and preserves intermediate artifacts as human-readable CSV files. The claim-audit table explicitly maps each paper claim to its source artifact. We view this transparency as essential for a methodology paper whose primary contribution is a measurement framework rather than a system implementation.

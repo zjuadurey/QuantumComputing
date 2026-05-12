@@ -1,0 +1,50 @@
+%%
+%% FailureOps: Paired Counterfactual Attribution for QEC Logical Failure Behavior
+%% EuroSys 2027 Submission
+%%
+\documentclass[sigplan,review,10pt]{acmart}
+
+%% ── Metadata ──────────────────────────────────────────────────────
+\acmConference[EuroSys '27]{European Conference on Computer Systems}{April 19--23, 2027}{Rabat, Morocco}
+\acmYear{2027}
+\copyrightyear{2027}
+
+%% ── Packages ──────────────────────────────────────────────────────
+\usepackage{booktabs}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{multirow}
+\usepackage{xspace}
+
+%% ── Title & Authors ───────────────────────────────────────────────
+\title{FailureOps: Counterfactual Failure Attribution in Quantum Computing}
+
+% TODO: author list
+
+\begin{abstract}
+Quantum error correction (QEC) protects logical computations by encoding them across many physical qubits and continuously decoding syndrome data. Current practice evaluates QEC performance through aggregate logical error rates and static error-type labels. These metrics describe where errors occur but cannot answer a systems question: which controllable factors, if changed, would alter the observed logical failure behavior of a given execution?
+
+We present FailureOps, a paired counterfactual attribution methodology that answers this question. FailureOps evaluates the same shot records under a baseline and an intervened configuration, preserving shot identity, seed, and detector-event trace. It measures rescued and induced logical-failure transitions and reports which interventions change failure behavior on the same physical execution records. We instantiate FailureOps on public real QEC detector records from Google's RL QEC and qec3v5 datasets, with interventions spanning decoder-pathway switching, decoder-prior families, and measured-runtime deadline replay.
+
+Across 40 real data conditions, the main decoder-pathway intervention rescues logical failures in every observed condition (40/40 net-rescuing, 39/40 individually significant after scope-wise Holm correction at $\alpha = 0.05$). Paired counterfactual estimation reduces estimator standard deviation by a factor of 1.75 relative to unpaired resampling, a necessary condition for distinguishing rescued from induced transitions. A corpus-level decoder-prior study across 5,724 prior variants yields 85.2\% of confidence intervals excluding zero. The decoder-pathway result externally replicates on the qec3v5 surface-code dataset (23/26 Holm-significant), and the signal remains broadly net-rescuing on an expanded 496-condition Google RL QEC v2 corpus. Measured decoder service time can be closed into a paired deadline intervention exhibiting a sharp threshold near 5\,$\mu$s.
+
+FailureOps does not propose a new decoder, code, or threshold-estimation method. It provides a paired debugging and attribution interface for QEC-protected logical executions, treating logical failure as an intervention-sensitive system event rather than a static error statistic. All evaluation uses public real detector records, and the full pipeline is reproducible from open data.
+\end{abstract}
+
+\begin{document}
+
+\maketitle
+
+\input{sec01_intro}
+\input{sec02_background}
+\input{sec03_design}
+\input{sec04_implementation}
+\input{sec05_evaluation}
+\input{sec06_discussion}
+\input{sec07_related}
+\input{sec08_conclusion}
+
+\bibliographystyle{ACM-Reference-Format}
+\bibliography{references}
+
+\end{document}

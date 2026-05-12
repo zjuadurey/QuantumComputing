@@ -1,0 +1,10 @@
+%%
+%% 8. Conclusion
+%%
+\section{Conclusion}
+
+This paper presented FailureOps, a paired counterfactual attribution methodology for logical failure behavior in quantum error correction. FailureOps evaluates the same shot-level detector records under a baseline and an intervened configuration, measures rescued and induced logical-failure transitions, and reports which controllable interventions change failure behavior on which classes of executions. The attribution is tied to the intervention, not to a static error label.
+
+We instantiated FailureOps on public real QEC detector records from four datasets and three intervention families. The main decoder-pathway intervention rescues logical failures in all 40 observed real-data conditions, with 39 of 40 individually significant after scope-wise Holm correction. Pairing reduces estimator standard deviation by a factor of 1.75--1.78 relative to unpaired resampling. A corpus-level decoder-prior study across 5,724 prior variants confirms that the effect is not a single-condition anecdote but a replicable intervention-family phenomenon. The result externally replicates on the qec3v5 surface-code dataset (23 of 26 Holm-significant) and remains broadly net-rescuing on an expanded 496-condition corpus. Measured decoder service time can be closed into a paired deadline intervention with a sharp threshold near 5\,$\mu$s.
+
+FailureOps does not propose a new decoder, code, or threshold-estimation method. It provides a measurement framework for a question that the systems community will need as fault-tolerant quantum computation becomes an engineering discipline: given a protected execution, what controllable factor, if changed, would have altered its logical failure behavior?
