@@ -1,0 +1,13 @@
+inherits: nso_dev32_sharp.yaml
+
+output_dir: ../results/bench_dev32/nso_diverse
+
+train:
+  epochs: 32
+  lr: 0.0004
+
+loss:
+  w_leakage: 0.12
+  selection_leakage_weight: 0.18
+  w_selection_entropy: 0.02
+  w_selection_coverage: 0.08

@@ -1,0 +1,6 @@
+inherits: nso.yaml
+
+output_dir: ../results/bench/nso_unconstrained_latent
+
+model:
+  name: nso_unconstrained_latent

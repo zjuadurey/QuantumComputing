@@ -1,0 +1,15 @@
+inherits: base_dev32.yaml
+
+output_dir: ../results/bench_dev32/deeponet
+
+model:
+  name: deeponet
+  branch_width: 192
+  trunk_width: 96
+  rank: 96
+
+train:
+  epochs: 16
+  batch_size: 4
+  lr: 0.0005
+  weight_decay: 0.00001

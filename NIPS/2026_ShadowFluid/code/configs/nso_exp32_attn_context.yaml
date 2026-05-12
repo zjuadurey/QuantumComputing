@@ -1,0 +1,29 @@
+inherits: base_exp32.yaml
+
+output_dir: ../results/bench_exp32/nso_attn_context
+
+model:
+  name: nso
+  latent_dim: 8
+  hidden_dim: 256
+  slot_embed_dim: 32
+  candidate_hidden_dim: 80
+  selection_mode: candidate_attention
+  selection_temperature: 0.85
+  context_dim: 24
+
+train:
+  epochs: 90
+  batch_size: 8
+  lr: 0.00025
+  weight_decay: 0.00001
+  selection_metric: density_rel_l2
+
+loss:
+  w_rho: 1.0
+  w_spectral: 0.6
+  w_energy: 0.08
+  w_leakage: 0.04
+  selection_leakage_weight: 0.05
+  w_selection_entropy: 0.0
+  w_selection_coverage: 0.0

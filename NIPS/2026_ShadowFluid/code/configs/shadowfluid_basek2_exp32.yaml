@@ -1,0 +1,28 @@
+inherits: base_exp32.yaml
+
+output_dir: ../results/bench_exp32/shadowfluid_basek2
+
+model:
+  name: shadowfluid_residual
+  hidden_dim: 192
+  context_dim: 16
+  residual_scale: 0.0
+  zero_init_residual_heads: true
+  base_K0: 2.0
+  base_reference_mode: coupling_greedy
+  base_reference_budget: 6
+  base_R_hops: 1
+
+train:
+  epochs: 0
+  batch_size: 8
+  lr: 0.0002
+  weight_decay: 0.00001
+  selection_metric: density_rel_l2
+
+loss:
+  w_rho: 1.0
+  w_spectral: 0.2
+  w_energy: 0.0
+  w_leakage: 0.0
+  w_residual: 0.0

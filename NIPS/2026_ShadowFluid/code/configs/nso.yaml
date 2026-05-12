@@ -1,0 +1,20 @@
+inherits: base_smoke.yaml
+
+output_dir: ../results/bench/nso
+
+model:
+  name: nso
+  latent_dim: 4
+  hidden_dim: 64
+  slot_embed_dim: 16
+
+train:
+  epochs: 2
+  batch_size: 2
+  lr: 0.001
+  weight_decay: 0.0
+  selection_metric: nso_objective
+
+loss:
+  w_leakage: 0.1
+  selection_leakage_weight: 0.1

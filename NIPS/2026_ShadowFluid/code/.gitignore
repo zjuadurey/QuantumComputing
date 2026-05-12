@@ -1,2 +1,6 @@
 __pycache__/
 *.pyc
+results/bench/
+results/bench_dev32/
+results/bench_data/
+results/comparison_tables/

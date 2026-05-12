@@ -1,0 +1,28 @@
+inherits: base_exp32.yaml
+
+output_dir: ../results/bench_exp32/nso_rawdecode
+
+model:
+  name: nso
+  latent_dim: 8
+  hidden_dim: 224
+  slot_embed_dim: 32
+  selection_temperature: 0.8
+  context_dim: 16
+  decoder_raw_features: true
+
+train:
+  epochs: 80
+  batch_size: 8
+  lr: 0.00025
+  weight_decay: 0.00001
+  selection_metric: density_rel_l2
+
+loss:
+  w_rho: 1.0
+  w_spectral: 0.55
+  w_energy: 0.12
+  w_leakage: 0.08
+  selection_leakage_weight: 0.08
+  w_selection_entropy: 0.0
+  w_selection_coverage: 0.0

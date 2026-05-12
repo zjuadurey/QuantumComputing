@@ -1,0 +1,18 @@
+inherits: base_smoke.yaml
+
+output_dir: ../results/bench/fixed_shadowfluid
+
+model:
+  name: fixed_shadowfluid
+  latent_dim: 4
+  reference_mode: coupling_greedy
+  reference_budget: 4
+  R_hops: 1
+  pool_hops: 2
+  pool_max_candidates: 8
+
+train:
+  selection_metric: loss_total
+
+loss:
+  w_leakage: 0.0

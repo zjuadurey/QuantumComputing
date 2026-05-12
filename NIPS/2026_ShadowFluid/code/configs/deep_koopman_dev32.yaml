@@ -1,0 +1,14 @@
+inherits: base_dev32.yaml
+
+output_dir: ../results/bench_dev32/deep_koopman
+
+model:
+  name: deep_koopman
+  latent_dim: 8
+  hidden_dim: 128
+
+train:
+  epochs: 16
+  batch_size: 4
+  lr: 0.0005
+  weight_decay: 0.00001

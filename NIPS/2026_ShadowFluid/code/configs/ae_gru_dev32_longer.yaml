@@ -1,0 +1,8 @@
+inherits: ae_gru_dev32.yaml
+
+output_dir: ../results/bench_dev32/ae_gru_longer
+
+train:
+  epochs: 32
+  lr: 0.0003
+  weight_decay: 0.00001

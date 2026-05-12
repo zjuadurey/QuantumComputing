@@ -1,0 +1,9 @@
+inherits: nso.yaml
+
+output_dir: ../results/bench/nso_no_leakage_model_selection
+
+model:
+  name: nso_no_leakage_model_selection
+
+train:
+  selection_metric: loss_total

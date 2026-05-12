@@ -1,0 +1,40 @@
+{
+  "loss_total": 1.1605177860474214e-05,
+  "loss_rho": 1.217788252461105e-07,
+  "loss_spectral": 5.421973838792837e-07,
+  "loss_energy": 4.484920009417692e-05,
+  "loss_leakage": 0.0,
+  "loss_selection_entropy": 0.0,
+  "loss_selection_coverage": 0.0,
+  "density_rel_l2": 0.29280794486403466,
+  "lowfreq_spectral_rel_l2": 0.2899360589683056,
+  "lowpass_energy_rel_l2": 0.004969070898368955,
+  "commutator_leakage": NaN,
+  "leakage_error_correlation": NaN,
+  "latent_step_norm": NaN,
+  "selection_entropy": NaN,
+  "selection_coverage_deficit": NaN,
+  "density_rel_l2_curve": [
+    0.12834731116890907,
+    0.2792513892054558,
+    0.3306659311056137,
+    0.3613751232624054,
+    0.3643999695777893
+  ],
+  "lowfreq_spectral_rel_l2_curve": [
+    0.12362053617835045,
+    0.27431026101112366,
+    0.32927094399929047,
+    0.35959914326667786,
+    0.3628794103860855
+  ],
+  "runtime_seconds": 3.7275260529713705,
+  "parameter_count": 115238,
+  "method": "fno",
+  "split_column": "split_id",
+  "split_values": [
+    "test"
+  ],
+  "config_path": "code/configs/fno_exp32.yaml",
+  "output_dir": "/home/adurey/QuantumComputing/NIPS/2026_ShadowFluid/code/results/bench_exp32/fno"
+}

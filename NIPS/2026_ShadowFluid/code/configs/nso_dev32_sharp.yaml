@@ -1,0 +1,10 @@
+inherits: nso_dev32_wide.yaml
+
+output_dir: ../results/bench_dev32/nso_sharp
+
+model:
+  selection_temperature: 0.35
+
+loss:
+  w_leakage: 0.10
+  selection_leakage_weight: 0.15

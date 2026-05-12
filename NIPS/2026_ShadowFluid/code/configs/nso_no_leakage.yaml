@@ -1,0 +1,9 @@
+inherits: nso.yaml
+
+output_dir: ../results/bench/nso_no_leakage
+
+model:
+  name: nso_no_leakage
+
+loss:
+  w_leakage: 0.0

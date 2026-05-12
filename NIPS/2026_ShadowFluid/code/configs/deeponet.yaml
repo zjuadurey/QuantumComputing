@@ -1,0 +1,15 @@
+inherits: base_smoke.yaml
+
+output_dir: ../results/bench/deeponet
+
+model:
+  name: deeponet
+  branch_width: 128
+  trunk_width: 64
+  rank: 64
+
+train:
+  epochs: 2
+  batch_size: 2
+  lr: 0.001
+  weight_decay: 0.0

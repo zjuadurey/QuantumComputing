@@ -1,0 +1,8 @@
+inherits: nso_dev32.yaml
+
+output_dir: ../results/bench_dev32/nso_wide
+
+model:
+  latent_dim: 10
+  hidden_dim: 160
+  slot_embed_dim: 32

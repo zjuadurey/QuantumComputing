@@ -182,6 +182,14 @@ def extract_submatrix(
     return H_dense[np.ix_(indices, indices)].copy()
 
 
+def canonicalize_reference_set(R_flat: np.ndarray) -> np.ndarray:
+    """Return a sorted, unique reference-set index array."""
+    arr = np.asarray(R_flat, dtype=int).reshape(-1)
+    if arr.size == 0:
+        raise ValueError("Reference set must contain at least one mode")
+    return np.array(sorted(set(int(x) for x in arr.tolist())), dtype=int)
+
+
 # ================================================================
 # 5) Evolution
 # ================================================================
@@ -383,6 +391,46 @@ def run_single(
     use_qiskit : if True, use Qiskit Aer for shadow (Galerkin) evolution.
     qiskit_sim : shared AerSimulator instance (avoids repeated creation).
     """
+    if len(components) > 0:
+        R_flat = build_R_closure(r0, components, N, max_hops=R_hops)
+    else:
+        mask = core_v0.low_freq_mask(N, K0)
+        R_flat = mask_to_flat(mask, N)  # V=0: block dictionary
+
+    return run_single_with_reference_set(
+        N=N,
+        components=components,
+        K0=K0,
+        t=t,
+        psi1_0=psi1_0,
+        psi2_0=psi2_0,
+        R_flat=R_flat,
+        H_dense=H_dense,
+        eig=eig,
+        use_qiskit=use_qiskit,
+        qiskit_sim=qiskit_sim,
+    )
+
+
+def run_single_with_reference_set(
+    N: int,
+    components: list[FourierPotential],
+    K0: float,
+    t: float,
+    psi1_0: np.ndarray,
+    psi2_0: np.ndarray,
+    *,
+    R_flat: np.ndarray,
+    H_dense: np.ndarray | None = None,
+    eig: tuple[np.ndarray, np.ndarray] | None = None,
+    use_qiskit: bool = False,
+    qiskit_sim=None,
+) -> V1Result:
+    """Run a single configuration with an explicitly provided reference set.
+
+    This is the shared evaluation entry point for both handcrafted and learned
+    dictionaries. `run_single()` remains the BFS-construction wrapper.
+    """
     # Build / reuse Hamiltonian
     if H_dense is None:
         H_dense = build_H_dense(N, components)
@@ -394,11 +442,7 @@ def run_single(
     mask = core_v0.low_freq_mask(N, K0)
     K_flat = mask_to_flat(mask, N)
     M_K = len(K_flat)
-
-    if len(components) > 0:
-        R_flat = build_R_closure(r0, components, N, max_hops=R_hops)
-    else:
-        R_flat = K_flat  # V=0: block dictionary
+    R_flat = canonicalize_reference_set(R_flat)
 
     # Initial Fourier coefficients
     b1_0 = core_v0.unitary_fft2(psi1_0).reshape(-1)

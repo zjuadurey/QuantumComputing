@@ -1,0 +1,359 @@
+{
+  "config": "code/configs/shadowfluid_residual_densityfirst_exp32.yaml",
+  "label": "shadowfluid_residual_densityfirst_exp32",
+  "seeds": [
+    20260505,
+    20260515,
+    20260525
+  ],
+  "splits": {
+    "test": [
+      {
+        "metric": "loss_total",
+        "mean": 3.209394942397618e-08,
+        "std": 2.2266391172646158e-10,
+        "num_seeds": 3
+      },
+      {
+        "metric": "loss_rho",
+        "mean": 1.77632045369099e-08,
+        "std": 1.2233165595756212e-10,
+        "num_seeds": 3
+      },
+      {
+        "metric": "loss_spectral",
+        "mean": 7.137934628550131e-08,
+        "std": 5.438952770444626e-10,
+        "num_seeds": 3
+      },
+      {
+        "metric": "loss_energy",
+        "mean": 1.1866596196341561e-05,
+        "std": 0.0,
+        "num_seeds": 3
+      },
+      {
+        "metric": "loss_leakage",
+        "mean": 0.6701030880212784,
+        "std": 0.0,
+        "num_seeds": 3
+      },
+      {
+        "metric": "loss_residual",
+        "mean": 1.0975056234189633e-09,
+        "std": 1.733233739401692e-10,
+        "num_seeds": 3
+      },
+      {
+        "metric": "loss_selection_entropy",
+        "mean": 0.0,
+        "std": 0.0,
+        "num_seeds": 3
+      },
+      {
+        "metric": "loss_selection_coverage",
+        "mean": 0.0,
+        "std": 0.0,
+        "num_seeds": 3
+      },
+      {
+        "metric": "density_rel_l2",
+        "mean": 0.11898129085699716,
+        "std": 0.00027602246510670126,
+        "num_seeds": 3
+      },
+      {
+        "metric": "lowfreq_spectral_rel_l2",
+        "mean": 0.11192666292190552,
+        "std": 0.00027005316820453333,
+        "num_seeds": 3
+      },
+      {
+        "metric": "lowpass_energy_rel_l2",
+        "mean": 0.0034186621196568012,
+        "std": 0.0,
+        "num_seeds": 3
+      },
+      {
+        "metric": "commutator_leakage",
+        "mean": 0.6701030880212784,
+        "std": 0.0,
+        "num_seeds": 3
+      },
+      {
+        "metric": "leakage_error_correlation",
+        "mean": 0.6903320283975444,
+        "std": 0.006355079277611322,
+        "num_seeds": 3
+      },
+      {
+        "metric": "latent_step_norm",
+        "mean": NaN,
+        "std": NaN,
+        "num_seeds": 0
+      },
+      {
+        "metric": "selection_entropy",
+        "mean": NaN,
+        "std": NaN,
+        "num_seeds": 0
+      },
+      {
+        "metric": "selection_coverage_deficit",
+        "mean": NaN,
+        "std": NaN,
+        "num_seeds": 0
+      },
+      {
+        "metric": "residual_lowfreq_norm",
+        "mean": 1.0975056234189633e-09,
+        "std": 1.733233739401692e-10,
+        "num_seeds": 3
+      },
+      {
+        "metric": "runtime_seconds",
+        "mean": 2.41305587667739,
+        "std": 1.842013716134356,
+        "num_seeds": 3
+      },
+      {
+        "metric": "parameter_count",
+        "mean": 706531.0,
+        "std": 0.0,
+        "num_seeds": 3
+      }
+    ],
+    "split_ood_alpha": [
+      {
+        "metric": "loss_total",
+        "mean": 3.532280935088017e-08,
+        "std": 1.7204460597012267e-10,
+        "num_seeds": 3
+      },
+      {
+        "metric": "loss_rho",
+        "mean": 1.953659488730285e-08,
+        "std": 9.558845907080124e-11,
+        "num_seeds": 3
+      },
+      {
+        "metric": "loss_spectral",
+        "mean": 7.863971216975739e-08,
+        "std": 4.232222166200591e-10,
+        "num_seeds": 3
+      },
+      {
+        "metric": "loss_energy",
+        "mean": 1.1362148639322681e-05,
+        "std": 0.0,
+        "num_seeds": 3
+      },
+      {
+        "metric": "loss_leakage",
+        "mean": 0.7740704399166685,
+        "std": 0.0,
+        "num_seeds": 3
+      },
+      {
+        "metric": "loss_residual",
+        "mean": 1.1654391862344594e-09,
+        "std": 1.7502493753163235e-10,
+        "num_seeds": 3
+      },
+      {
+        "metric": "loss_selection_entropy",
+        "mean": 0.0,
+        "std": 0.0,
+        "num_seeds": 3
+      },
+      {
+        "metric": "loss_selection_coverage",
+        "mean": 0.0,
+        "std": 0.0,
+        "num_seeds": 3
+      },
+      {
+        "metric": "density_rel_l2",
+        "mean": 0.12388883049439901,
+        "std": 0.00018650103787269296,
+        "num_seeds": 3
+      },
+      {
+        "metric": "lowfreq_spectral_rel_l2",
+        "mean": 0.11656753771533872,
+        "std": 0.00017918101036495094,
+        "num_seeds": 3
+      },
+      {
+        "metric": "lowpass_energy_rel_l2",
+        "mean": 0.0033431097328888645,
+        "std": 0.0,
+        "num_seeds": 3
+      },
+      {
+        "metric": "commutator_leakage",
+        "mean": 0.7740704399166685,
+        "std": 0.0,
+        "num_seeds": 3
+      },
+      {
+        "metric": "leakage_error_correlation",
+        "mean": NaN,
+        "std": NaN,
+        "num_seeds": 0
+      },
+      {
+        "metric": "latent_step_norm",
+        "mean": NaN,
+        "std": NaN,
+        "num_seeds": 0
+      },
+      {
+        "metric": "selection_entropy",
+        "mean": NaN,
+        "std": NaN,
+        "num_seeds": 0
+      },
+      {
+        "metric": "selection_coverage_deficit",
+        "mean": NaN,
+        "std": NaN,
+        "num_seeds": 0
+      },
+      {
+        "metric": "residual_lowfreq_norm",
+        "mean": 1.1654391862344594e-09,
+        "std": 1.7502493753163235e-10,
+        "num_seeds": 3
+      },
+      {
+        "metric": "runtime_seconds",
+        "mean": 5.99196914100321,
+        "std": 0.8007655411371357,
+        "num_seeds": 3
+      },
+      {
+        "metric": "parameter_count",
+        "mean": 706531.0,
+        "std": 0.0,
+        "num_seeds": 3
+      }
+    ],
+    "split_ood_structure": [
+      {
+        "metric": "loss_total",
+        "mean": 4.337257427285598e-08,
+        "std": 2.3934965808087847e-10,
+        "num_seeds": 3
+      },
+      {
+        "metric": "loss_rho",
+        "mean": 2.3993383970990738e-08,
+        "std": 1.3263834846581445e-10,
+        "num_seeds": 3
+      },
+      {
+        "metric": "loss_spectral",
+        "mean": 9.654583029335602e-08,
+        "std": 5.874073183118997e-10,
+        "num_seeds": 3
+      },
+      {
+        "metric": "loss_energy",
+        "mean": 1.1142015409859596e-05,
+        "std": 0.0,
+        "num_seeds": 3
+      },
+      {
+        "metric": "loss_leakage",
+        "mean": 0.9165247082710266,
+        "std": 0.0,
+        "num_seeds": 3
+      },
+      {
+        "metric": "loss_residual",
+        "mean": 1.4004743722731108e-09,
+        "std": 2.2416817384840236e-10,
+        "num_seeds": 3
+      },
+      {
+        "metric": "loss_selection_entropy",
+        "mean": 0.0,
+        "std": 0.0,
+        "num_seeds": 3
+      },
+      {
+        "metric": "loss_selection_coverage",
+        "mean": 0.0,
+        "std": 0.0,
+        "num_seeds": 3
+      },
+      {
+        "metric": "density_rel_l2",
+        "mean": 0.1385731219417519,
+        "std": 0.00026744756676956615,
+        "num_seeds": 3
+      },
+      {
+        "metric": "lowfreq_spectral_rel_l2",
+        "mean": 0.13018070368303192,
+        "std": 0.000257841696655528,
+        "num_seeds": 3
+      },
+      {
+        "metric": "lowpass_energy_rel_l2",
+        "mean": 0.0033105751887584725,
+        "std": 0.0,
+        "num_seeds": 3
+      },
+      {
+        "metric": "commutator_leakage",
+        "mean": 0.9165247082710266,
+        "std": 0.0,
+        "num_seeds": 3
+      },
+      {
+        "metric": "leakage_error_correlation",
+        "mean": 0.3483590653351743,
+        "std": 0.0037371516764560238,
+        "num_seeds": 3
+      },
+      {
+        "metric": "latent_step_norm",
+        "mean": NaN,
+        "std": NaN,
+        "num_seeds": 0
+      },
+      {
+        "metric": "selection_entropy",
+        "mean": NaN,
+        "std": NaN,
+        "num_seeds": 0
+      },
+      {
+        "metric": "selection_coverage_deficit",
+        "mean": NaN,
+        "std": NaN,
+        "num_seeds": 0
+      },
+      {
+        "metric": "residual_lowfreq_norm",
+        "mean": 1.4004743722731108e-09,
+        "std": 2.2416817384840236e-10,
+        "num_seeds": 3
+      },
+      {
+        "metric": "runtime_seconds",
+        "mean": 5.03908627499671,
+        "std": 1.350237079075815,
+        "num_seeds": 3
+      },
+      {
+        "metric": "parameter_count",
+        "mean": 706531.0,
+        "std": 0.0,
+        "num_seeds": 3
+      }
+    ]
+  }
+}

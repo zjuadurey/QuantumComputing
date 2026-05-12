@@ -1,0 +1,6 @@
+inherits: shadowfluid_residual_densityfirst_leakgate_k3_exp32.yaml
+
+output_dir: ../results/bench_exp32/shadowfluid_residual_densityfirst_leakgate_k3_short
+
+train:
+  epochs: 8

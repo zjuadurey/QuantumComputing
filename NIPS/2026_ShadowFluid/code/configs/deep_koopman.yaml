@@ -1,0 +1,14 @@
+inherits: base_smoke.yaml
+
+output_dir: ../results/bench/deep_koopman
+
+model:
+  name: deep_koopman
+  latent_dim: 4
+  hidden_dim: 64
+
+train:
+  epochs: 2
+  batch_size: 2
+  lr: 0.001
+  weight_decay: 0.0

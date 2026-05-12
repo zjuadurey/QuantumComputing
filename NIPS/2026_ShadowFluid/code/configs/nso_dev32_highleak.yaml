@@ -1,0 +1,7 @@
+inherits: nso_dev32.yaml
+
+output_dir: ../results/bench_dev32/nso_highleak
+
+loss:
+  w_leakage: 0.10
+  selection_leakage_weight: 0.15

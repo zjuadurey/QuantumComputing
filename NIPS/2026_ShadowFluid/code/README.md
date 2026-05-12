@@ -29,15 +29,78 @@ To regenerate from scratch (~30 min, single CPU):
 python experiments/run_sweep.py --overwrite   # writes data/sweep_v1.csv
 ```
 
+## Selector-learning prototype
+
+This repo now includes a first-pass learned-dictionary prototype for NeurIPS-style follow-up work. The learning problem is intentionally narrow: given a Hamiltonian family, a task cutoff `K0`, and a reference budget, learn which bra-side reference modes `R` should be retained before the reduced ShadowFluid rollout.
+
+Build a small oracle-labeled dataset:
+
+```bash
+python scripts/build_shadow_selector_dataset.py
+```
+
+Train and benchmark a lightweight selector against hand-crafted baselines:
+
+```bash
+python scripts/train_shadow_selector.py
+```
+
+The prototype keeps the projected Heisenberg dynamics fixed and only learns the dictionary choice, so it is a safe starting point before moving to a larger neural architecture.
+
+## Unified baseline pipeline
+
+For the NeurIPS follow-up, the repo now also includes a unified experiment scaffold under `shiftflow/bench/`. All baselines share the same dataset format, split handling, loss/metric schema, checkpoint layout, and evaluation scripts.
+
+Generate the small smoke-test dataset:
+
+```bash
+python scripts/generate_schrodinger_flow_data.py --config configs/base_smoke.yaml
+```
+
+Run the core smoke suite:
+
+```bash
+python scripts/run_smoke_tests.py
+```
+
+Train one method explicitly:
+
+```bash
+python scripts/train_baseline_fixed_shadowfluid.py --config configs/fixed_shadowfluid.yaml
+python scripts/train_baseline_latent.py --config configs/ae_gru.yaml
+python scripts/train_baseline_koopman.py --config configs/deep_koopman.yaml
+python scripts/train_baseline_fno.py --config configs/fno.yaml
+python scripts/train_baseline_deeponet.py --config configs/deeponet.yaml
+python scripts/train_nso.py --config configs/nso.yaml
+```
+
+Evaluate forecasting / OOD / long-rollout behavior:
+
+```bash
+python scripts/evaluate_forecasting.py --config configs/nso.yaml
+python scripts/evaluate_ood_hamiltonian.py --config configs/nso.yaml --split-column split_ood_alpha --split-values test
+python scripts/evaluate_long_rollout.py --config configs/nso.yaml
+```
+
+Aggregate result JSON files into a simple comparison table:
+
+```bash
+python scripts/make_tables_and_plots.py --result-dirs results/bench/fixed_shadowfluid,results/bench/ae_gru,results/bench/deep_koopman,results/bench/fno,results/bench/deeponet,results/bench/nso
+```
+
 ## Code layout
 
 - `shiftflow/core_v0.py` -- V=0 (diagonal Hamiltonian): free Fourier evolution and shadow coherence method. Dictionary closes exactly here, so shadow evolution matches the full low-pass baseline to machine precision. (Sec 3)
-- `shiftflow/core_v1.py` -- V!=0 (off-diagonal coupling): Galerkin-truncated shadow dynamics with multi-reference dictionary and BFS closure on the coupling graph. Includes the leakage bound computation. (Sec 4)
+- `shiftflow/core_v1.py` -- V!=0 (off-diagonal coupling): Galerkin-truncated shadow dynamics with multi-reference dictionary and BFS closure on the coupling graph. Includes the leakage bound computation and a custom-reference evaluation path for learned dictionaries. (Sec 4)
+- `shiftflow/selector_learning.py` -- candidate-pool construction, oracle subset search, custom-reference scoring, and per-candidate feature extraction for learned reference selection
+- `shiftflow/bench/` -- unified data generation, baseline models, shared train/eval loop, metrics, and result I/O for the NeurIPS-style benchmark suite
 - `shiftflow/metrics.py` -- error metrics: density error, Frobenius-norm delta-Z, low-pass energy error, a priori leakage. (Sec 5)
 - `shiftflow/cases.py` -- initial conditions (Gaussian vortex, deterministic seed)
 - `shiftflow/qiskit_shadow_v0.py` -- Qiskit circuit for V=0 shadow evolution
 - `shiftflow/qiskit_shadow_v1.py` -- Qiskit circuit for V!=0 shadow evolution
 - `experiments/run_sweep.py` -- parameter sweep over alpha, K0, t, nx
+- `scripts/build_shadow_selector_dataset.py` -- build a compact supervised dataset with oracle budgeted reference sets
+- `scripts/train_shadow_selector.py` -- train a lightweight classifier and compare learned dictionary choices against heuristic baselines
 
 ## Figures -> paper
 

@@ -1,0 +1,20 @@
+inherits: base_exp32.yaml
+
+output_dir: ../results/bench_exp32/fno
+
+model:
+  name: fno
+  width: 32
+  modes: 6
+
+train:
+  epochs: 80
+  batch_size: 8
+  lr: 0.0003
+  weight_decay: 0.0
+  selection_metric: density_rel_l2
+
+loss:
+  w_rho: 1.0
+  w_spectral: 0.5
+  w_energy: 0.25

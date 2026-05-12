@@ -1,0 +1,18 @@
+inherits: nso_exp32_relaxed.yaml
+
+output_dir: ../results/bench_exp32/nso_relaxed_robustsel
+
+train:
+  selection_metric: density_rel_l2
+  selection_primary_weight: 1.0
+  extra_selection_splits:
+    - name: ood_alpha_val
+      split_column: split_ood_alpha
+      split_values: [val]
+      metric: density_rel_l2
+      weight: 0.5
+    - name: ood_structure_val
+      split_column: split_ood_structure
+      split_values: [val]
+      metric: density_rel_l2
+      weight: 0.5

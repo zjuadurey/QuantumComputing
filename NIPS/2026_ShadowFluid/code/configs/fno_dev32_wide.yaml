@@ -1,0 +1,14 @@
+inherits: fno_dev32.yaml
+
+output_dir: ../results/bench_dev32/fno_wide
+
+model:
+  width: 48
+  modes: 10
+
+train:
+  epochs: 24
+  lr: 0.0005
+
+loss:
+  w_energy: 0.2

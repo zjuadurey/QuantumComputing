@@ -1,0 +1,13 @@
+{
+  "config": "code/configs/shadowfluid_residual_densityfirst_exp32.yaml",
+  "label": "shadowfluid_residual_densityfirst_exp32",
+  "seeds": [
+    20260505,
+    20260515,
+    20260525
+  ],
+  "multiseed_root": "/home/adurey/QuantumComputing/NIPS/2026_ShadowFluid/code/results/bench_exp32/shadowfluid_residual_densityfirst_exp32_multiseed",
+  "per_seed_summary": "/home/adurey/QuantumComputing/NIPS/2026_ShadowFluid/code/results/bench_exp32/shadowfluid_residual_densityfirst_exp32_multiseed/per_seed_summary.csv",
+  "aggregate_summary_csv": "/home/adurey/QuantumComputing/NIPS/2026_ShadowFluid/code/results/bench_exp32/shadowfluid_residual_densityfirst_exp32_multiseed/aggregate_summary.csv",
+  "aggregate_summary_json": "/home/adurey/QuantumComputing/NIPS/2026_ShadowFluid/code/results/bench_exp32/shadowfluid_residual_densityfirst_exp32_multiseed/aggregate_summary.json"
+}

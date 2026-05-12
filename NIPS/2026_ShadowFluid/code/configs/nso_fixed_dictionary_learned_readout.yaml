@@ -1,0 +1,6 @@
+inherits: nso.yaml
+
+output_dir: ../results/bench/nso_fixed_dictionary_learned_readout
+
+model:
+  name: nso_fixed_dictionary_learned_readout

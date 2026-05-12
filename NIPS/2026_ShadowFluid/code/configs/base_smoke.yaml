@@ -1,0 +1,52 @@
+seed: 20260505
+device: cpu
+output_dir: ../results/bench/base
+
+dataset:
+  generate_if_missing: true
+  data_path: ../results/bench_data/smoke_dataset.npz
+  manifest_path: ../results/bench_data/smoke_manifest.csv
+  split_column: split_id
+  train_splits: [train]
+  val_splits: [val]
+  test_splits: [test]
+  num_workers: 0
+  nx: 4
+  K0: 4.0
+  time_grid: [0.2, 0.4, 0.6]
+  max_modes: 3
+  candidate_pool_hops: 2
+  candidate_pool_max: 8
+  seeds: [0, 1]
+  single_alphas: [0.1, 0.4, 0.7, 1.0]
+  single_q: [1, 0]
+  num_multi_potentials: 2
+  multi_J_choices: [2, 3]
+  multi_alpha_scale: 0.5
+  multi_q_max: 3
+  multi_seed: 20260505
+  split_seed: 123
+  ood_alpha_threshold: 0.8
+
+train:
+  epochs: 1
+  batch_size: 2
+  lr: 0.001
+  weight_decay: 0.0
+  selection_metric: loss_total
+
+evaluation:
+  batch_size: 2
+
+loss:
+  w_rho: 1.0
+  w_spectral: 0.5
+  w_energy: 0.1
+  w_leakage: 0.0
+  selection_leakage_weight: 0.1
+
+model:
+  name: placeholder
+  latent_dim: 4
+  hidden_dim: 64
+  hamiltonian_feature_dim: 15

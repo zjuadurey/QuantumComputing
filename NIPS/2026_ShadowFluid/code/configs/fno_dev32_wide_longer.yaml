@@ -1,0 +1,10 @@
+inherits: fno_dev32_wide.yaml
+
+output_dir: ../results/bench_dev32/fno_wide_longer
+
+train:
+  epochs: 40
+  lr: 0.00035
+
+loss:
+  w_energy: 0.25

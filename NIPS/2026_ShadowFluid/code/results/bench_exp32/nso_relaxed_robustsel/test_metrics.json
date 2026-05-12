@@ -1,0 +1,36 @@
+{
+  "loss_total": 0.04508492350578308,
+  "loss_rho": 1.1585862580432149e-07,
+  "loss_spectral": 4.7412748926944914e-07,
+  "loss_energy": 6.1913788158562966e-06,
+  "loss_leakage": 0.4508333057165146,
+  "loss_selection_entropy": 0.06378884240984917,
+  "loss_selection_coverage": 0.31293734908103943,
+  "density_rel_l2": 0.29123714864254,
+  "lowfreq_spectral_rel_l2": 0.2735100865364075,
+  "lowpass_energy_rel_l2": 0.0020502801635302603,
+  "commutator_leakage": 0.4508333057165146,
+  "leakage_error_correlation": 0.6991915807216915,
+  "latent_step_norm": 0.019271161872893572,
+  "selection_entropy": 0.06378884240984917,
+  "selection_coverage_deficit": 0.31293734908103943,
+  "density_rel_l2_curve": [
+    0.1661706119775772,
+    0.2719736099243164,
+    0.31475645303726196,
+    0.34450823068618774,
+    0.35877683758735657
+  ],
+  "lowfreq_spectral_rel_l2_curve": [
+    0.1345168873667717,
+    0.25207190960645676,
+    0.3013682961463928,
+    0.33206920325756073,
+    0.34752413630485535
+  ],
+  "runtime_seconds": 0.005812870978843421,
+  "parameter_count": 621441,
+  "method": "nso",
+  "config_path": "code/configs/nso_exp32_relaxed_robustsel.yaml",
+  "output_dir": "/home/adurey/QuantumComputing/NIPS/2026_ShadowFluid/code/results/bench_exp32/nso_relaxed_robustsel"
+}

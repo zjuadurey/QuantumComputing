@@ -1,0 +1,40 @@
+{
+  "loss_total": 4.433514333435085e-09,
+  "loss_rho": 3.6397006242250285e-10,
+  "loss_spectral": 2.473699647898009e-10,
+  "loss_energy": 1.9729297001669366e-08,
+  "loss_leakage": 0.6199054270982742,
+  "loss_selection_entropy": 0.0,
+  "loss_selection_coverage": 0.0,
+  "density_rel_l2": 0.01752649014815688,
+  "lowfreq_spectral_rel_l2": 0.006410689908079803,
+  "lowpass_energy_rel_l2": 9.08171086848597e-05,
+  "commutator_leakage": 0.6199054270982742,
+  "leakage_error_correlation": 0.7679430331174304,
+  "latent_step_norm": NaN,
+  "selection_entropy": NaN,
+  "selection_coverage_deficit": NaN,
+  "density_rel_l2_curve": [
+    0.01587783731520176,
+    0.01604823861271143,
+    0.01777666574344039,
+    0.02004221547394991,
+    0.01788749359548092
+  ],
+  "lowfreq_spectral_rel_l2_curve": [
+    0.008829442784190178,
+    0.005381586728617549,
+    0.005193240591324866,
+    0.0062627168372273445,
+    0.006386462599039078
+  ],
+  "runtime_seconds": 78.92768607201288,
+  "parameter_count": 0,
+  "method": "fixed_shadowfluid",
+  "split_column": "split_id",
+  "split_values": [
+    "test"
+  ],
+  "config_path": "code/configs/fixed_shadowfluid_exp32.yaml",
+  "output_dir": "/home/adurey/QuantumComputing/NIPS/2026_ShadowFluid/code/results/bench_exp32/fixed_shadowfluid"
+}

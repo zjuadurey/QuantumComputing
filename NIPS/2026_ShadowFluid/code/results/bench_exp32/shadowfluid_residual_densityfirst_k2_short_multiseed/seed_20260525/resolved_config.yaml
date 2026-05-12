@@ -1,0 +1,86 @@
+seed: 20260525
+device: cpu
+output_dir: /home/adurey/QuantumComputing/NIPS/2026_ShadowFluid/code/results/bench_exp32/shadowfluid_residual_densityfirst_k2_short_multiseed/seed_20260525
+dataset:
+  generate_if_missing: true
+  data_path: /home/adurey/QuantumComputing/NIPS/2026_ShadowFluid/code/results/bench_data/exp32_dataset_v1.npz
+  manifest_path: /home/adurey/QuantumComputing/NIPS/2026_ShadowFluid/code/results/bench_data/exp32_manifest_v1.csv
+  split_column: split_id
+  train_splits:
+  - train
+  val_splits:
+  - val
+  test_splits:
+  - test
+  num_workers: 0
+  nx: 5
+  K0: 6.0
+  exact_solver: expm_multiply
+  verbose: false
+  time_grid:
+  - 0.15
+  - 0.3
+  - 0.45
+  - 0.6
+  - 0.75
+  max_modes: 3
+  candidate_pool_hops: 2
+  candidate_pool_max: 12
+  seeds:
+  - 0
+  - 1
+  - 2
+  - 3
+  - 4
+  - 5
+  single_alphas:
+  - 0.1
+  - 0.2
+  - 0.3
+  - 0.4
+  - 0.5
+  - 0.6
+  - 0.7
+  - 0.8
+  - 0.9
+  - 1.0
+  single_q:
+  - 1
+  - 0
+  num_multi_potentials: 8
+  multi_J_choices:
+  - 2
+  - 3
+  multi_alpha_scale: 0.7
+  multi_q_max: 4
+  multi_seed: 20260506
+  split_seed: 777
+  ood_alpha_threshold: 0.8
+train:
+  epochs: 8
+  batch_size: 8
+  lr: 0.0002
+  weight_decay: 1.0e-05
+  selection_metric: density_rel_l2
+evaluation:
+  batch_size: 8
+loss:
+  w_rho: 1.0
+  w_spectral: 0.2
+  w_energy: 0.0
+  w_leakage: 0.0
+  selection_leakage_weight: 0.1
+  w_residual: 0.05
+model:
+  name: shadowfluid_residual
+  latent_dim: 6
+  hidden_dim: 192
+  hamiltonian_feature_dim: 15
+  context_dim: 16
+  residual_scale: 0.1
+  zero_init_residual_heads: true
+  base_K0: 2.0
+  base_reference_mode: coupling_greedy
+  base_reference_budget: 6
+  base_R_hops: 1
+_config_path: code/configs/shadowfluid_residual_densityfirst_k2_short_exp32.yaml

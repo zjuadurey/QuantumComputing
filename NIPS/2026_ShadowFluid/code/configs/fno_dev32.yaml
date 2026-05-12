@@ -1,0 +1,14 @@
+inherits: base_dev32.yaml
+
+output_dir: ../results/bench_dev32/fno
+
+model:
+  name: fno
+  width: 32
+  modes: 8
+
+train:
+  epochs: 16
+  batch_size: 4
+  lr: 0.0008
+  weight_decay: 0.00001

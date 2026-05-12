@@ -1,0 +1,6 @@
+inherits: nso.yaml
+
+output_dir: ../results/bench/nso_random_dictionary
+
+model:
+  name: nso_random_dictionary

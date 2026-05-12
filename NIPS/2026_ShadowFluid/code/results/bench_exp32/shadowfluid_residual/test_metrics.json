@@ -1,0 +1,38 @@
+{
+  "loss_total": 1.368311757232732e-07,
+  "loss_rho": 2.428772782891997e-08,
+  "loss_spectral": 1.259683095611308e-07,
+  "loss_energy": 2.2473552263591046e-07,
+  "loss_leakage": 0.6701030880212784,
+  "loss_residual": 5.3202139582708696e-08,
+  "loss_selection_entropy": 0.0,
+  "loss_selection_coverage": 0.0,
+  "density_rel_l2": 0.13944212049245835,
+  "lowfreq_spectral_rel_l2": 0.14941107332706452,
+  "lowpass_energy_rel_l2": 0.0004066820692969486,
+  "commutator_leakage": 0.6701030880212784,
+  "leakage_error_correlation": 0.2905959411335525,
+  "latent_step_norm": NaN,
+  "selection_entropy": NaN,
+  "selection_coverage_deficit": NaN,
+  "residual_lowfreq_norm": 5.3202139582708696e-08,
+  "density_rel_l2_curve": [
+    0.12149234861135483,
+    0.172377809882164,
+    0.14094147086143494,
+    0.12881062924861908,
+    0.13358834385871887
+  ],
+  "lowfreq_spectral_rel_l2_curve": [
+    0.13569356501102448,
+    0.17707981914281845,
+    0.1523778699338436,
+    0.13832547515630722,
+    0.1435786373913288
+  ],
+  "runtime_seconds": 1.6574165999772958,
+  "parameter_count": 706531,
+  "method": "shadowfluid_residual",
+  "config_path": "code/configs/shadowfluid_residual_exp32.yaml",
+  "output_dir": "/home/adurey/QuantumComputing/NIPS/2026_ShadowFluid/code/results/bench_exp32/shadowfluid_residual"
+}

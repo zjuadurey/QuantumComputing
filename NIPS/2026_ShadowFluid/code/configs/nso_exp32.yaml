@@ -1,0 +1,26 @@
+inherits: base_exp32.yaml
+
+output_dir: ../results/bench_exp32/nso
+
+model:
+  name: nso
+  latent_dim: 6
+  hidden_dim: 192
+  slot_embed_dim: 24
+  selection_temperature: 0.45
+
+train:
+  epochs: 80
+  batch_size: 8
+  lr: 0.00025
+  weight_decay: 0.0
+  selection_metric: nso_objective
+
+loss:
+  w_rho: 1.0
+  w_spectral: 0.5
+  w_energy: 0.2
+  w_leakage: 0.16
+  selection_leakage_weight: 0.22
+  w_selection_entropy: 0.02
+  w_selection_coverage: 0.08

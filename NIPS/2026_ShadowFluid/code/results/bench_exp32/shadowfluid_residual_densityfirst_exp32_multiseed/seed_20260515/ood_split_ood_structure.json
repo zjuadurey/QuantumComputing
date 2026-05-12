@@ -1,0 +1,42 @@
+{
+  "loss_total": 4.329231965508976e-08,
+  "loss_rho": 2.3951299314243595e-08,
+  "loss_spectral": 9.635874912798197e-08,
+  "loss_energy": 1.1142015409859596e-05,
+  "loss_leakage": 0.9165247082710266,
+  "loss_residual": 1.3853951319475755e-09,
+  "loss_selection_entropy": 0.0,
+  "loss_selection_coverage": 0.0,
+  "density_rel_l2": 0.1384507613877455,
+  "lowfreq_spectral_rel_l2": 0.13005360985795658,
+  "lowpass_energy_rel_l2": 0.0033105751887584725,
+  "commutator_leakage": 0.9165247082710266,
+  "leakage_error_correlation": 0.34447978263491436,
+  "latent_step_norm": NaN,
+  "selection_entropy": NaN,
+  "selection_coverage_deficit": NaN,
+  "residual_lowfreq_norm": 1.3853951319475755e-09,
+  "density_rel_l2_curve": [
+    0.10190858319401741,
+    0.18018958220879236,
+    0.15722966690858206,
+    0.12877688805262247,
+    0.1241490865747134
+  ],
+  "lowfreq_spectral_rel_l2_curve": [
+    0.09627616281310718,
+    0.16967801253000894,
+    0.14965993538498878,
+    0.11859173079331715,
+    0.11606220776836078
+  ],
+  "runtime_seconds": 3.9045287869521417,
+  "parameter_count": 706531,
+  "method": "shadowfluid_residual",
+  "split_column": "split_ood_structure",
+  "split_values": [
+    "test"
+  ],
+  "config_path": "code/configs/shadowfluid_residual_densityfirst_exp32.yaml",
+  "output_dir": "/home/adurey/QuantumComputing/NIPS/2026_ShadowFluid/code/results/bench_exp32/shadowfluid_residual_densityfirst_exp32_multiseed/seed_20260515"
+}
