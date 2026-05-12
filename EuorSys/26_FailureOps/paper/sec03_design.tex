@@ -1,0 +1,51 @@
+%%
+%% 3. FailureOps Design
+%%
+\section{FailureOps Design}
+
+\subsection{Paired Counterfactual Framework}
+
+The core design principle of FailureOps is that attribution must be tied to an intervention on the same execution records. The unit of analysis is a paired shot: a single logical-circuit execution whose detector-event record is processed twice---once under a baseline configuration and once under an intervened configuration---preserving shot identity, random seed, detector-event trace, and logical workload. The only difference between the two passes is the intervention.
+
+Formally, for a shot $i$ with detector record $d_i$, the baseline configuration $C_0$ produces a correction prediction $c_{0,i}$ and a logical outcome $o_{0,i} \in \{0, 1\}$ (0 = success, 1 = failure). The intervened configuration $C_1$ produces $c_{1,i}$ and $o_{1,i}$ on the same record $d_i$. The paired transition is one of four cases:
+
+\begin{itemize}
+\item \textbf{Rescued failure}: $o_{0,i} = 1$, $o_{1,i} = 0$. The shot failed under the baseline but succeeded under the intervention.
+\item \textbf{Induced failure}: $o_{0,i} = 0$, $o_{1,i} = 1$. The shot succeeded under the baseline but failed under the intervention.
+\item \textbf{Unchanged failure}: $o_{0,i} = 1$, $o_{1,i} = 1$. The shot failed under both configurations.
+\item \textbf{Unchanged success}: $o_{0,i} = 0$, $o_{1,i} = 0$. The shot succeeded under both configurations.
+\end{itemize}
+
+The paired delta logical-failure rate is defined as $\Delta = (R - I) / N$, where $R$ is the rescued failure count, $I$ is the induced failure count, and $N$ is the total number of paired shots. A negative $\Delta$ indicates that the intervention rescues more failures than it induces; a positive $\Delta$ indicates the reverse.
+
+This design makes the counterfactual explicit. The question ``does this shot still fail under the intervention?'' is answered by comparing $o_{0,i}$ and $o_{1,i}$. The rescued and induced counts are not inferred from aggregate LFR differences across independent shot batches; they are directly counted over discordant pairs on the same detector records.
+
+\subsection{Sensitivity Profile}
+
+The primary output of FailureOps is a sensitivity profile: for a given intervention family, which conditions exhibit the largest paired effect, in which direction, and with what statistical confidence? A sensitivity profile is richer than an aggregate LFR comparison because it preserves the condition-level structure. Two interventions might produce the same mean delta LFR but very different sensitivity profiles: one might rescue failures uniformly across all conditions, while another might strongly rescue long-cycle conditions but induce failures on short-cycle ones. The sensitivity profile exposes this structure.
+
+A sensitivity profile can be aggregated along any dimension present in the condition metadata: code family, control mode, logical basis, cycle count, or detector-burden characteristics. This allows FailureOps to answer not only ``which intervention changes failure behavior most?'' but also ``on which classes of executions is the intervention most effective?''
+
+\subsection{Intervention Families}
+
+FailureOps defines interventions as a controlled change to a single component of the QEC processing pipeline. We structure interventions into families, where each family varies one dimension while holding the rest of the pipeline fixed.
+
+\textbf{Decoder-pathway interventions} change the decoder algorithm or the prior distribution that feeds it. The primary decoder-pathway intervention in this paper switches from a decoder using a SI1000-prior (a prior that assumes all error mechanisms are equally likely) to one using a frequency-calibrated prior (a prior estimated from observed detector-event frequencies on the same dataset). This is a natural systems question: given the same detector records, does a data-driven prior outperform a uniform prior in rescuing logical failures?
+
+\textbf{Decoder-prior interventions} sweep across multiple prior configurations within a fixed decoder family. This family turns the binary prior switch into a design-space exploration: given a decoder backend, which prior configuration minimizes induced failures? The corpus-level evaluation across 5,724 prior variants answers this at scale.
+
+\textbf{Runtime-replay interventions} apply a deadline budget to decoder corrections based on measured service time. If the recorded service time for a shot exceeds the budget, the correction is treated as late and dropped. This family connects the static paired framework to a dynamic runtime constraint without claiming live hardware feedback.
+
+An intervention family is specified by: a baseline configuration, an intervened configuration, the component of the pipeline being varied, the condition matrix over which the intervention is evaluated, and the shot-records that serve as input.
+
+\subsection{Statistical Framework}
+
+For each condition within an intervention family, we test the null hypothesis that the rescued and induced failure counts are equal using an exact McNemar test over discordant pairs. The test statistic is the two-sided binomial probability of observing at least $|R - I|$ discordant pairs in either direction, given $R + I$ total discordant pairs and a null probability of 0.5 for each direction.
+
+Because we evaluate multiple conditions within an intervention family, we apply Holm-Bonferroni correction to control the family-wise error rate at $\alpha = 0.05$. Critically, we apply Holm correction within each analysis scope separately: the real decoder-pathway scope, the real decoder-prior scope, the measured-runtime-deadline scope, the external qec3v5 scope, and the Google RL QEC v2 scope. This scoped correction prevents the main real-record decoder-pathway claim from being penalized by thousands of unrelated prior-variant tests, while still controlling the error rate within each claim family.
+
+We report both the Holm-adjusted significance and the raw effect direction for every condition. A condition that is net-rescuing but not individually significant still contributes to the sign-consistency analysis (the fraction of conditions with negative delta). This dual reporting---significance for individual claims, sign consistency for pattern-level evidence---ensures that the evaluation does not discard informative conditions merely because they fall below a corrected threshold.
+
+\subsection{What FailureOps Is Not}
+
+FailureOps is not a new QEC decoder, nor a new quantum error-correcting code, nor a threshold-estimation framework. It is not a simulator. It is an attribution layer that operates on detector records produced by whatever QEC pipeline is already in place. It does not modify the decoder, the code, or the physical error model. It answers a question that these components do not address: given a protected execution, what controllable factor, if changed, would have altered its logical failure behavior?

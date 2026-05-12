@@ -1,0 +1,220 @@
+%%
+%% 5. Evaluation
+%%
+\section{Evaluation}
+
+We evaluate FailureOps across four public QEC datasets and three intervention families. The main real-record evaluation uses the Google RL QEC detector-record release (40 conditions, 400,000 paired shots), with decoder-pathway intervention as the primary treatment. The pairing-necessity analysis uses bootstrap resampling over paired and unpaired estimators on the same conditions. The baseline comparison evaluates four conventional metrics---plain LFR, static detector burden, plain LFR delta, and unpaired bootstrap---against FailureOps paired sensitivity. The runtime-replay evaluation applies measured decoder service-time traces to a paired deadline intervention. The external and expanded evidence section covers the qec3v5 surface-code replication, the Google RL QEC v2 496-condition expansion, and the corpus-level decoder-prior study across 5,724 prior variants. All statistical tests use exact McNemar tests over discordant rescued and induced transition counts, with scope-wise Holm correction applied at $\alpha = 0.05$ within each analysis scope.
+
+\subsection{Main Real-Record Result}
+
+The primary FailureOps intervention switches the decoder pathway from a SI1000-prior decoder to a frequency-calibrated-prior decoder, with both configurations operating on the same shot-level detector records. The experiment spans 40 real-data conditions drawn from the Google RL QEC public dataset, covering surface-code and repetition-code memory experiments under reinforcement-learning and traditional-calibration control modes, across both X and Z logical bases, and ranging from 10 to 100 syndrome-extraction cycles.
+
+Table~\ref{tab:main_result} summarizes the main result. All 40 conditions exhibit a negative paired delta logical-failure rate, meaning the frequency-calibrated prior rescues more failures than it induces in every observed condition. The mean paired delta LFR is $-0.0195$, with the strongest single-condition effect reaching $-0.0369$ and the weakest at $-0.0019$. Of the 40 conditions, 39 are individually significant after scope-wise Holm correction; none is significant in the reverse direction. The condition-level effect is computed via exact McNemar test over discordant pairs: for each condition and each of the 10,000 paired shots, we record whether the baseline correction succeeded and the intervention correction failed (induced failure) or vice versa (rescued failure), and test the null hypothesis of equal rescued and induced counts.
+
+The significance framework applies Holm correction within the analysis scope \texttt{real\_decoder\_pathway}, which contains exactly these 40 conditions. This means the family-wise error rate is controlled at 0.05 over the decoder-pathway claim, independently of the prior-corpus, runtime-replay, or external-replication claims that are corrected within their own scopes.
+
+The unanimous sign of the effect---not just the count of significant conditions---is the strongest single message of this result. If the decoder-prior intervention were an arbitrary perturbation, we would expect roughly half of the conditions to show positive deltas and half negative. Instead, every condition tilts in the same direction. This pattern is not a marginal statistical artifact; it is what we would expect if the frequency-calibrated prior systematically improves correction quality on these real detector records, and FailureOps paired counterfactual measurement is sensitive enough to capture it.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{figures/p10_eurosys_main_evidence.png}
+\caption{Per-condition paired delta LFR for the main decoder-pathway intervention across 40 real-data conditions.}
+\label{fig:main_result}
+\end{figure}
+
+\begin{table}[t]
+\centering
+\caption{Summary of the main decoder-pathway intervention on 40 Google RL QEC real-data conditions.}
+\label{tab:main_result}
+\begin{tabular}{lr}
+\toprule
+Metric & Value \\
+\midrule
+Total conditions & 40 \\
+Net-rescuing conditions & 40 \\
+Holm-significant conditions ($\alpha = 0.05$) & 39 \\
+Mean paired delta LFR & $-0.0195$ \\
+Min paired delta LFR & $-0.0369$ \\
+Max paired delta LFR & $-0.0019$ \\
+Total paired shots & 400,000 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Why Pairing Is Necessary}
+
+The paired design is not a statistical preference; it is a measurement requirement. Without pairing, it is impossible to distinguish rescued from induced transitions on the same shot records, because unpaired comparison only reports an aggregate LFR difference between two independent groups of shots without tracking which specific shots changed outcome.
+
+We quantify the cost of discarding pairing through bootstrap resampling. For each of the 40 original real-data conditions, we compute the paired bootstrap standard deviation of the delta LFR (preserving shot-level pairing across 300 resamples) and the unpaired bootstrap standard deviation (independently resampling baseline and intervened outcomes). Table~\ref{tab:pairing} reports the results. Across all 40 conditions, the mean ratio of unpaired to paired bootstrap standard deviation is 1.75, with a minimum of 1.52 and a maximum of 2.05. In every single condition, the unpaired estimator exhibits higher standard deviation than its paired counterpart.
+
+We repeat the same analysis on the expanded 496-condition Google RL QEC v2 corpus. The mean ratio is 1.78, with a wider range of 1.06 to 3.09. Again, no condition shows a ratio below 1.0. The worst-case condition on the v2 corpus exhibits an unpaired standard deviation more than three times larger than the paired estimate.
+
+The practical consequence is that an unpaired estimator would require between 2.3$\times$ and 9.6$\times$ more samples to achieve the same confidence-interval width as the paired estimator, assuming standard asymptotic scaling. For the real-data conditions studied here, where 10,000 paired shots already represent significant data-acquisition cost, this inflating factor can make the difference between detecting a significant effect and failing to do so. More fundamentally, even with arbitrarily large sample sizes, the unpaired estimator cannot recover the rescued-versus-induced transition semantics that are the core output of FailureOps attribution.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{figures/p7_5_paired_vs_unpaired_variance.png}
+\caption{Paired versus unpaired bootstrap standard deviation across the 40 original real-data conditions. Every condition falls above the 1:1 line, indicating higher unpaired variance.}
+\label{fig:pairing}
+\end{figure}
+
+\begin{table}[t]
+\centering
+\caption{Paired versus unpaired bootstrap standard deviation ratios.}
+\label{tab:pairing}
+\begin{tabular}{lrrr}
+\toprule
+Corpus & Conditions & Mean ratio & Range \\
+\midrule
+Original (40 conditions) & 40 & 1.75 & 1.52--2.05 \\
+V2 expanded (496 conditions) & 496 & 1.78 & 1.06--3.09 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsection{Baseline Comparison}
+
+We compare FailureOps paired sensitivity against five conventional metrics: plain baseline LFR, static detector burden, plain LFR delta (intervened minus baseline, aggregated), an unpaired bootstrap estimator, and a ranking-by-LFR-delta approach. The question is not whether these baselines are accurate predictors of LFR---several of them correlate strongly with condition difficulty. The question is whether they can substitute for intervention attribution.
+
+Table~\ref{tab:baselines} summarizes the comparison. Plain baseline LFR achieves a Spearman rank correlation of 0.963 with FailureOps paired sensitivity, and static detector burden achieves 0.950. These high correlations indicate that difficult conditions---those with higher baseline LFR or higher detector event counts---also tend to exhibit larger intervention effects. However, the top-3 overlap with the FailureOps sensitivity ranking is only 0.333 for static burden and 0.667 for plain LFR, meaning the most intervention-sensitive conditions are not consistently the conditions flagged by these baselines.
+
+More critically, neither baseline provides rescued or induced transition counts. Plain LFR reports the aggregate failure rate under a single configuration; it does not by itself identify which controllable factor changes failure behavior. Static detector burden reports the mean number of detector events per shot, which is a descriptive proxy for syndrome activity but measures no intervention effect at all. Plain LFR delta, when computed over paired records as in our setup, numerically agrees with the paired delta LFR (Spearman 0.9998), but this agreement is an artifact of pairing: without the paired framework, an unpaired LFR delta would conflate rescued and induced transitions into a single aggregate difference, losing the transition semantics that distinguish FailureOps attribution from aggregate comparison.
+
+The unpaired bootstrap estimator, as shown in the previous subsection, carries 1.5--3.1$\times$ higher standard deviation than the paired estimator and cannot recover per-shot transition labels on its own.
+
+\begin{table}[t]
+\centering
+\caption{Comparison of FailureOps paired sensitivity against conventional metrics.}
+\label{tab:baselines}
+\begin{tabular}{lcc}
+\toprule
+Metric & Spearman $\rho$ & Top-3 overlap \\
+\midrule
+Plain baseline LFR & 0.963 & 0.667 \\
+Static detector burden & 0.950 & 0.333 \\
+Plain LFR delta (paired) & 0.999 & 0.667 \\
+\midrule
+FailureOps paired sensitivity & 1.000 & 1.000 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The takeaway is not that the baselines are weak---several of them correlate strongly with condition difficulty---but that they answer a different question. Ranking conditions by difficulty is not the same as attributing failure behavior to a specific controllable intervention. The information that FailureOps adds is not a better correlation coefficient; it is the rescued and induced transition semantics that connect interventions to logical outcomes on the same physical shots.
+
+\subsection{Runtime Replay Closure}
+
+The fourth intervention family applies a measured-runtime deadline to decoder corrections. We use decoder service-time measurements collected on the same real detector records (mean service time 4.65\,$\mu$s, p95 5.64\,$\mu$s) and apply a paired deadline intervention: if the measured service time for a shot exceeds a deadline budget, the correction is treated as late and dropped to a default no-flip correction. We evaluate five deadline budgets in $\{4, 5, 6, 7, 8\}$\,$\mu$s on 10,000 paired shots.
+
+Table~\ref{tab:runtime} reports the results. The effect is sharply thresholded. A 4\,$\mu$s deadline causes a 93.6\% miss rate---93.6\% of corrections arrive too late---and induces a paired delta LFR of $+0.307$, with 185 rescued and 3,257 induced failures. This is the only deadline condition that is individually Holm-significant. At 5\,$\mu$s, the miss rate drops to 19.4\% and the paired delta LFR to $+0.064$ (32 rescued, 668 induced). At 6\,$\mu$s, only 1.3\% of corrections miss the deadline, and the delta LFR is negligible at $+0.004$. At 7\,$\mu$s and above, the miss rate reaches zero and no logical-failure effect remains.
+
+\begin{table}[t]
+\centering
+\caption{Runtime deadline intervention results. Mean measured service time is 4.65\,$\mu$s, p95 is 5.64\,$\mu$s.}
+\label{tab:runtime}
+\begin{tabular}{lrrrrr}
+\toprule
+Deadline & Miss rate & Baseline LFR & Intervened LFR & $\Delta$LFR & Holm sig. \\
+\midrule
+4\,$\mu$s & 0.936 & 0.040 & 0.347 & $+0.307$ & Yes \\
+5\,$\mu$s & 0.194 & 0.040 & 0.103 & $+0.064$ & No \\
+6\,$\mu$s & 0.013 & 0.040 & 0.044 & $+0.004$ & No \\
+7\,$\mu$s & 0.000 & 0.040 & 0.040 & 0.000 & No \\
+8\,$\mu$s & 0.000 & 0.040 & 0.040 & 0.000 & No \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The threshold behavior---the sharp transition from a large effect at 4\,$\mu$s to near-zero effect at 6\,$\mu$s---is a direct consequence of the decoder service-time distribution. The mean service time (4.65\,$\mu$s) lies between the 4\,$\mu$s and 5\,$\mu$s budgets, and the p95 (5.64\,$\mu$s) sits between the 5\,$\mu$s and 6\,$\mu$s budgets. A system operator who must set a decoder deadline based on measured service time faces a genuine engineering tradeoff: a 4\,$\mu$s budget guarantees fast cycle times but induces substantial logical failures; a 6\,$\mu$s budget eliminates the induced failures but requires longer cycle times; the 5\,$\mu$s budget represents a gray zone.
+
+We call this measured-runtime replay closure, not live control-stack timing attribution. The service-time measurements are collected on real detector records, but they are not obtained from an actual quantum control stack with hardware feedback latency, production queueing, or real-time scheduling. The replay demonstrates that decoder service time can be turned into a paired intervention whose effect on logical outcomes can be quantified on the same shot records. Closing this loop with live-hardware timing traces remains future work.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{figures/p10_runtime_deadline_threshold.png}
+\caption{Paired delta LFR (bars) and deadline miss rate (line) as a function of decoder deadline budget. A sharp threshold appears between 4\,$\mu$s and 6\,$\mu$s, corresponding to the region around the measured mean service time of 4.65\,$\mu$s.}
+\label{fig:runtime}
+\end{figure}
+
+\subsection{External and Expanded Evidence}
+
+\paragraph{External replication on qec3v5.}
+
+The Google qec3v5 2022 surface-code scaling dataset provides an independent test of the decoder-pathway sensitivity result. The qec3v5 dataset uses a different code family (rotated surface code, distance 5), a different decoder baseline (PyMatching), and a different experimental setup (syndrome sampling at 13 cycle depths from $r = 1$ to $r = 25$). We apply the same paired counterfactual design, switching from PyMatching to a correlated-matching decoder on 10,000 paired shots per condition.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{figures/p7_5_decoder_effect_by_cycles.png}
+\caption{Paired delta LFR by cycle depth on the qec3v5 surface-code dataset. The effect strengthens monotonically with memory duration and is consistent across X and Z bases.}
+\label{fig:qec3v5}
+\end{figure}
+
+Of the 26 conditions (13 X-basis, 13 Z-basis), 23 are individually significant after scope-wise Holm correction. The mean paired delta LFR is $-0.0279$ for X-basis conditions and $-0.0268$ for Z-basis conditions. The three non-significant conditions are the shortest-cycle conditions ($r = 1$ for X and Z, where the baseline LFR is below 0.01), which is consistent with the observation that intervention sensitivity grows with memory duration. Table~\ref{tab:qec3v5} summarizes the cycle-level breakdown: the effect strengthens monotonically from $r = 1$ ($\Delta = -0.0001$, not significant) to $r = 11$ ($\Delta = -0.036$) and remains negative through all higher cycle settings. This external replication, on a different dataset with a different decoder baseline, supports the claim that decoder-pathway sensitivity is not an artifact of a particular code, decoder, or experiment design.
+
+\begin{table}[t]
+\centering
+\caption{qec3v5 external replication: paired delta LFR by cycle depth.}
+\label{tab:qec3v5}
+\begin{tabular}{lrrr}
+\toprule
+Cycles & Conditions & Mean $\Delta$LFR & Holm sig. \\
+\midrule
+1 & 2 & $-0.0001$ & 0/2 \\
+3--9 & 8 & $-0.0219$ & 8/8 \\
+11--25 & 16 & $-0.0333$ & 15/16 \\
+\midrule
+All & 26 & $-0.0274$ & 23/26 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Expanded same-family stability on Google RL QEC v2.}
+
+The Google RL QEC v2 corpus expands the original 40-condition matrix to 496 conditions with 4.96 million paired shots, adding color-code memory experiments and a second control mode (traditional\_calibration\_and\_rl\_fine\_tuning). The overall mean paired delta LFR is $-0.014$, and 461 of 496 conditions (92.9\%) are net-rescuing. After scope-wise Holm correction, 273 conditions are individually significant.
+
+Table~\ref{tab:v2_subgroups} breaks down the effect by subgroup. The mean paired delta is negative in every observed subgroup, with no reversal. Color-code memory conditions show a slightly stronger mean effect ($-0.017$) than surface-code memory ($-0.013$). Z-basis conditions ($-0.016$) show a moderately larger effect than X-basis ($-0.011$). The two control modes---traditional\_calibration and traditional\_calibration\_and\_rl\_fine\_tuning---produce nearly identical mean deltas ($-0.014$ and $-0.013$ respectively). The subgroup stability reinforces the main result: the paired sensitivity signal is not confined to a particular code, basis, or calibration mode but appears broadly across the expanded public real-record corpus.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{figures/p10_google_rl_qec_v2_evidence.png}
+\caption{Expanded Google RL QEC v2 evidence: per-condition paired delta LFR across 496 conditions (top left), paired-vs-unpaired variance ratio (top right), subgroup aggregation (bottom left), and rescued/induced transition profiles (bottom right).}
+\label{fig:v2}
+\end{figure}
+
+\begin{table}[t]
+\centering
+\caption{Google RL QEC v2 subgroup breakdown. All subgroups show negative mean paired delta LFR.}
+\label{tab:v2_subgroups}
+\begin{tabular}{lrr}
+\toprule
+Subgroup & Conditions & Mean $\Delta$LFR \\
+\midrule
+Surface code memory & 448 & $-0.013$ \\
+Color code memory & 48 & $-0.017$ \\
+\addlinespace
+Traditional calibration & 248 & $-0.014$ \\
+RL fine tuning & 248 & $-0.013$ \\
+\addlinespace
+X basis & 248 & $-0.011$ \\
+Z basis & 248 & $-0.016$ \\
+\midrule
+All v2 conditions & 496 & $-0.014$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+This v2 expansion broadens the Google public corpus substantially, but it remains same-family evidence: both the original and v2 datasets come from the Google RL QEC release. We treat this as expanded stability evidence rather than independent cross-platform replication.
+
+\paragraph{Corpus-level decoder-prior study.}
+
+Scaling further, we evaluate whether the decoder-prior sensitivity observed on the SI1000-to-frequency-calibrated switch generalizes across prior variants within a fixed decoder family. The decoder-prior corpus study intervenes on three prior families---dem\_correlations, dem\_rl\_isolated\_correlated\_matching, and dem\_rl\_shared\_correlated\_matching---each compared against a common dem\_simple baseline, covering 1,908 real-data conditions per family. The total corpus spans 5,724 prior variants with 19.08 million paired shots.
+
+Of the 5,724 variants, 4,879 (85.2\%) yield bootstrap confidence intervals that exclude zero. The mean paired delta LFR is negative in all three prior families: $-0.0133$ (dem\_correlations), $-0.0212$ (dem\_rl\_isolated), and $-0.0180$ (dem\_rl\_shared). The negative-delta fraction reaches 0.983, 0.997, and 0.960 respectively. The strongest single prior variant achieves a paired delta of $-0.0494$.
+
+This result serves two purposes in the FailureOps evaluation. First, it demonstrates scale: the paired counterfactual pipeline can be applied to thousands of intervention variants without modification, producing comparable sensitivity metrics across an intervention design space. Second, it shows that decoder-prior sensitivity is not a single binary switch but a spectrum: different prior designs produce different effect magnitudes while preserving the negative sign. For a systems audience, this is analogous to a parameter-sensitivity study over a scheduler or allocator design space---the intervention becomes a tunable family rather than a binary treatment.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\columnwidth]{figures/p10_google_decoder_priors_prior_effects.png}
+\caption{Distribution of paired delta LFR across 5,724 decoder-prior variants. The histogram peak lies in the negative region, confirming that most alternative prior configurations rescue more failures than the baseline SI1000 prior.}
+\label{fig:prior_corpus}
+\end{figure}

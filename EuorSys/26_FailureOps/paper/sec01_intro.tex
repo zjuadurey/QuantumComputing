@@ -1,0 +1,38 @@
+%%
+%% 1. Introduction
+%%
+\section{Introduction}
+
+Quantum error correction is entering its systems era. As experimental platforms scale toward fault-tolerant operation, the systems community must confront questions that go beyond physics-level code performance: how should a QEC decoder be scheduled under real-time constraints? Which decoding strategy is appropriate for a given workload? When does idle time between syndrome cycles become a dominant failure source? Answering these questions requires more than measuring aggregate logical error rates. It requires knowing which controllable factors, if changed, would alter the logical failure behavior of a given protected execution.
+
+Current QEC evaluation practice is not designed to provide this kind of attribution. The standard metrics---logical error rate, baseline logical failure rate (LFR), syndrome-detector burden, error-type classification---are descriptive. They can rank conditions by difficulty and label failures by suspected physical origin, but they do not answer the counterfactual question: would this specific execution still have failed if the decoder, the prior, or the runtime budget had been different? A high detector-event count on a failed shot does not guarantee that a different decoder would have corrected it. An idle-error label on a syndrome round does not tell you whether shortening the inter-cycle gap would have changed the logical outcome. Attributing failure behavior to intervenable factors requires an experimental design that isolates those factors while holding everything else fixed. This is the gap that FailureOps fills.
+
+FailureOps is a paired counterfactual attribution methodology for QEC-protected logical circuit executions. Given a set of shot-level detector records---the same data that a real QEC system produces during operation---FailureOps runs the same shots through a baseline configuration and one or more intervened configurations, preserving shot identity, random seed, detector-event trace, and logical workload. It then measures two quantities on discordant shot pairs: rescued failures (shots that fail under the baseline but succeed under the intervention) and induced failures (shots that succeed under the baseline but fail under the intervention). The core output is a sensitivity profile: which intervention, applied to which class of executions, changes logical failure behavior the most, and in which direction? The attribution is tied to the intervention, not to a static label.
+
+We instantiate FailureOps on public real QEC detector records, using interventions that span three families: decoder-pathway switching (changing the decoder backend or the prior distribution that feeds it), decoder-prior variation (sweeping across thousands of prior configurations within a fixed decoder family), and measured-runtime deadline replay (applying decoder service-time budgets measured on real records). We evaluate across four public datasets: the original Google RL QEC detector-record release, the expanded Google RL QEC v2 corpus, the Google qec3v5 surface-code scaling dataset, and an independent IBM aggregate hardware-validation dataset.
+
+We report six main results:
+
+The main decoder-pathway intervention---switching from a SI1000-prior decoder to a frequency-calibrated-prior decoder on paired shot records---rescues logical failures in all 40 observed real-data conditions, with 39 of 40 individually significant after scope-wise Holm correction. No condition shows net-induction.
+
+Pairing is methodologically necessary, not statistically convenient. Across all observed conditions on both the original and expanded corpora, unpaired bootstrap resampling inflates estimator standard deviation by a factor of 1.5--3.1 relative to paired resampling. Without pairing, the rescued and induced transition semantics that distinguish FailureOps attribution from aggregate LFR comparison are lost.
+
+A corpus-level decoder-prior study across 5,724 prior variants (19.1 million paired shots) shows 85.2\% of confidence intervals excluding zero, with mean paired delta remaining negative in all three prior families. The decoder-prior effect is not a single-condition anecdote but a replicable intervention-family phenomenon.
+
+Measured decoder service time (mean 4.65\,$\mu$s) produces a sharp deadline-intervention threshold: a 4\,$\mu$s budget causes 93.6\% of corrections to arrive late and induces a paired delta LFR of $+0.307$, while a 7\,$\mu$s budget eliminates the effect entirely. This is a measured-service-time replay closure, not a claim of live control-stack timing.
+
+The decoder-pathway result externally replicates on the independent qec3v5 surface-code dataset with a different decoder baseline (PyMatching), yielding 23 of 26 Holm-significant conditions and preserving the sign of the effect across both logical bases.
+
+The signal is not confined to a narrow condition matrix. An expanded same-family corpus of 496 Google RL QEC v2 conditions shows 461 net-rescuing conditions and a mean paired delta LFR of $-0.014$, with no subgroup reversal across code family, control mode, or logical basis.
+
+The contributions of this paper are:
+\begin{enumerate}
+\item A paired counterfactual attribution methodology that treats logical failure as an intervention-sensitive system event rather than a static error statistic.
+\item A public-data instantiation of the methodology across decoder-pathway, decoder-prior, and runtime-replay intervention families.
+\item Empirical evidence, drawn from hundreds to thousands of real QEC conditions and millions of paired shots, that paired counterfactual attribution exposes intervention-sensitive failure behavior that descriptive baselines cannot capture.
+\item A reproducibility-first artifact: the full pipeline runs on public detector records, produces a canonical set of paper-facing output tables and figures, and is designed for reviewer verification.
+\end{enumerate}
+
+FailureOps does not propose a new decoder, code family, or threshold-estimation method. It is not a simulator. It is an attribution layer that sits on top of existing QEC pipelines and answers a question that the systems community will need as QEC-protected quantum computation becomes a real engineering discipline: given a protected execution, what controllable factor, if changed, would have altered its logical failure behavior?
+
+The remainder of this paper is organized as follows. Section~2 provides background on QEC and logical failure measurement. Section~3 presents the FailureOps design and paired counterfactual framework. Section~4 describes the implementation pipeline and the intervention registry. Section~5 presents the evaluation across all four datasets and three intervention families. Section~6 discusses limitations, scope boundaries, and the relationship between FailureOps and future live-system deployment. Section~7 surveys related work in QEC evaluation, systems attribution, and counterfactual methods. Section~8 concludes.

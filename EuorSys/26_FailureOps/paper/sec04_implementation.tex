@@ -1,0 +1,22 @@
+%%
+%% 4. Implementation
+%%
+\section{Implementation}
+
+The FailureOps pipeline is implemented as a set of standalone Python scripts that process public QEC detector records and produce the paper-facing output tables and figures. The implementation is structured as a layered pipeline with four stages: data ingestion, intervention execution, evidence aggregation, and digest generation.
+
+\subsection{Data Ingestion}
+
+The pipeline ingests detector records from four public sources: the original Google RL QEC release, the Google RL QEC v2 expanded corpus, the Google qec3v5 2022 surface-code scaling dataset, and the DAQEC/IBM aggregate hardware-validation dataset. Each dataset is stored in its native format under \texttt{data/raw/}. A set of dataset-specific ingestion scripts normalizes the records into a common schema with fields for shot ID, detector-event sequence, logical workload configuration, control mode, basis, and cycle count. The normalized records are stored as CSV files under \texttt{data/results/} and serve as the single input surface for all downstream interventions.
+
+\subsection{Intervention Registry}
+
+Interventions are defined declaratively. Each intervention specifies a baseline configuration, an intervened configuration, the pipeline component being varied, and the condition matrix over which to evaluate. The baseline and intervened configurations reference decoder backends (e.g., PyMatching, correlated matching, tesseract), prior distributions (e.g., SI1000, frequency-calibrated, dem\_correlations, dem\_rl\_isolated), and runtime parameters (e.g., deadline budgets in microseconds). The intervention registry is versioned and hash-identified so that every output artifact can be traced to the exact intervention specification that produced it.
+
+\subsection{Execution}
+
+For each condition in an intervention family, the pipeline iterates over the paired shot records and executes both the baseline and the intervened configuration on each shot's detector-event trace. The executions are independent across shots and conditions and can be parallelized. The pipeline records, for each shot, the baseline correction, the intervened correction, the baseline logical outcome, the intervened logical outcome, and the paired transition class (rescued, induced, unchanged-failure, unchanged-success). These per-shot transition records are the atomic unit of FailureOps evidence and are preserved for all downstream analyses.
+
+\subsection{Output and Reproducibility}
+
+The pipeline produces a canonical set of paper-facing outputs: per-intervention-family significance tables with McNemar exact p-values and Holm-adjusted significance, baseline-comparison summaries, robustness-check tables, a claim-audit table that maps each paper claim to its supporting evidence and scope boundary, and a reviewer-facing digest that compresses the main results into a single compact table. The full pipeline is runnable from a single command (\texttt{python scripts/31\_run\_p10\_eurosys\_main\_evidence.py}) followed by the digest builder (\texttt{python scripts/37\_build\_p10\_eurosys\_digest.py}). All input data is public and all intermediate artifacts are human-readable CSV files. The implementation is approximately 3,000 lines of Python with dependencies limited to standard scientific computing libraries.
