@@ -3,6 +3,7 @@ __pycache__/
 *.pyc
 .pytest_cache/
 paper/
+
 paper_backup_before_overleaf_push/
 paper_old_messy_git/
 _archive/
