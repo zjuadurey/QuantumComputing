@@ -1,0 +1,7 @@
+metric,value
+total_conditions,40
+subsample_50pct_all_sign_negative,0/40
+subsample_50pct_mean_sign_negative_fraction,0.002750
+subsample_25pct_all_sign_negative,0/40
+subsample_12_5pct_all_sign_negative,0/40
+note,"Bootstrap subsample sensitivity analysis. At 50% subsample, 500 bootstrap resamples per condition. The paired delta LFR direction is robust to subsampling — the 40/40 net-rescuing result is not an artifact of any specific shot subset."

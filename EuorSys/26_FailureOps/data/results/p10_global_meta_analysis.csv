@@ -1,0 +1,13 @@
+metric,value
+num_conditions,40
+fixed_effect_mean_delta_lfr,-0.019493
+between_study_variance_tau2,0.000142
+i_squared_pct,97.134669
+random_effects_pooled_delta_lfr,-0.019272
+random_effects_95ci_lower,-0.023055
+random_effects_95ci_upper,-0.015489
+random_effects_ci_excludes_zero,True
+global_holm_significant_conditions,39/40
+benjamini_hochberg_significant_conditions,39/40
+scoped_holm_significant_conditions,39/40
+note,Scoped Holm is 39/40. Global Holm is more conservative because it penalizes the main decoder-pathway claim for all 40 tests jointly. Benjamini-Hochberg FDR controls the expected proportion of false discoveries rather than FWER.
