@@ -7,7 +7,7 @@ The FailureOps pipeline is implemented as a set of standalone Python scripts tha
 
 \subsection{Data Ingestion}
 
-The pipeline ingests detector records from four public sources: the original Google RL QEC release, the Google RL QEC v2 expanded corpus, the Google qec3v5 2022 surface-code scaling dataset, and the DAQEC/IBM aggregate hardware-validation dataset. Each dataset is stored in its native format under \texttt{data/raw/}. A set of dataset-specific ingestion scripts normalizes the records into a common schema with fields for shot ID, detector-event sequence, logical workload configuration, control mode, basis, and cycle count. The normalized records are stored as CSV files under \texttt{data/results/} and serve as the single input surface for all downstream interventions.
+The pipeline ingests per-shot detector records from three public sources that support the full paired pipeline: the original Google RL QEC release, the Google RL QEC v2 expanded corpus, and the Google qec3v5 2022 surface-code scaling dataset. Each dataset is stored in its native format under \texttt{data/raw/}. A set of dataset-specific ingestion scripts normalizes the records into a common schema with fields for shot ID, detector-event sequence, logical workload configuration, control mode, basis, and cycle count. The normalized records are stored as CSV files under \texttt{data/results/} and serve as the single input surface for all downstream interventions. An additional DAQEC/IBM aggregate hardware-validation dataset provides independent external sanity-check reference points but does not contain per-shot detector records and is analyzed separately.
 
 \subsection{Intervention Registry}
 

@@ -1,0 +1,5 @@
+metric,value
+total_conditions,40
+sign_consistent_conditions,40
+sign_consistent_pct,100.000000
+note,Expected 40/40 sign-consistent since rescued >> induced in all conditions. The split confirms that the paired effect direction is robust to halving the sample.

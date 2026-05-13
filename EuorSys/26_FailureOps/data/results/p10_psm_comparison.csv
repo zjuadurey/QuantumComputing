@@ -1,0 +1,9 @@
+metric,value
+Sign agreement (negative delta in both),40/40
+Mean FailureOps paired delta LFR,-0.01949
+Mean PSM ATT (unpaired),-0.01949
+Spearman rho (PSM vs FailureOps),0.9750
+PSM std dev / FailureOps std dev ratio,1.00
+Total rescued (FailureOps only),17279
+Total induced (FailureOps only),9482
+Rescued/induced decomposition (PSM),not available

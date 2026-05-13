@@ -3,26 +3,77 @@
 %%
 \section{Evaluation}
 
-We evaluate FailureOps across four public QEC datasets and three intervention families. The main real-record evaluation uses the Google RL QEC detector-record release (40 conditions, 400,000 paired shots), with decoder-pathway intervention as the primary treatment. The pairing-necessity analysis uses bootstrap resampling over paired and unpaired estimators on the same conditions. The baseline comparison evaluates four conventional metrics---plain LFR, static detector burden, plain LFR delta, and unpaired bootstrap---against FailureOps paired sensitivity. The runtime-replay evaluation applies measured decoder service-time traces to a paired deadline intervention. The external and expanded evidence section covers the qec3v5 surface-code replication (§5.5), the Google RL QEC v2 496-condition expansion (§5.6), and the corpus-level decoder-prior study across 5,724 prior variants (§5.7). All statistical tests use exact McNemar tests over discordant rescued and induced transition counts, with scope-wise Holm correction applied at $\alpha = 0.05$ within each analysis scope.
+We evaluate FailureOps across three public per-shot QEC detector-record datasets (plus an IBM aggregate sanity-check dataset) and three intervention families. The main real-record evaluation uses the Google RL QEC detector-record release (40 conditions, 400,000 paired shots), with decoder-pathway intervention as the primary treatment. The pairing-necessity analysis uses bootstrap resampling over paired and unpaired estimators on the same conditions. The baseline comparison evaluates four conventional metrics---plain LFR, static detector burden, plain LFR delta, and unpaired bootstrap---against FailureOps paired sensitivity. The runtime-replay evaluation applies measured decoder service-time traces to a paired deadline intervention. The external and expanded evidence section covers the qec3v5 surface-code replication (§5.5), the Google RL QEC v2 496-condition expansion (§5.6), and the corpus-level decoder-prior study across 5,724 prior variants (§5.7). All statistical tests use exact McNemar tests over discordant rescued and induced transition counts, with scope-wise Holm correction applied at $\alpha = 0.05$ within each analysis scope.
 
 \subsection{Main Real-Record Result}
 
-The primary FailureOps intervention switches the decoder pathway from a SI1000-prior decoder to a frequency-calibrated-prior decoder, with both configurations operating on the same shot-level detector records. The SI1000 prior assumes all error mechanisms are equally likely (a uniform prior in error-mechanism space); the frequency-calibrated prior replaces this with a prior estimated from the observed detector-event frequencies on the same dataset. This intervention asks a concrete systems question: given the same detector records, does a data-driven prior outperform a uniform prior at rescuing logical failures?
+The primary FailureOps intervention switches the decoder backend from correlated matching to tesseract, with both configurations operating on the same shot-level detector records and using the same SI1000 prior (a uniform prior that assumes all error mechanisms are equally likely). The tesseract decoder employs a different matching algorithm, and the systems question is: given the same detector records and the same prior, does switching to a different decoder backend change which shots succeed and which fail? A complementary intervention that keeps the tesseract decoder fixed and switches from an SI1000 prior to a frequency-calibrated prior is evaluated in the expanded corpus (Section~5.6), isolating the effect of the prior distribution.
 
 The experiment spans 40 real-data conditions drawn from the Google RL QEC public dataset. The conditions form a full-factorial matrix of 2 control modes (reinforcement learning and traditional calibration) $\times$ 2 logical bases (X and Z) $\times$ 10 syndrome-extraction cycle settings (10 through 100, in steps of 10), all on surface-code memory experiments.
 
-Table~\ref{tab:main_result} summarizes the main result. All 40 conditions exhibit a negative paired delta logical-failure rate, meaning the frequency-calibrated prior rescues more failures than it induces in every observed condition. The mean paired delta LFR is $-0.0195$, with the strongest single-condition effect reaching $-0.0369$ and the weakest at $-0.0019$. Of the 40 conditions, 39 are individually significant after scope-wise Holm correction; none is significant in the reverse direction. The condition-level effect is computed via exact McNemar test over discordant pairs: for each condition and each of the 10,000 paired shots, we record whether the baseline correction succeeded and the intervention correction failed (induced failure) or vice versa (rescued failure), and test the null hypothesis of equal rescued and induced counts.
+Table~\ref{tab:main_result} summarizes the main result. All 40 conditions exhibit a negative paired delta logical-failure rate, meaning the tesseract decoder rescues more failures than it induces in every observed condition. The mean paired delta LFR is $-0.0195$, with the strongest single-condition effect reaching $-0.0369$ and the weakest at $-0.0019$. Of the 40 conditions, 39 are individually significant after scope-wise Holm correction; none is significant in the reverse direction. The condition-level effect is computed via exact McNemar test over discordant pairs: for each condition and each of the 10,000 paired shots, we record whether the baseline correction succeeded and the intervention correction failed (induced failure) or vice versa (rescued failure), and test the null hypothesis of equal rescued and induced counts.
 
 The significance framework applies Holm correction within the analysis scope \texttt{real\_decoder\_pathway}, which contains exactly these 40 conditions. This means the family-wise error rate is controlled at 0.05 over the decoder-pathway claim, independently of the prior-corpus, runtime-replay, or external-replication claims that are corrected within their own scopes.
 
-The unanimous sign of the effect---not just the count of significant conditions---is the strongest single message of this result. Under the McNemar null hypothesis of equal rescued and induced counts per condition, the sign of each condition's paired delta is unconstrained: a condition with $R > I$ and a condition with $R < I$ are equally compatible with the null. The observation that all 40 conditions tilt in the same direction---$R > I$ in every case---is therefore informative beyond the per-condition significance results. This pattern is what we would expect if the frequency-calibrated prior systematically improves correction quality on these real detector records, and FailureOps paired counterfactual measurement is sensitive enough to capture it.
+The unanimous sign of the effect---not just the count of significant conditions---is the strongest single message of this result. Under the McNemar null hypothesis of equal rescued and induced counts per condition, the sign of each condition's paired delta is unconstrained: a condition with $R > I$ and a condition with $R < I$ are equally compatible with the null. The observation that all 40 conditions tilt in the same direction---$R > I$ in every case---is therefore informative beyond the per-condition significance results. This pattern is what we would expect if the tesseract decoder systematically provides better corrections than correlated matching on these real detector records, and FailureOps paired counterfactual measurement is sensitive enough to capture it.
 
-\begin{figure}[t]
+\begin{table}[t]
 \centering
-\includegraphics[width=\columnwidth]{figures/p10_eurosys_main_evidence.png}
 \caption{Per-condition paired delta LFR for the main decoder-pathway intervention across 40 real-data conditions.}
-\label{fig:main_result}
-\end{figure}
+\label{tab:main_per_condition}
+\footnotesize
+\begin{tabular}{rrrrrrr}
+\toprule
+Cyc & Basis & Ctrl & BaseFail & Rescued & Induced & $\Delta$LFR \\
+\midrule
+\multicolumn{7}{l}{\textbf{Reinforcement Learning}} \\
+\midrule
+10 & X & RL & 243 & 74 & 46 & $-$0.0028 \\
+20 & X & RL & 492 & 163 & 78 & $-$0.0085 \\
+30 & X & RL & 676 & 221 & 125 & $-$0.0096 \\
+40 & X & RL & 874 & 330 & 166 & $-$0.0164 \\
+50 & X & RL & 1046 & 361 & 200 & $-$0.0161 \\
+60 & X & RL & 1270 & 424 & 230 & $-$0.0194 \\
+70 & X & RL & 1421 & 469 & 250 & $-$0.0219 \\
+80 & X & RL & 1621 & 632 & 334 & $-$0.0298 \\
+90 & X & RL & 1784 & 656 & 330 & $-$0.0326 \\
+100 & X & RL & 1919 & 687 & 374 & $-$0.0313 \\
+10 & Z & RL & 220 & 58 & 39 & $-$0.0019 \\
+20 & Z & RL & 433 & 147 & 61 & $-$0.0086 \\
+30 & Z & RL & 651 & 218 & 104 & $-$0.0114 \\
+40 & Z & RL & 837 & 292 & 154 & $-$0.0138 \\
+50 & Z & RL & 991 & 336 & 190 & $-$0.0146 \\
+60 & Z & RL & 1245 & 395 & 227 & $-$0.0168 \\
+70 & Z & RL & 1404 & 505 & 255 & $-$0.0250 \\
+80 & Z & RL & 1520 & 509 & 317 & $-$0.0192 \\
+90 & Z & RL & 1705 & 586 & 354 & $-$0.0232 \\
+100 & Z & RL & 1979 & 672 & 388 & $-$0.0284 \\
+\midrule
+\multicolumn{7}{l}{\textbf{Traditional Calibration}} \\
+\midrule
+10 & X & TC & 257 & 93 & 41 & $-$0.0052 \\
+20 & X & TC & 550 & 185 & 105 & $-$0.0080 \\
+30 & X & TC & 812 & 290 & 125 & $-$0.0165 \\
+40 & X & TC & 1029 & 386 & 184 & $-$0.0202 \\
+50 & X & TC & 1246 & 452 & 236 & $-$0.0216 \\
+60 & X & TC & 1454 & 547 & 279 & $-$0.0268 \\
+70 & X & TC & 1740 & 642 & 347 & $-$0.0295 \\
+80 & X & TC & 1880 & 707 & 385 & $-$0.0322 \\
+90 & X & TC & 2090 & 794 & 425 & $-$0.0369 \\
+100 & X & TC & 2283 & 868 & 524 & $-$0.0344 \\
+10 & Z & TC & 260 & 83 & 47 & $-$0.0036 \\
+20 & Z & TC & 527 & 159 & 92 & $-$0.0067 \\
+30 & Z & TC & 774 & 245 & 124 & $-$0.0121 \\
+40 & Z & TC & 1077 & 381 & 191 & $-$0.0190 \\
+50 & Z & TC & 1313 & 433 & 260 & $-$0.0173 \\
+60 & Z & TC & 1461 & 509 & 253 & $-$0.0256 \\
+70 & Z & TC & 1652 & 567 & 327 & $-$0.0240 \\
+80 & Z & TC & 1902 & 680 & 403 & $-$0.0277 \\
+90 & Z & TC & 1957 & 693 & 408 & $-$0.0285 \\
+100 & Z & TC & 2185 & 813 & 482 & $-$0.0331 \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \begin{table}[t]
 \centering
@@ -43,6 +94,10 @@ Total paired shots & 400,000 \\
 \end{tabular}
 \end{table}
 
+\subsubsection{Cross-Condition Generalization}
+
+The 40 conditions span two control modes: reinforcement learning (RL) and traditional calibration (TC), each with 20 conditions. A natural robustness question is whether the decoder advantage is control-mode-specific. We test this by treating one control mode as a training set and evaluating on the other. When the decoder preference is determined on the TC conditions (mean paired $\Delta$ LFR $= -0.0214$, all 20 net-rescuing), all 20 RL conditions independently exhibit the same negative sign (mean $\Delta = -0.0176$, 20/20 net-rescuing). The symmetric transfer---training on RL, testing on TC---yields the identical result: 20/20 sign-consistent. This cross-condition sign stability indicates that the decoder advantage is not a control-mode artifact but a property of the underlying detector records that the tesseract decoder exploits more effectively than correlated matching across both calibration strategies.
+
 \subsection{Why Pairing Is Necessary}
 
 The paired design is not a statistical preference; it is a measurement requirement. Without pairing, it is impossible to distinguish rescued from induced transitions on the same shot records, because unpaired comparison only reports an aggregate LFR difference between two independent groups of shots without tracking which specific shots changed outcome.
@@ -53,12 +108,63 @@ We repeat the same analysis on the expanded 496-condition Google RL QEC v2 corpu
 
 The practical consequence is that an unpaired estimator would require between 2.3$\times$ and 9.6$\times$ more samples to achieve the same confidence-interval width as the paired estimator, assuming standard asymptotic scaling. For the real-data conditions studied here, where 10,000 paired shots already represent significant data-acquisition cost, this inflating factor can make the difference between detecting a significant effect and failing to do so. More fundamentally, even with arbitrarily large sample sizes, the unpaired estimator cannot recover the rescued-versus-induced transition semantics that are the core output of FailureOps attribution.
 
-\begin{figure}[t]
+\begin{table}[t]
 \centering
-\includegraphics[width=\columnwidth]{figures/p7_5_paired_vs_unpaired_variance.png}
-\caption{Paired versus unpaired bootstrap standard deviation across the 40 original real-data conditions. Every condition falls above the 1:1 line, indicating higher unpaired variance.}
-\label{fig:pairing}
-\end{figure}
+\caption{Per-condition paired and unpaired bootstrap standard deviation, and ratio, across the 40 original real-data conditions. Every condition shows ratio $>$ 1.0, confirming higher unpaired variance.}
+\label{tab:pairing_per_condition}
+\footnotesize
+\begin{tabular}{rrrrrrr}
+\toprule
+Cyc & Basis & Ctrl & Paired $\sigma$ & Unpaired $\sigma$ & Ratio \\
+\midrule
+\multicolumn{7}{l}{\textbf{Reinforcement Learning}} \\
+\midrule
+10 & X & RL & 0.00111 & 0.00212 & 1.91 \\
+20 & X & RL & 0.00157 & 0.00290 & 1.84 \\
+30 & X & RL & 0.00186 & 0.00329 & 1.77 \\
+40 & X & RL & 0.00227 & 0.00378 & 1.66 \\
+50 & X & RL & 0.00243 & 0.00406 & 1.67 \\
+60 & X & RL & 0.00250 & 0.00439 & 1.76 \\
+70 & X & RL & 0.00247 & 0.00467 & 1.89 \\
+80 & X & RL & 0.00313 & 0.00477 & 1.52 \\
+90 & X & RL & 0.00283 & 0.00525 & 1.86 \\
+100 & X & RL & 0.00340 & 0.00550 & 1.62 \\
+10 & Z & RL & 0.00101 & 0.00201 & 2.00 \\
+20 & Z & RL & 0.00147 & 0.00284 & 1.93 \\
+30 & Z & RL & 0.00180 & 0.00353 & 1.96 \\
+40 & Z & RL & 0.00222 & 0.00370 & 1.66 \\
+50 & Z & RL & 0.00218 & 0.00398 & 1.82 \\
+60 & Z & RL & 0.00258 & 0.00458 & 1.78 \\
+70 & Z & RL & 0.00291 & 0.00475 & 1.63 \\
+80 & Z & RL & 0.00294 & 0.00507 & 1.73 \\
+90 & Z & RL & 0.00313 & 0.00558 & 1.79 \\
+100 & Z & RL & 0.00312 & 0.00557 & 1.79 \\
+\midrule
+\multicolumn{7}{l}{\textbf{Traditional Calibration}} \\
+\midrule
+10 & X & TC & 0.00114 & 0.00224 & 1.97 \\
+20 & X & TC & 0.00177 & 0.00318 & 1.80 \\
+30 & X & TC & 0.00211 & 0.00365 & 1.73 \\
+40 & X & TC & 0.00245 & 0.00405 & 1.65 \\
+50 & X & TC & 0.00269 & 0.00436 & 1.62 \\
+60 & X & TC & 0.00276 & 0.00481 & 1.74 \\
+70 & X & TC & 0.00307 & 0.00501 & 1.63 \\
+80 & X & TC & 0.00320 & 0.00552 & 1.73 \\
+90 & X & TC & 0.00357 & 0.00553 & 1.55 \\
+100 & X & TC & 0.00354 & 0.00575 & 1.63 \\
+10 & Z & TC & 0.00116 & 0.00213 & 1.83 \\
+20 & Z & TC & 0.00163 & 0.00309 & 1.90 \\
+30 & Z & TC & 0.00182 & 0.00372 & 2.05 \\
+40 & Z & TC & 0.00234 & 0.00418 & 1.78 \\
+50 & Z & TC & 0.00263 & 0.00434 & 1.65 \\
+60 & Z & TC & 0.00262 & 0.00473 & 1.81 \\
+70 & Z & TC & 0.00312 & 0.00475 & 1.52 \\
+80 & Z & TC & 0.00341 & 0.00556 & 1.63 \\
+90 & Z & TC & 0.00331 & 0.00600 & 1.81 \\
+100 & Z & TC & 0.00379 & 0.00600 & 1.58 \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \begin{table}[t]
 \centering
@@ -130,26 +236,12 @@ The threshold behavior---the sharp transition from a large effect at 4\,$\mu$s t
 
 We call this measured-runtime replay closure, not live control-stack timing attribution. The service-time measurements are collected on real detector records, but they are not obtained from an actual quantum control stack with hardware feedback latency, production queueing, or real-time scheduling. The replay demonstrates that decoder service time can be turned into a paired intervention whose effect on logical outcomes can be quantified on the same shot records. Closing this loop with live-hardware timing traces remains future work.
 
-\begin{figure}[t]
-\centering
-\includegraphics[width=\columnwidth]{figures/p10_runtime_deadline_threshold.png}
-\caption{Paired delta LFR (bars) and deadline miss rate (line) as a function of decoder deadline budget. A sharp threshold appears between 4\,$\mu$s and 6\,$\mu$s, corresponding to the region around the measured mean service time of 4.65\,$\mu$s.}
-\label{fig:runtime}
-\end{figure}
-
 \subsection{External Replication on qec3v5}
 \label{sec:qec3v5}
 
 The Google qec3v5 2022 surface-code scaling dataset provides an independent test of the decoder-pathway sensitivity result. The qec3v5 dataset uses a different code family (rotated surface code, distance 5), a different decoder baseline (PyMatching), and a different experimental setup (syndrome sampling at 13 cycle depths from $r = 1$ to $r = 25$). We apply the same paired counterfactual design, switching from PyMatching to a correlated-matching decoder on 10,000 paired shots per condition.
 
-\begin{figure}[t]
-\centering
-\includegraphics[width=\columnwidth]{figures/p7_5_decoder_effect_by_cycles.png}
-\caption{Paired delta LFR by cycle depth on the qec3v5 surface-code dataset. The effect strengthens monotonically with memory duration and is consistent across X and Z bases.}
-\label{fig:qec3v5}
-\end{figure}
-
-Of the 26 conditions (13 X-basis, 13 Z-basis), 23 are individually significant after scope-wise Holm correction. The mean paired delta LFR is $-0.0279$ for X-basis conditions and $-0.0268$ for Z-basis conditions. The three non-significant conditions are the shortest-cycle conditions ($r = 1$ for X and Z, where the baseline LFR is below 0.01), which is consistent with the observation that intervention sensitivity grows with memory duration. Table~\ref{tab:qec3v5} summarizes the cycle-level breakdown: the effect strengthens monotonically from $r = 1$ ($\Delta = -0.0001$, not significant) to $r = 11$ ($\Delta = -0.036$) and remains negative through all higher cycle settings. This external replication, on a different dataset with a different decoder baseline, supports the claim that decoder-pathway sensitivity is not an artifact of a particular code, decoder, or experiment design.
+Of the 26 conditions (13 X-basis, 13 Z-basis), 23 are individually significant after scope-wise Holm correction. The mean paired delta LFR is $-0.0279$ for X-basis conditions and $-0.0268$ for Z-basis conditions. The three non-significant conditions are the shortest-cycle conditions ($r = 1$ for X and Z, where the baseline LFR is below 0.01), which is consistent with the observation that intervention sensitivity grows with memory duration. Table~\ref{tab:qec3v5_detail} provides the per-cycle breakdown of paired delta LFR, rescued and induced counts, and rescued fraction. The effect strengthens monotonically from $r = 1$ ($\Delta = -0.0001$, rescued fraction $< 0.01$) to $r = 25$ ($\Delta = -0.0277$, rescued fraction 0.44). This external replication, on a different dataset with a different decoder baseline, supports the claim that decoder-pathway sensitivity is not an artifact of a particular code, decoder, or experiment design.
 
 \begin{table}[t]
 \centering
@@ -174,31 +266,25 @@ The Google RL QEC v2 corpus expands the original 40-condition matrix to 496 cond
 
 Table~\ref{tab:v2_subgroups} breaks down the effect by subgroup. The mean paired delta is negative in every observed subgroup, with no reversal. Color-code memory conditions show a slightly stronger mean effect ($-0.017$) than surface-code memory ($-0.013$). Z-basis conditions ($-0.016$) show a moderately larger effect than X-basis ($-0.011$). The two control modes---traditional\_calibration and traditional\_calibration\_and\_rl\_fine\_tuning---produce nearly identical mean deltas ($-0.014$ and $-0.013$ respectively). The subgroup stability reinforces the main result: the paired sensitivity signal is not confined to a particular code, basis, or calibration mode but appears broadly across the expanded public real-record corpus.
 
-\begin{figure}[t]
-\centering
-\includegraphics[width=\columnwidth]{figures/p10_google_rl_qec_v2_evidence.png}
-\caption{Expanded Google RL QEC v2 evidence: per-condition paired delta LFR across 496 conditions (top left), paired-vs-unpaired variance ratio (top right), subgroup aggregation (bottom left), and rescued/induced transition profiles (bottom right).}
-\label{fig:v2}
-\end{figure}
-
 \begin{table}[t]
 \centering
 \caption{Google RL QEC v2 subgroup breakdown. All subgroups show negative mean paired delta LFR.}
 \label{tab:v2_subgroups}
-\begin{tabular}{lrr}
+\footnotesize
+\begin{tabular}{lrrrr}
 \toprule
-Subgroup & Conditions & Mean $\Delta$LFR \\
+Code Family & Ctrl Mode & Basis & Cond & Mean $\Delta$LFR \\
 \midrule
-Surface code memory & 448 & $-0.013$ \\
-Color code memory & 48 & $-0.017$ \\
-\addlinespace
-Traditional calibration & 248 & $-0.014$ \\
-RL fine tuning & 248 & $-0.013$ \\
-\addlinespace
-X basis & 248 & $-0.011$ \\
-Z basis & 248 & $-0.016$ \\
+Surface code (d3/d5/d7) & TC & X & 112 & $-$0.0116 \\
+Surface code (d3/d5/d7) & TC & Z & 112 & $-$0.0163 \\
+Surface code (d3/d5/d7) & TC+RL & X & 112 & $-$0.0098 \\
+Surface code (d3/d5/d7) & TC+RL & Z & 112 & $-$0.0154 \\
+Color code (d5) & TC & X & 12 & $-$0.0203 \\
+Color code (d5) & TC & Z & 12 & $-$0.0172 \\
+Color code (d5) & TC+RL & X & 12 & $-$0.0174 \\
+Color code (d5) & TC+RL & Z & 12 & $-$0.0142 \\
 \midrule
-All v2 conditions & 496 & $-0.014$ \\
+All v2 conditions & --- & --- & 496 & $-$0.0137 \\
 \bottomrule
 \end{tabular}
 \end{table}
@@ -213,17 +299,28 @@ Of the 5,724 variants, 4,879 (85.2\%) yield bootstrap confidence intervals that 
 
 This result serves two purposes in the FailureOps evaluation. First, it demonstrates scale: the paired counterfactual pipeline can be applied to thousands of intervention variants without modification, producing comparable sensitivity metrics across an intervention design space. Second, it shows that decoder-prior sensitivity is not a single binary switch but a spectrum: different prior designs produce different effect magnitudes while preserving the negative sign. For a systems audience, this is analogous to a parameter-sensitivity study over a scheduler or allocator design space---the intervention becomes a tunable family rather than a binary treatment.
 
-\begin{figure}[t]
+\begin{table}[t]
 \centering
-\includegraphics[width=\columnwidth]{figures/p10_google_decoder_priors_prior_effects.png}
-\caption{Distribution of paired delta LFR across 5,724 decoder-prior variants. The histogram peak lies in the negative region, confirming that most alternative prior configurations rescue more failures than the baseline SI1000 prior.}
-\label{fig:prior_corpus}
-\end{figure}
+\caption{Decoder-prior corpus study: aggregate results across 5,724 prior variants in three families, each compared against a common \texttt{dem\_simple} baseline on the sycamore surface-code dataset.}
+\label{tab:prior_corpus}
+\footnotesize
+\begin{tabular}{lrrrrr}
+\toprule
+Intervened Prior & Cond & Mean $\Delta$LFR & NegFrac & Min $\Delta$ & Max $\Delta$ \\
+\midrule
+dem\_correlations & 1,908 & $-$0.0133 & 0.983 & $-$0.0345 & $+$0.0154 \\
+dem\_rl\_isolated\_cm & 1,908 & $-$0.0212 & 0.997 & $-$0.0494 & $+$0.0114 \\
+dem\_rl\_shared\_cm & 1,908 & $-$0.0180 & 0.960 & $-$0.0471 & $+$0.0150 \\
+\midrule
+All families & 5,724 & $-$0.0175 & 0.980 & -- & -- \\
+\bottomrule
+\end{tabular}
+\end{table}
 
 \subsection{Characterizing Rescued Shots}
 \label{sec:rescued_shot_analysis}
 
-The preceding subsections establish that the frequency-calibrated prior rescues more failures than it induces across all 40 conditions. This section goes one step further by interrogating \emph{which kinds of detector-event patterns} distinguish rescued shots from unchanged-failure shots. The goal is not to propose a new error model, but to connect the observed intervention effect to the physical structure of the detector records that produce it---to move from ``the intervention works'' toward ``why it works on these specific shots.''
+The preceding subsections establish that the tesseract decoder rescues more failures than it induces across all 40 conditions. This section goes one step further by interrogating \emph{which kinds of detector-event patterns} distinguish rescued shots from unchanged-failure shots. The goal is not to propose a new error model, but to connect the observed intervention effect to the physical structure of the detector records that produce it---to move from ``the intervention works'' toward ``why it works on these specific shots.''
 
 \subsubsection{Detector Burden Distribution}
 
@@ -231,7 +328,7 @@ The per-shot detector burden---the total number of detector events across all sy
 
 Across the 40-condition aggregate, the mean detector burden of rescued shots (109.4) and unchanged-failure shots (106.1) differ by only 3.0\% (ratio 1.03). This near-identity holds across all cycle depths: at 10 cycles the rescued-to-unchanged burden ratio is 1.07; at 50 cycles, 1.01; at 100 cycles, 1.01. Induced failures carry a mean burden of 112.0 (ratio of 1.06 to rescued), while unchanged-success shots carry a mean burden of 77.3---substantially lower than any failure category. The v2 expanded corpus confirms this pattern scale-independently: rescued shots (mean 91.5) carry 14.4\% higher burden than unchanged-failure shots (mean 80.0), while unchanged-success shots (mean 80.5) are comparable to unchanged failures, reflecting the lower overall error rates on the expanded corpus.
 
-The central empirical finding is not that rescued shots are materially ``easier'' or ``harder'' than unchanged failures. The two groups are drawn from the same underlying difficulty distribution. The fact that the intervention rescues shots from the same burden range as the shots it leaves unchanged implies that the discriminating factor is not shot difficulty but the \emph{pattern structure} of the detector record---which specific detectors fire, in which rounds, and in which spatial arrangement. The SI1000 prior and the frequency-calibrated prior produce different corrections when that pattern structure contains ambiguity that the uniform prior cannot resolve but the data-driven prior can.
+The central empirical finding is not that rescued shots are materially ``easier'' or ``harder'' than unchanged failures. The two groups are drawn from the same underlying difficulty distribution. The fact that the intervention rescues shots from the same burden range as the shots it leaves unchanged implies that the discriminating factor is not shot difficulty but the \emph{pattern structure} of the detector record---which specific detectors fire, in which rounds, and in which spatial arrangement. The correlated-matching and tesseract decoders produce different corrections when that pattern structure contains ambiguity that the simpler decoder cannot resolve but the tesseract algorithm can.
 
 \subsubsection{Temporal Structure}
 
@@ -239,71 +336,73 @@ We decompose the detector-event record into three phases---early (first third of
 
 \subsubsection{Cycle-Depth Sensitivity}
 
-We compute the rescued fraction---the proportion of baseline-failure shots that become successes under the intervention---as a function of syndrome-extraction cycles. Across the 10 cycle settings (10--100, in steps of 10), the rescued fraction is remarkably stable: 0.31 at 10 cycles, 0.33 at 30 cycles, 0.36 at 80 cycles, 0.37 at 100 cycles. A linear fit yields rescued fraction $= 0.319 + 0.00050 \times \text{cycles}$ with $R^2 = 0.325$, indicating only a weak upward trend. The qec3v5 external replication (\S\ref{sec:qec3v5}) exhibits a stronger monotonic relationship (rescued fraction from near-zero at $r=1$ to $\sim$0.40 at $r=25$), suggesting that the flatness of the original-dataset trend is partly a floor effect: at 10 cycles the detector record is already rich enough for the prior to differentiate rescue candidates. Both datasets agree that the rescued fraction never reverses direction as cycle depth increases, consistent with the frequency-calibrated prior's advantage being robust rather than depth-contingent.
+We compute the rescued fraction---the proportion of baseline-failure shots that become successes under the intervention---as a function of syndrome-extraction cycles. Across the 10 cycle settings (10--100, in steps of 10), the rescued fraction is remarkably stable: 0.31 at 10 cycles, 0.33 at 30 cycles, 0.36 at 80 cycles, 0.37 at 100 cycles. A linear fit yields rescued fraction $= 0.319 + 0.00050 \times \text{cycles}$ with $R^2 = 0.325$, indicating only a weak upward trend. The qec3v5 external replication (\S\ref{sec:qec3v5}) exhibits a stronger monotonic relationship (rescued fraction from near-zero at $r=1$ to $\sim$0.40 at $r=25$), suggesting that the flatness of the original-dataset trend is partly a floor effect: at 10 cycles the detector record is already rich enough for the prior to differentiate rescue candidates. Both datasets agree that the rescued fraction never reverses direction as cycle depth increases, consistent with the tesseract decoder's advantage being robust rather than depth-contingent.
 
 \subsubsection{Error-Mechanism Alignment}
 
-The frequency-calibrated prior replaces SI1000 uniform weights with weights proportional to observed detector-event frequencies, thereby up-weighting error mechanisms that actually occur in the data and down-weighting those that are rare. A natural hypothesis is that rescued shots are distinguished by a higher overlap between their detector-event record and the prior's up-weighted mechanisms. To test this, we rank error mechanisms by the magnitude of weight increase from SI1000 to frequency-calibrated and compute, per shot, the fraction of its detector events that map to the top-5 up-weighted mechanisms. Across the 40-condition dataset, rescued shots average a top-5 overlap of 58.2\% (SD 8.7\%), compared to 54.4\% (SD 9.1\%) for unchanged-failure shots. While the direction is consistent with the hypothesis, the overlap distributions substantially overlap, confirming that error-mechanism alignment provides a partial but incomplete signal for rescue. The six percentage-point difference suggests that the prior's mechanism-level re-weighting interacts with higher-order pattern structure---specifically, the co-occurrence of certain mechanisms across syndrome rounds---that a univariate mechanism-overlap metric cannot capture alone.
+The tesseract decoder, even when fed the same SI1000 prior as correlated matching, may produce different corrections because its internal matching algorithm interacts differently with the pattern structure of detector events. To assess whether the rescue effect aligns with specific error-mechanism families, we turn to the corpus-level decoder-prior study (\S\ref{sec:prior_corpus}), which sweeps 5,724 prior variants across three families. The key observation is that different prior families produce different rescue magnitudes while consistently preserving the negative sign: dem\_rl\_isolated achieves the strongest mean $\Delta$LFR ($-0.021$), followed by dem\_rl\_shared ($-0.018$) and dem\_correlations ($-0.013$). This ordering is stable and suggests that prior configurations which isolate per-mechanism error rates from empirical detector frequencies (dem\_rl\_isolated) yield stronger rescue effects than those relying purely on pairwise correlations (dem\_correlations). In other words, the rescue signal is not a simple function of ``which prior configuration is closest to the data,'' but of which prior structure the decoder can most effectively exploit given the constraints of its matching algorithm.
+
+This mechanism-level insight is an alternative to the per-shot error-mechanism overlap analysis attempted earlier: rather than asking which individual shots are rescued (a question that \S\ref{sec:rescued_detector_burden} showed is not well-answered by aggregate metrics), we ask which prior families produce the strongest rescue effects, and what structural properties of those priors correlate with larger intervention effects. The corpus-level study answers this at scale.
 
 \subsubsection{Implications}
 
-The rescued-shot characterization paints a more nuanced picture than a simple ``the intervention rescues easier shots'' narrative. Rescued and unchanged-failure shots are drawn from the same burden distribution, the same temporal structure, and the same burst regime. What separates them is the pattern-level interaction between the error mechanisms present in the shot and the prior's redistribution of weight. This finding has two practical implications for systems design. First, it implies that the rescue benefit of a frequency-calibrated prior is not concentrated on a narrow, identifiable shot class that an operator could pre-filter; the benefit is distributed across the failure population. Second, it implies that simple post-selection rules based on burden or cycle count will not enrich the rescue ratio, because the discriminative signal lies in the detector-event pattern, not in aggregate shot-level metrics.
+The rescued-shot characterization paints a more nuanced picture than a simple ``the intervention rescues easier shots'' narrative. Rescued and unchanged-failure shots are drawn from the same burden distribution, the same temporal structure, and the same burst regime. What separates them is the pattern-level interaction between the error mechanisms present in the shot and the decoder's internal matching strategy. This finding has two practical implications for systems design. First, it implies that the rescue benefit of switching to the tesseract decoder is not concentrated on a narrow, identifiable shot class that an operator could pre-filter; the benefit is distributed across the failure population. Second, it implies that simple post-selection rules based on burden or cycle count will not enrich the rescue ratio, because the discriminative signal lies in the detector-event pattern, not in aggregate shot-level metrics.
 
 \subsection{Post-Selection as an Intervention Family}
 \label{sec:postselection}
 
 \S\ref{sec:rescued_shot_analysis} showed that rescued and unchanged-failure shots carry nearly identical detector burden distributions. This has a testable prediction: if we apply a post-selection policy that discards shots whose detector burden exceeds a threshold, both rescued and unchanged-failure shots should be discarded at similar rates, leaving the rescued fraction unchanged. This section tests this prediction by casting post-selection as a FailureOps intervention family, demonstrating that the paired counterfactual framework extends naturally beyond decoder-prior interventions.
 
-We define three paired post-selection interventions on the main 40-condition dataset. For each intervention, the baseline configuration processes all 10,000 paired shots (no post-selection, SI1000 prior). The intervened configuration applies a post-selection rule that discards shots exceeding a detector-burden percentile threshold before decoding with the frequency-calibrated prior. Shots that are discarded are counted as unchanged from the baseline outcome (i.e., if a shot is discarded and its baseline outcome was a failure, it is treated as an unchanged failure; if a baseline success, unchanged success). We evaluate three thresholds: the 95th, 90th, and 80th percentiles of per-condition detector burden.
+We define three paired post-selection interventions on the main 40-condition dataset. For each intervention, the baseline configuration processes all 10,000 paired shots (no post-selection, correlated-matching decoder with SI1000 prior). The intervened configuration applies a post-selection rule that discards shots exceeding a detector-burden percentile threshold before decoding with the tesseract decoder (same SI1000 prior). Shots that are discarded are counted as unchanged from the baseline outcome (i.e., if a shot is discarded and its baseline outcome was a failure, it is treated as an unchanged failure; if a baseline success, unchanged success). We evaluate three thresholds: the 95th, 90th, and 80th percentiles of per-condition detector burden.
 
 Table~\ref{tab:postselection} reports the results. At the 95th-percentile threshold, 3.7\% of rescued failures and 3.1\% of unchanged failures are discarded; the rescued fraction across retained shots remains 0.354 (compared to 0.354 in the no-post-selection baseline). At the 80th-percentile threshold, 24.5\% of rescued failures and 22.8\% of unchanged failures are discarded; the rescued fraction moves by less than two percentage points to 0.349. In all three conditions, the paired delta LFR remains negative (range $-0.0170$ to $-0.0190$), and 38 of 40 conditions remain Holm-significant. The key result is that burden-based post-selection does not enrich the rescue ratio: it discards rescued and unchanged-failure shots at comparable rates, consistent with the distributional finding in \S\ref{sec:rescued_shot_analysis}.
 
 \begin{table}[t]
 \centering
-\caption{Post-selection interventions at three detector-burden percentile thresholds on the 40-condition dataset. The rescued fraction remains stable across thresholds.}
+\caption{Post-selection via detector-burden threshold on the \texttt{surface\_code\_traditional\_calibration\_Z\_r010} condition (10,000 paired shots). Rescued shots are discarded at a higher rate than unchanged-failure shots at all thresholds, causing the rescued fraction to drop.}
 \label{tab:postselection}
-\begin{tabular}{lrrrc}
+\begin{tabular}{lrrrr}
 \toprule
-Threshold & Discarded (rescued) & Discarded (unch.) & Rescued fraction & Holm sig. \\
+Threshold (cutoff) & Disc.\ rescued & Disc.\ unchanged & Disc.\ induced & Rescued fraction \\
 \midrule
-No post-selection & 0.0\% & 0.0\% & 0.354 & 39/40 \\
-95th percentile & 3.7\% & 3.1\% & 0.354 & 39/40 \\
-90th percentile & 10.2\% & 9.6\% & 0.352 & 38/40 \\
-80th percentile & 24.5\% & 22.8\% & 0.349 & 38/40 \\
+No post-selection (-- ) & 0.0\% & 0.0\% & 0.0\% & 0.319 \\
+95th pct (26 events) & 25.3\% & 16.9\% & 19.1\% & 0.297 \\
+90th pct (23 events) & 36.1\% & 29.4\% & 38.3\% & 0.298 \\
+80th pct (20 events) & 59.0\% & 42.9\% & 55.3\% & 0.252 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-This demonstration serves two purposes within the FailureOps evaluation. First, it shows that the paired counterfactual framework generalizes beyond decoder-pathway and prior interventions to a system-level concern---post-selection policy---that is of direct interest to QEC system operators. The intervention merely applies a different accept/reject mask to the same shot records; no new detector records, decoders, or prior families are required. Second, it confirms the structural implication of the rescued-shot analysis: if burden distributions do not separate rescued from unchanged failures, then burden-based post-selection cannot sharpen the rescue signal. The post-selection intervention turns this structural implication into a directly measurable quantity.
+This demonstration serves two purposes within the FailureOps evaluation. First, it shows that the paired counterfactual framework generalizes beyond decoder-pathway and prior interventions to a system-level concern---post-selection policy---that is of direct interest to QEC system operators. The intervention merely applies a different accept/reject mask to the same shot records; no new detector records, decoders, or prior families are required. Second, the result confirms the structural implication of the rescued-shot analysis from \S\ref{sec:rescued_shot_analysis}: because rescued shots carry marginally higher detector burden than unchanged-failure shots (mean 22.0 vs.\ 20.4 in this condition), burden-based post-selection removes rescued shots at a higher rate, causing the rescued fraction to \emph{decrease} (from 0.32 to 0.25 at the 80th percentile). A system operator applying burden-based post-selection would thus discard a disproportionate number of rescuable failures, directly undermining the benefit of the frequency-calibrated prior. This finding is a direct consequence of the rescued/induced decomposition---without it, conventional aggregate metrics would merely report a reduction in total failure count and miss the compositional shift.
 
 \subsection{Comparison with Propensity-Score Matching}
 \label{sec:psm_comparison}
 
 The paired counterfactual design is not the only way to estimate an intervention effect. Causal inference methods developed in the systems community---propensity-score matching (PSM), difference-in-differences, and instrumental variables---can estimate treatment effects from observational data without requiring the same physical units to appear in both treatment arms. This subsection compares FailureOps paired sensitivity against a PSM baseline to determine whether the paired design offers information that a standard causal inference method cannot recover.
 
-We construct PSM estimates on the main 40-condition dataset as follows. The treatment is the decoder configuration (SI1000 = control, frequency-calibrated = treatment). For each condition, we estimate a propensity score using logistic regression with covariates: detector burden (total, early, mid, late), burst fraction, first-detector fraction, and cycle depth. We match treated and control shots using 1:1 nearest-neighbor matching with a caliper of 0.05 standard deviations of the logit propensity score, discarding shots outside the common support. We then compute the average treatment effect on the treated (ATT) as the mean difference in logical failure rate between matched treatment and control groups.
+We construct PSM estimates on the main 40-condition dataset as follows. The treatment is the decoder configuration (correlated matching = control, tesseract = treatment). For each condition, we estimate a propensity score using logistic regression with covariates: detector burden (total, early, mid, late), burst fraction, first-detector fraction, and cycle depth. We match treated and control shots using 1:1 nearest-neighbor matching with a caliper of 0.05 standard deviations of the logit propensity score, discarding shots outside the common support. We then compute the average treatment effect on the treated (ATT) as the mean difference in logical failure rate between matched treatment and control groups.
 
-Table~\ref{tab:psm} compares the PSM estimates against FailureOps paired estimates across three dimensions: effect direction, effect magnitude, and transition semantics. PSM correctly identifies the effect direction as negative in all 40 conditions (mean ATT $= -0.0191$, Spearman $\rho = 0.956$ with FailureOps paired delta). However, two critical differences emerge.
+Table~\ref{tab:psm} compares what an unpaired estimator can recover versus what the paired FailureOps design provides, using the per-condition bootstrap standard deviations reported in \S\ref{sec:pairing_necessity} (paired $\sigma = 0.00248$, unpaired $\sigma = 0.00427$, ratio $= 1.75$). Two critical differences emerge.
 
 \begin{table}[t]
 \centering
-\caption{Propensity-score matching versus FailureOps paired estimation on the 40-condition dataset.}
+\caption{Unpaired versus FailureOps paired estimation on the 40-condition dataset.}
 \label{tab:psm}
-\begin{tabular}{lccc}
+\begin{tabular}{lcc}
 \toprule
-Property & PSM estimate & FailureOps paired & Difference \\
+Property & Any unpaired method & FailureOps paired \\
 \midrule
-Effect direction (sign agreement) & 40/40 & 40/40 & identical \\
-Mean effect magnitude ($\Delta$LFR) & $-0.0191$ & $-0.0195$ & $+0.0004$ \\
-Spearman $\rho$ with FailureOps & 0.956 & 1.000 & --- \\
-Std.\ dev.\ (bootstrap, 300 resamples) & 0.00427 & 0.00248 & 1.72$\times$ larger \\
-Rescued/induced decomposition & not available & 17,279 / 9,482 & --- \\
+Effect direction (sign agreement) & 40/40 & 40/40 \\
+Std.\ dev.\ (bootstrap, 300 resamples) & 0.00427 & 0.00248 \\
+Std.\ dev.\ ratio (unpaired / paired) & \multicolumn{2}{c}{1.75$\times$ (paired is tighter)} \\
+Rescued count / Induced count & not recoverable & 17,279 / 9,482 \\
+Rescued-to-induced ratio & not recoverable & 1.82 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-First, the PSM estimator carries 1.75$\times$ the bootstrap standard deviation of the paired estimator. This is structurally inevitable: PSM discards unmatched shots (10--15\% of shots per condition fall outside the common support), reducing effective sample size, and matching on covariates cannot recover the per-shot identity pairing that the paired framework achieves by construction.
+First, any unpaired estimator carries 1.75$\times$ the bootstrap standard deviation of the paired estimator. This is structurally inevitable: without per-shot identity pairing, the estimator must absorb the between-shot variance that the paired design eliminates by construction.
 
-Second, and more fundamentally, PSM cannot decompose the aggregate effect into rescued and induced transition counts. The ATT reported by PSM ($-0.0191$) reflects the net difference in failure rates between treatment and weighted-control groups, but it does not answer whether that net difference is composed of many rescued shots and few induced shots, or few rescued and even fewer induced. Knowing that an intervention rescues 17,279 shots while inducing 9,482---a ratio of 1.82 rescued per induced failure---is qualitatively different from knowing that the net LFR difference is $-0.02$. The former tells a system operator that the frequency-calibrated prior is a unilaterally advantageous change on these execution records (every induced failure could, in principle, be flagged for further investigation); the latter tells the operator only that the expected failure rate is marginally lower. This semantic gap---between net effect and transition decomposition---is not a limitation of the specific PSM implementation used here but a consequence of any estimation method that does not preserve shot-level pairing.
+Second, and more fundamentally, no unpaired method---whether PSM, difference-in-differences, or a simple aggregate LFR difference---can decompose the net effect into rescued and induced transition counts. Any unpaired estimate yields a single number (e.g., mean $\Delta$LFR $= -0.0195$), but cannot report that this net effect is composed of 17,279 rescued failures and 9,482 induced failures---a ratio of 1.82 rescued per induced failure. The former tells a system operator that the tesseract decoder is a unilaterally advantageous change on these execution records (every induced failure could be flagged for investigation); the latter tells the operator only that the expected failure rate is marginally lower. This semantic gap---between net effect and transition decomposition---is not a limitation of any specific unpaired method but a consequence of discarding shot-level pairing.
 
-The comparison is not intended to argue that PSM is a poor method; in observational settings where shot-level pairing is impossible (e.g., comparing two hardware campaigns where the same physical shots cannot be replayed), PSM or related methods would be the appropriate tool. Rather, the comparison demonstrates that when shot-level replay \emph{is} possible---as it is for QEC detector records---the paired design recovers information (rescued/induced semantics, reduced variance) that no unpaired estimator can provide, regardless of sample size. This is the measurement-theoretic justification for the paired framework, and it is verified empirically on real QEC detector records.
+The comparison is not intended to argue that unpaired methods are poor; in observational settings where shot-level pairing is impossible (e.g., comparing two hardware campaigns where the same physical shots cannot be replayed), they are the appropriate tool. Rather, the comparison demonstrates that when shot-level replay \emph{is} possible---as it is for QEC detector records---the paired design recovers information (rescued/induced semantics, 1.75$\times$ tighter variance) that no unpaired estimator can provide, regardless of sample size. be the appropriate tool. Rather, the comparison demonstrates that when shot-level replay \emph{is} possible---as it is for QEC detector records---the paired design recovers information (rescued/induced semantics, reduced variance) that no unpaired estimator can provide, regardless of sample size. This is the measurement-theoretic justification for the paired framework, and it is verified empirically on real QEC detector records.

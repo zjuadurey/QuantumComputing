@@ -2,7 +2,7 @@
 %% FailureOps: Paired Counterfactual Attribution for QEC Logical Failure Behavior
 %% EuroSys 2027 Submission
 %%
-\documentclass[sigplan,review,10pt]{acmart}
+\documentclass[sigconf,review,10pt]{acmart}
 
 %% ── Metadata ──────────────────────────────────────────────────────
 \acmConference[EuroSys '27]{European Conference on Computer Systems}{April 19--23, 2027}{Rabat, Morocco}
@@ -19,7 +19,13 @@
 %% ── Title & Authors ───────────────────────────────────────────────
 \title{FailureOps: Counterfactual Failure Attribution in Quantum Computing}
 
-% TODO: author list
+\author{Anonymous Author(s)}
+\affiliation{%
+  \institution{Anonymous Institution}
+  \city{Anonymous}
+  \country{Anonymous}
+}
+\email{anonymous@anonymous}
 
 \begin{abstract}
 Quantum error correction (QEC) protects logical computations by encoding them across many physical qubits and continuously decoding syndrome data. Current practice evaluates QEC performance through aggregate logical error rates and static error-type labels. These metrics describe where errors occur but cannot answer a systems question: which controllable factors, if changed, would alter the observed logical failure behavior of a given execution?
@@ -43,6 +49,8 @@ FailureOps does not propose a new decoder, code, or threshold-estimation method.
 \input{sec06_discussion}
 \input{sec07_related}
 \input{sec08_conclusion}
+
+\input{sec09_appendix}
 
 \bibliographystyle{ACM-Reference-Format}
 \bibliography{references}

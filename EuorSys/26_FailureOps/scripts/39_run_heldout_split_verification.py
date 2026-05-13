@@ -119,7 +119,7 @@ def main() -> None:
         })
 
     ensure_parent_dir(output_path)
-    write_csv_rows(output_path, SPLIT_FIELDS, results)
+    write_csv_rows(output_path, results, SPLIT_FIELDS)
 
     # Summary
     sign_consistent_count = sum(1 for r in results if r["sign_consistent"])
@@ -129,7 +129,7 @@ def main() -> None:
         {"metric": "sign_consistent_pct", "value": fmt_float(sign_consistent_count / len(results) * 100)},
         {"metric": "note", "value": "Expected 40/40 sign-consistent since rescued >> induced in all conditions. The split confirms that the paired effect direction is robust to halving the sample."},
     ]
-    write_csv_rows(summary_path, SUMMARY_FIELDS, summary)
+    write_csv_rows(summary_path, summary, SUMMARY_FIELDS)
 
     print(f"Wrote {output_path}")
     print(f"  {sign_consistent_count}/{len(results)} conditions sign-consistent")

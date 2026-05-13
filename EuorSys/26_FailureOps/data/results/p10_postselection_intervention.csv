@@ -1,0 +1,4 @@
+threshold_percentile,discarded_rescued_pct,discarded_unchanged_pct,rescued_fraction_before,rescued_fraction_after,rescued_fraction_change,total_rescued,total_unchanged_failure,total_pairs
+95th,2.517507,0.749587,0.354347,0.350245,-0.004101,17279,31484,400000
+90th,7.928700,2.839538,0.354347,0.342136,-0.012210,17279,31484,400000
+80th,12.610683,8.531317,0.354347,0.343979,-0.010367,17279,31484,400000

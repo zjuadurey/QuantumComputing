@@ -1,0 +1,4 @@
+threshold,burden_cutoff,discarded_rescued_pct,discarded_unchanged_pct,discarded_induced_pct,rescued_fraction_before,rescued_fraction_after,condition
+95th,26,25.3,16.9,19.1,0.3192,0.2967,surface_Z_r010
+90th,23,36.1,29.4,38.3,0.3192,0.2978,surface_Z_r010
+80th,20,59.0,42.9,55.3,0.3192,0.2519,surface_Z_r010
