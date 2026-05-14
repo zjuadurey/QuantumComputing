@@ -16,7 +16,7 @@ Formally, for a shot $i$ with detector record $d_i$, the baseline configuration 
 \item \textbf{Unchanged success}: $o_{0,i} = 0$, $o_{1,i} = 0$. The shot succeeded under both configurations.
 \end{itemize}
 
-The paired delta logical-failure rate is defined as $\Delta = (R - I) / N$, where $R$ is the rescued failure count, $I$ is the induced failure count, and $N$ is the total number of paired shots. A negative $\Delta$ indicates that the intervention rescues more failures than it induces; a positive $\Delta$ indicates the reverse.
+The paired delta logical-failure rate is defined as $\Delta = (I - R) / N$, where $R$ is the rescued failure count, $I$ is the induced failure count, and $N$ is the total number of paired shots. A negative $\Delta$ indicates that the intervention rescues more failures than it induces; a positive $\Delta$ indicates the reverse.
 
 This design makes the counterfactual explicit. The question ``does this shot still fail under the intervention?'' is answered by comparing $o_{0,i}$ and $o_{1,i}$. The rescued and induced counts are not inferred from aggregate LFR differences across independent shot batches; they are directly counted over discordant pairs on the same detector records.
 

@@ -1,0 +1,11 @@
+train_mode,test_mode,deadline_us,break_even_multiplier,tess_lfr_at_breakeven,cm_lfr_at_breakeven
+reinforcement_learning,traditional_calibration,4,1.500000,0.150464,0.150465
+reinforcement_learning,traditional_calibration,5,1.800000,0.137243,0.137246
+reinforcement_learning,traditional_calibration,6,2.000000,0.132425,0.132435
+reinforcement_learning,traditional_calibration,7,2.500000,0.132363,0.132365
+reinforcement_learning,traditional_calibration,8,2.500000,0.132327,0.132365
+traditional_calibration,reinforcement_learning,4,1.500000,0.129549,0.129550
+traditional_calibration,reinforcement_learning,5,1.800000,0.116329,0.116331
+traditional_calibration,reinforcement_learning,6,2.000000,0.111512,0.111520
+traditional_calibration,reinforcement_learning,7,2.500000,0.111448,0.111450
+traditional_calibration,reinforcement_learning,8,2.500000,0.111419,0.111450
